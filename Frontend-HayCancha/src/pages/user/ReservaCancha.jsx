@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 const ReservaCancha = () => {
@@ -10,21 +10,44 @@ const ReservaCancha = () => {
   
   // Estados para el flujo
   const [paso, setPaso] = useState(1);
+  const [diaExpandido, setDiaExpandido] = useState(null); // Controla qué acordeón está abierto
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
+  
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
-  
-  // Estados para los turnos reales
-  const [horarios, setHorarios] = useState([]);
   const [guardando, setGuardando] = useState(false);
 
-  // Obtenemos la fecha de hoy en formato YYYY-MM-DD
-  const hoy = new Date().toISOString().split('T')[0];
+  // Guardamos todos los turnos ocupados a futuro
+  const [turnosOcupados, setTurnosOcupados] = useState([]);
+
+  // --- LÓGICA PARA GENERAR LOS PRÓXIMOS 7 DÍAS ---
+  const generarProximosDias = () => {
+    const dias = [];
+    for (let i = 0; i < 7; i++) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() + i);
+      
+      const fechaBD = fecha.toISOString().split('T')[0]; // Ej: "2026-07-10"
+      const nombreDia = fecha.toLocaleDateString('es-AR', { weekday: 'long' }); // Ej: "viernes"
+      const numeroDia = fecha.getDate();
+      const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' }); // Ej: "julio"
+
+      dias.push({
+        fechaBD,
+        textoMostrar: `${nombreDia} ${numeroDia} de ${nombreMes}`
+      });
+    }
+    return dias;
+  };
+
+  const diasSemana = generarProximosDias();
+  const hoyBD = diasSemana[0].fechaBD; // La fecha de hoy para traer turnos desde acá
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // 1. Cargar la info de la cancha
+        // 1. Cargar la info de la cancha (y sus horarios)
         const { data: dataCancha, error: errorCancha } = await supabase
           .from('canchas')
           .select('*')
@@ -34,26 +57,20 @@ const ReservaCancha = () => {
         if (errorCancha) throw errorCancha;
         setCancha(dataCancha);
 
-        // 2. Cargar los turnos de HOY para esta cancha específica
-        const { data: turnosHoy, error: errorTurnos } = await supabase
+        // Si es el primer render y no hay día expandido, abrimos "hoy" por defecto
+        if (!diaExpandido) {
+          setDiaExpandido(hoyBD);
+        }
+
+        // 2. Cargar TODOS los turnos desde hoy en adelante para esta cancha
+        const { data: turnos, error: errorTurnos } = await supabase
           .from('turnos')
-          .select('hora_inicio')
+          .select('fecha, hora_inicio')
           .eq('cancha_id', idCancha)
-          .eq('fecha', hoy);
+          .gte('fecha', hoyBD); // gte = Greater Than or Equal (Mayor o igual a hoy)
 
         if (errorTurnos) throw errorTurnos;
-
-        // Extraemos solo las horas que ya están guardadas (ej: ['18:00', '20:00'])
-        const horasOcupadas = turnosHoy.map(turno => turno.hora_inicio);
-
-        // 3. Armamos la grilla de horarios dinámicamente
-        const horasBase = ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
-        const grillaHorarios = horasBase.map(hora => ({
-          hora,
-          estado: horasOcupadas.includes(hora) ? 'ocupado' : 'disponible'
-        }));
-
-        setHorarios(grillaHorarios);
+        setTurnosOcupados(turnos || []);
 
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -63,19 +80,23 @@ const ReservaCancha = () => {
     };
     
     cargarDatos();
-  }, [idCancha, hoy]);
+  }, [idCancha, hoyBD, diaExpandido]);
+
+  // Si la columna está vacía, usamos estos de respaldo
+  const horariosBase = cancha?.horarios_disponibles 
+    ? cancha.horarios_disponibles.split(',').map(h => h.trim()) 
+    : ['18:00', '19:00', '20:00', '21:00', '22:00'];
 
   const confirmarReserva = async () => {
     try {
       setGuardando(true);
       
-      // INSERTAR EN SUPABASE
       const { error } = await supabase
         .from('turnos')
         .insert([
           {
             cancha_id: idCancha,
-            fecha: hoy,
+            fecha: fechaSeleccionada,
             hora_inicio: horaSeleccionada,
             nombre_cliente: nombre,
             telefono_cliente: telefono
@@ -83,8 +104,6 @@ const ReservaCancha = () => {
         ]);
 
       if (error) throw error;
-      
-      // Si salió todo bien, pasamos a la pantalla de éxito
       setPaso(3); 
     } catch (error) {
       console.error("Error al guardar la reserva:", error);
@@ -94,7 +113,12 @@ const ReservaCancha = () => {
     }
   };
 
-  if (cargando) return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando horarios...</div>;
+  const seleccionarTurno = (fecha, hora) => {
+    setFechaSeleccionada(fecha);
+    setHoraSeleccionada(hora);
+  };
+
+  if (cargando) return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando disponibilidad...</div>;
   if (!cancha) return <div style={{ padding: '20px', textAlign: 'center' }}>Cancha no encontrada</div>;
 
   return (
@@ -109,35 +133,77 @@ const ReservaCancha = () => {
         </h1>
       </div>
 
-      {/* PASO 1: Elegir Horario */}
+      {/* PASO 1: Elegir Día y Horario */}
       {paso === 1 && (
         <div className="paso-horarios">
-          <h2 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#4b5563' }}>Horarios para hoy</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            {horarios.map((h) => (
-              <button
-                key={h.hora}
-                disabled={h.estado === 'ocupado'}
-                onClick={() => setHoraSeleccionada(h.hora)}
-                style={{
-                  padding: '15px',
-                  borderRadius: '8px',
-                  border: horaSeleccionada === h.hora ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                  backgroundColor: h.estado === 'ocupado' ? '#f3f4f6' : (horaSeleccionada === h.hora ? '#eff6ff' : '#fff'),
-                  color: h.estado === 'ocupado' ? '#9ca3af' : '#000',
-                  cursor: h.estado === 'ocupado' ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontWeight: 'bold'
-                }}
-              >
-                <span>{h.hora}</span>
-                <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>
-                  {h.estado === 'ocupado' ? 'Ocupado' : 'Libre'}
-                </span>
-              </button>
-            ))}
+          <h2 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#4b5563', display: 'flex', alignItems: 'center' }}>
+            <Calendar size={18} style={{ marginRight: '8px' }} /> Seleccioná tu turno
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {diasSemana.map((dia) => {
+              const estaAbierto = diaExpandido === dia.fechaBD;
+              
+              return (
+                <div key={dia.fechaBD} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                  
+                  {/* Cabecera del Acordeón (El Día) */}
+                  <div 
+                    onClick={() => setDiaExpandido(estaAbierto ? null : dia.fechaBD)}
+                    style={{ 
+                      padding: '15px', 
+                      backgroundColor: estaAbierto ? '#eff6ff' : '#f9fafb', 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      borderBottom: estaAbierto ? '1px solid #e5e7eb' : 'none'
+                    }}
+                  >
+                    <span style={{ textTransform: 'capitalize', fontWeight: estaAbierto ? 'bold' : 'normal', color: estaAbierto ? '#1e3a8a' : '#374151' }}>
+                      {dia.textoMostrar}
+                    </span>
+                    {estaAbierto ? <ChevronUp size={20} color="#1e3a8a" /> : <ChevronDown size={20} color="#6b7280" />}
+                  </div>
+
+                  {/* Contenido del Acordeón (Los Horarios de ese día) */}
+                  {estaAbierto && (
+                    <div style={{ padding: '15px', backgroundColor: '#fff', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      {horariosBase.map((hora) => {
+                        // Verificamos si hay una fila en BD que coincida con esta fecha exacta y esta hora
+                        const estaOcupado = turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
+                        const estaSeleccionado = fechaSeleccionada === dia.fechaBD && horaSeleccionada === hora;
+
+                        return (
+                          <button
+                            key={hora}
+                            disabled={estaOcupado}
+                            onClick={() => seleccionarTurno(dia.fechaBD, hora)}
+                            style={{
+                              padding: '12px',
+                              borderRadius: '8px',
+                              border: estaSeleccionado ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                              backgroundColor: estaOcupado ? '#f3f4f6' : (estaSeleccionado ? '#eff6ff' : '#fff'),
+                              color: estaOcupado ? '#9ca3af' : '#000',
+                              cursor: estaOcupado ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            <span>{hora}</span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 'normal' }}>
+                              {estaOcupado ? 'Ocupado' : 'Libre'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {horaSeleccionada && (
@@ -154,8 +220,10 @@ const ReservaCancha = () => {
       {/* PASO 2: Ingresar Datos */}
       {paso === 2 && (
         <div className="paso-datos">
-          <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-            <p style={{ margin: 0, color: '#1e3a8a', fontWeight: 'bold' }}>Reservando a las {horaSeleccionada} hs</p>
+          <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #bfdbfe' }}>
+            <p style={{ margin: 0, color: '#1e3a8a', fontWeight: 'bold' }}>
+              Confirmando turno para el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs
+            </p>
           </div>
 
           <div style={{ marginBottom: '15px' }}>
@@ -203,7 +271,7 @@ const ReservaCancha = () => {
         <div className="paso-exito" style={{ textAlign: 'center', padding: '40px 0' }}>
           <CheckCircle size={60} color="#10b981" style={{ margin: '0 auto 20px auto' }} />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '10px' }}>¡Reserva Confirmada!</h2>
-          <p style={{ color: '#4b5563', marginBottom: '30px' }}>Te esperamos a las {horaSeleccionada} hs. ¡A jugar!</p>
+          <p style={{ color: '#4b5563', marginBottom: '30px' }}>Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
           <Link to="/" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
             Volver al inicio
           </Link>
