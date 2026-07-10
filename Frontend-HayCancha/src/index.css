@@ -1,111 +1,386 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* Reset básico para que se vea igual en todos los navegadores */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
-  margin: 0;
+  background-color: #F8FAFC;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
+/* --- ESTILOS DEL HOME --- */
+.home-container {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.header-fijo {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.header-contenido {
+  max-width: 450px;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-titulo {
+  font-size: 24px;
+  font-weight: 900;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.header-titulo span {
+  color: #2563eb;
+}
+
+.header-subtitulo {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.lista-clubes {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.mensaje-vacio {
   text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  padding: 40px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* --- ESTILOS DE LA TARJETA --- */
+.tarjeta-link {
+  display: block;
+  margin-bottom: 24px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tarjeta-club {
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+  position: relative;
+  top: 0;
+}
+
+.tarjeta-club:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  top: -4px;
+}
+
+.tarjeta-imagen-contenedor {
+  position: relative;
+  height: 208px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.tarjeta-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.tarjeta-club:hover .tarjeta-imagen {
+  transform: scale(1.05);
+}
+
+.tarjeta-gradiente {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+}
+
+.tarjeta-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #16a34a;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.tarjeta-info-principal {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  color: white;
+}
+
+.tarjeta-nombre {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.tarjeta-direccion {
+  display: flex;
+  align-items: center;
+  color: #d1d5db;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.icono-direccion {
+  color: #60a5fa;
+  margin-right: 6px;
+}
+
+.tarjeta-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+}
+
+.etiqueta-nuevo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.icono-estrella {
+  color: #facc15;
+}
+
+.texto-nuevo {
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.accion-ver {
+  display: flex;
+  align-items: center;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.icono-flecha {
+  margin-left: 2px;
+  transition: transform 0.3s ease;
+}
+
+.tarjeta-club:hover .icono-flecha {
+  transform: translateX(4px);
+}
+
+/* --- ESTILOS DEL PERFIL DEL CLUB --- */
+.perfil-container {
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  padding-bottom: 80px;
+}
+
+.banner-club {
+  position: relative;
+  height: 250px;
+  width: 100%;
+}
+
+.banner-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  /* Este gradiente hace que la parte de abajo de la foto se difumine con el color de fondo de la app */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, #F8FAFC 100%);
+}
+
+.btn-volver {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  color: #111827;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.btn-volver:hover {
+  transform: scale(1.05);
+}
+
+.info-club-contenedor {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  margin-top: -60px; /* Este margen negativo es el que crea el efecto de superposición sobre el banner */
+  z-index: 10;
+}
+
+.info-club-tarjeta {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+  margin-bottom: 32px;
+  border: 1px solid #f1f5f9;
+}
+
+.info-club-nombre {
+  font-size: 28px;
+  font-weight: 900;
+  color: #111827;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.info-club-direccion {
+  display: flex;
+  align-items: center;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.seccion-canchas {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.titulo-seccion {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.lista-canchas {
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  gap: 16px;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
+.cancha-tarjeta {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.cancha-tarjeta:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 10px 15px -3px rgba(37,99,235,0.1);
+  transform: translateY(-2px);
+}
+
+.cancha-info-basica {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.badge-deporte {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background-color: #f0fdf4;
+  color: #16a34a; /* Verde para Fútbol por defecto */
+}
+
+/* Regla especial si la cancha es de Pádel, le cambiamos el color de la etiqueta a azul */
+.badge-deporte.padel {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.cancha-nombre {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.cancha-precio-contenedor {
+  text-align: right;
+}
+
+.cancha-precio {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.cancha-precio-hora {
+  font-size: 12px;
+  color: #94a3b8;
   font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }

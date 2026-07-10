@@ -8,11 +8,12 @@ export default function HomeUsuario() {
 
   useEffect(() => {
     const obtenerClubes = async () => {
-      // Traemos todos los clubes de la base de datos
-      const { data, error } = await supabase.from('clubes').select('*');
-
+      const { data, error } = await supabase
+        .from('clubes')
+        .select('*');
+      
       if (error) {
-        console.error("Error trayendo clubes:", error);
+        console.error('Error al traer los clubes:', error);
       } else {
         setClubes(data);
       }
@@ -23,23 +24,34 @@ export default function HomeUsuario() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <header className="mb-6 pt-4 text-center">
-        <h1 className="text-3xl font-extrabold text-blue-600">HayCancha</h1>
-        <p className="text-gray-500 text-sm mt-1">San Francisco, Córdoba</p>
+    <div className="home-container">
+      <header className="header-fijo">
+        <div className="header-contenido">
+          <div>
+            <h1 className="header-titulo">
+              Hay<span>Cancha</span>
+            </h1>
+            <p className="header-subtitulo">San Francisco, Cba</p>
+          </div>
+          <div className="avatar-placeholder"></div>
+        </div>
       </header>
 
       {cargando ? (
-        <p className="text-center text-gray-400">Buscando clubes...</p>
+        <div className="mensaje-vacio">Cargando clubes...</div>
       ) : clubes.length === 0 ? (
-        <p className="text-center text-gray-400">Todavía no hay clubes adheridos.</p>
+        <div className="mensaje-vacio">
+          <p>Todavía no hay clubes adheridos.</p>
+        </div>
       ) : (
-        <div className="max-w-md mx-auto">
+        <div className="lista-clubes">
           {clubes.map((club) => (
             <TarjetaClub 
               key={club.id} 
+              id={club.id} 
               nombre={club.nombre} 
               direccion={club.direccion} 
+              imagenUrl={club.imagen_url}
             />
           ))}
         </div>
