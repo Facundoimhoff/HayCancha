@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomeUsuario from './pages/user/HomeUsuario';
 import PerfilClub from './pages/user/PerfilClub'; 
 import ReservaCancha from './pages/user/ReservaCancha';
-import LandingPage from './pages/LandingPage';
+import LandingPage from './pages/user/LandingPage'; 
 
 function App() {
   return (
