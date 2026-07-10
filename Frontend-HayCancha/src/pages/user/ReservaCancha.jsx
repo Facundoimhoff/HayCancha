@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 const ReservaCancha = () => {
@@ -8,53 +8,98 @@ const ReservaCancha = () => {
   const [cancha, setCancha] = useState(null);
   const [cargando, setCargando] = useState(true);
   
-  // Estados para el flujo de la reserva
-  const [paso, setPaso] = useState(1); // 1: Horarios, 2: Datos, 3: Confirmado
+  // Estados para el flujo
+  const [paso, setPaso] = useState(1);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
+  
+  // Estados para los turnos reales
+  const [horarios, setHorarios] = useState([]);
+  const [guardando, setGuardando] = useState(false);
 
-  // Horarios de prueba (después los cruzaremos con los turnos reales de Supabase)
-  const horariosDisponibles = [
-    { hora: '18:00', estado: 'disponible' },
-    { hora: '19:00', estado: 'ocupado' },
-    { hora: '20:00', estado: 'disponible' },
-    { hora: '21:00', estado: 'disponible' },
-    { hora: '22:00', estado: 'ocupado' },
-  ];
+  // Obtenemos la fecha de hoy en formato YYYY-MM-DD
+  const hoy = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    const cargarCancha = async () => {
+    const cargarDatos = async () => {
       try {
-        const { data, error } = await supabase
+        // 1. Cargar la info de la cancha
+        const { data: dataCancha, error: errorCancha } = await supabase
           .from('canchas')
           .select('*')
           .eq('id', idCancha)
           .single();
 
-        if (error) throw error;
-        setCancha(data);
+        if (errorCancha) throw errorCancha;
+        setCancha(dataCancha);
+
+        // 2. Cargar los turnos de HOY para esta cancha específica
+        const { data: turnosHoy, error: errorTurnos } = await supabase
+          .from('turnos')
+          .select('hora_inicio')
+          .eq('cancha_id', idCancha)
+          .eq('fecha', hoy);
+
+        if (errorTurnos) throw errorTurnos;
+
+        // Extraemos solo las horas que ya están guardadas (ej: ['18:00', '20:00'])
+        const horasOcupadas = turnosHoy.map(turno => turno.hora_inicio);
+
+        // 3. Armamos la grilla de horarios dinámicamente
+        const horasBase = ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+        const grillaHorarios = horasBase.map(hora => ({
+          hora,
+          estado: horasOcupadas.includes(hora) ? 'ocupado' : 'disponible'
+        }));
+
+        setHorarios(grillaHorarios);
+
       } catch (error) {
-        console.error("Error al cargar la cancha:", error);
+        console.error("Error al cargar datos:", error);
       } finally {
         setCargando(false);
       }
     };
-    cargarCancha();
-  }, [idCancha]);
+    
+    cargarDatos();
+  }, [idCancha, hoy]);
 
-  const confirmarReserva = () => {
-    // Acá luego mandaremos los datos a Supabase
-    console.log("Reserva confirmada:", { idCancha, horaSeleccionada, nombre, telefono });
-    setPaso(3);
+  const confirmarReserva = async () => {
+    try {
+      setGuardando(true);
+      
+      // INSERTAR EN SUPABASE
+      const { error } = await supabase
+        .from('turnos')
+        .insert([
+          {
+            cancha_id: idCancha,
+            fecha: hoy,
+            hora_inicio: horaSeleccionada,
+            nombre_cliente: nombre,
+            telefono_cliente: telefono
+          }
+        ]);
+
+      if (error) throw error;
+      
+      // Si salió todo bien, pasamos a la pantalla de éxito
+      setPaso(3); 
+    } catch (error) {
+      console.error("Error al guardar la reserva:", error);
+      alert("Hubo un error al procesar el turno. Intentá de nuevo.");
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  if (cargando) return <div className="p-5 text-center">Cargando horarios...</div>;
-  if (!cancha) return <div className="p-5 text-center">Cancha no encontrada</div>;
+  if (cargando) return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando horarios...</div>;
+  if (!cancha) return <div style={{ padding: '20px', textAlign: 'center' }}>Cancha no encontrada</div>;
 
   return (
     <div className="reserva-container" style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      {/* Cabecera */}
+      
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
         <Link to={`/`} style={{ color: '#000', marginRight: '15px' }}>
           <ArrowLeft size={24} />
@@ -69,7 +114,7 @@ const ReservaCancha = () => {
         <div className="paso-horarios">
           <h2 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#4b5563' }}>Horarios para hoy</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            {horariosDisponibles.map((h) => (
+            {horarios.map((h) => (
               <button
                 key={h.hora}
                 disabled={h.estado === 'ocupado'}
@@ -144,10 +189,10 @@ const ReservaCancha = () => {
             </button>
             <button 
               onClick={confirmarReserva}
-              disabled={!nombre || !telefono}
-              style={{ padding: '15px', backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: '2', opacity: (!nombre || !telefono) ? 0.5 : 1 }}
+              disabled={!nombre || !telefono || guardando}
+              style={{ padding: '15px', backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: '2', opacity: (!nombre || !telefono || guardando) ? 0.5 : 1 }}
             >
-              Confirmar Turno
+              {guardando ? 'Guardando...' : 'Confirmar Turno'}
             </button>
           </div>
         </div>
