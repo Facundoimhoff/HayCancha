@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
-import { supabase } from '../services/supabase'; // <-- Agregamos Supabase
+import { supabase } from '../../services/supabase'; // <-- Agregamos Supabase
 
 const LandingPage = () => {
   const navigate = useNavigate();
