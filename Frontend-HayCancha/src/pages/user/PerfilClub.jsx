@@ -63,6 +63,21 @@ export default function PerfilClub() {
         </div>
       </div>
 
+      {/* Fila de Teléfono (NUEVO) */}
+  <div className="info-club-telefono" style={{ marginTop: '10px' }}>
+    <Phone size={16} className="mr-2" />
+    <a href={`https://wa.me/${club.telefono_contacto}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: '600' }}>
+      {club.telefono_contacto}
+    </a>
+  </div>
+
+  {club.tiene_estacionamiento && (
+  <div className="info-club-estacionamiento" style={{ marginTop: '10px', color: '#16a34a', display: 'flex', alignItems: 'center' }}>
+    <span style={{ marginRight: '8px' }}>🚗</span>
+    <span style={{ fontSize: '14px', fontWeight: '600' }}>Tiene estacionamiento</span>
+  </div>
+)}
+
       {/* 3. Lista de Canchas */}
       <div className="seccion-canchas">
         <h2 className="titulo-seccion">Canchas Disponibles</h2>
