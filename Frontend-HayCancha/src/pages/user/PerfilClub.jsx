@@ -71,10 +71,10 @@ export default function PerfilClub() {
     </a>
   </div>
 
-  {club.tiene_estacionamiento && (
+ {club?.estacionamiento === true && (
   <div className="info-club-estacionamiento" style={{ marginTop: '10px', color: '#16a34a', display: 'flex', alignItems: 'center' }}>
     <span style={{ marginRight: '8px' }}>🚗</span>
-    <span style={{ fontSize: '14px', fontWeight: '600' }}>Tiene estacionamiento</span>
+    <span style={{ fontSize: '14px', fontWeight: '600' }}>Estacionamiento disponible</span>
   </div>
 )}
 
