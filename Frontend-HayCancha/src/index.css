@@ -384,3 +384,104 @@ body {
   color: #94a3b8;
   font-weight: 500;
 }
+
+/* --- ESTILOS DE INFO DEL CLUB --- */
+.info-club-direccion,
+.info-club-telefono,
+.info-club-estacionamiento {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.info-club-direccion {
+  color: #4b5563;
+}
+
+.info-club-telefono a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.info-club-estacionamiento {
+  color: #16a34a;
+}
+
+.icono-margen {
+  margin-right: 8px;
+}
+
+.texto-estacionamiento {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --- ESTILOS DE CANCHAS --- */
+.canchas-seccion {
+  padding: 20px;
+}
+
+.canchas-titulo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.canchas-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.cancha-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.cancha-tarjeta {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.cancha-tarjeta:hover {
+  transform: translateY(-3px);
+}
+
+.cancha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cancha-nombre {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.cancha-tipo {
+  background-color: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.cancha-precio {
+  color: #10b981;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.cancha-precio-hora {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: normal;
+}
