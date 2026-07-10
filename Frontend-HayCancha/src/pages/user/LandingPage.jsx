@@ -1,0 +1,123 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
+import { supabase } from '../services/supabase'; // <-- Agregamos Supabase
+
+const LandingPage = () => {
+  const navigate = useNavigate();
+  const [mostrarLogin, setMostrarLogin] = useState(false);
+  
+  // Estados para el formulario
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false); // Para mostrar "Ingresando..."
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); 
+    setError(''); // Limpiamos errores viejos
+    setCargando(true);
+    
+    try {
+      // Le mandamos los datos reales a la seguridad de Supabase
+      const { data, error: errorAuth } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (errorAuth) throw errorAuth;
+
+      // Si Supabase dice que está todo OK, entra al sistema
+      navigate('/dashboard'); 
+
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error.message);
+      setError('Correo o contraseña incorrectos. Probá de nuevo.');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  return (
+    <div className="landing-container">
+      <div className="landing-card">
+        <h1 className="landing-titulo">¡Bienvenido a Hay Cancha!</h1>
+        <p className="landing-subtitulo">¿Cómo querés ingresar hoy?</p>
+
+        {!mostrarLogin ? (
+          <div className="landing-opciones">
+            <button onClick={() => navigate('/home')} className="btn-cliente">
+              <User size={24} style={{ marginRight: '15px' }} />
+              <div>
+                <strong style={{ fontSize: '1.1rem' }}>Entrar como Cliente</strong>
+                <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'normal', marginTop: '2px' }}>
+                  Quiero buscar y reservar canchas
+                </span>
+              </div>
+              <ArrowRight size={20} style={{ marginLeft: 'auto' }} />
+            </button>
+
+            <button onClick={() => setMostrarLogin(true)} className="btn-admin">
+              <ShieldCheck size={24} style={{ marginRight: '15px' }} />
+              <div>
+                <strong style={{ fontSize: '1.1rem' }}>Entrar como Administrador</strong>
+                <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'normal', marginTop: '2px' }}>
+                  Quiero gestionar mi club y turnos
+                </span>
+              </div>
+              <ArrowRight size={20} style={{ marginLeft: 'auto' }} />
+            </button>
+          </div>
+        ) : (
+          
+          <form onSubmit={handleLogin} className="animacion-acordeon">
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#1e3a8a', display: 'flex', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+              <Lock size={18} style={{ marginRight: '8px' }} /> Acceso Administrativo
+            </h2>
+            
+            {error && (
+              <div style={{ color: '#ef4444', backgroundColor: '#fee2e2', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@correo.com"
+                className="input-login"
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '25px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>Contraseña</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="input-login"
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" onClick={() => setMostrarLogin(false)} className="btn-volver-login" disabled={cargando}>
+                Volver
+              </button>
+              <button type="submit" className="btn-entrar-login" disabled={cargando}>
+                {cargando ? 'Verificando...' : 'Ingresar al sistema'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LandingPage;

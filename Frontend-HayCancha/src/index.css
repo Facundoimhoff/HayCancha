@@ -511,3 +511,105 @@ body {
 .flecha-icono.abierta {
   transform: rotate(180deg);
 }
+
+/* --- ESTILOS DE LA LANDING PAGE (BIENVENIDA) --- */
+.landing-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f3f4f6;
+  padding: 20px;
+}
+
+.landing-card {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+}
+
+.landing-titulo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.landing-subtitulo {
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.landing-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-cliente, .btn-admin {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.btn-cliente {
+  background-color: #eff6ff;
+  color: #1e3a8a;
+  border-color: #bfdbfe;
+}
+
+.btn-cliente:hover {
+  background-color: #dbeafe;
+  transform: translateY(-2px);
+}
+
+.btn-admin {
+  background-color: #f9fafb;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+.btn-admin:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+}
+
+.input-login {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  box-sizing: border-box;
+}
+
+.btn-volver-login {
+  padding: 12px;
+  background-color: #fff;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-entrar-login {
+  padding: 12px;
+  background-color: #1e3a8a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  flex: 2;
+}
