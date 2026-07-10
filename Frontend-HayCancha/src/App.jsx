@@ -3,6 +3,7 @@ import HomeUsuario from './pages/user/HomeUsuario';
 import PerfilClub from './pages/user/PerfilClub'; 
 import ReservaCancha from './pages/user/ReservaCancha';
 import LandingPage from './pages/user/LandingPage'; 
+import DashboardAdmin from './pages/user/DashboardAdmin';
 
 function App() {
   return (
@@ -19,15 +20,7 @@ function App() {
         <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
         
         {/* Dashboard temporal para comprobar que el Login funciona */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <div style={{padding: '50px', textAlign: 'center'}}>
-              <h2>¡Login Exitoso! 🔐</h2>
-              <p>Autenticación funcionando. El dashboard lo armaremos después.</p>
-            </div>
-          } 
-        />
+        <Route path="/dashboard" element={<DashboardAdmin />} />
       </Routes>
     </BrowserRouter>
   );
