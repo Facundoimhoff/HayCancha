@@ -8,19 +8,27 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-  {/* La nueva puerta de entrada */}
-  <Route path="/" element={<LandingPage />} />
-  
-  {/* Movemos la vista de cliente a /home */}
-  <Route path="/home" element={<HomeUsuario />} /> 
-  
-  {/* Las rutas que ya tenías */}
-  <Route path="/club/:id" element={<PerfilClub />} />
-  <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
-  
-  {/* Preparamos el terreno para el paso que sigue */}
-  <Route path="/dashboard" element={<div style={{padding: '50px', textAlign: 'center'}}><h2>¡Bienvenido al Panel de Control!</h2><p>Acá armaremos las métricas.</p></div>} />
-</Routes>
+        {/* La puerta de entrada principal */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* La vista para el cliente que solo quiere reservar */}
+        <Route path="/home" element={<HomeUsuario />} /> 
+        
+        {/* Las rutas que ya tenías funcionando */}
+        <Route path="/club/:id" element={<PerfilClub />} />
+        <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
+        
+        {/* Dashboard temporal para comprobar que el Login funciona */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <div style={{padding: '50px', textAlign: 'center'}}>
+              <h2>¡Login Exitoso! 🔐</h2>
+              <p>Autenticación funcionando. El dashboard lo armaremos después.</p>
+            </div>
+          } 
+        />
+      </Routes>
     </BrowserRouter>
   );
 }
