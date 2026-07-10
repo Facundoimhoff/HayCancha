@@ -485,3 +485,29 @@ body {
   color: #6b7280;
   font-weight: normal;
 }
+
+/* Animación para que el contenido baje suavemente */
+.animacion-acordeon {
+  animation: deslizarAbajo 0.25s ease-out forwards;
+  transform-origin: top;
+}
+
+@keyframes deslizarAbajo {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación para que la flecha gire */
+.flecha-icono {
+  transition: transform 0.3s ease;
+}
+
+.flecha-icono.abierta {
+  transform: rotate(180deg);
+}

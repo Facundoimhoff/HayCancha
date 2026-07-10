@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, Calendar } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 const ReservaCancha = () => {
@@ -10,7 +10,7 @@ const ReservaCancha = () => {
   
   // Estados para el flujo
   const [paso, setPaso] = useState(1);
-  const [diaExpandido, setDiaExpandido] = useState(null); // Controla qué acordeón está abierto
+  const [diaExpandido, setDiaExpandido] = useState(null); 
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   
@@ -18,7 +18,6 @@ const ReservaCancha = () => {
   const [telefono, setTelefono] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  // Guardamos todos los turnos ocupados a futuro
   const [turnosOcupados, setTurnosOcupados] = useState([]);
 
   // --- LÓGICA PARA GENERAR LOS PRÓXIMOS 7 DÍAS ---
@@ -28,10 +27,10 @@ const ReservaCancha = () => {
       const fecha = new Date();
       fecha.setDate(fecha.getDate() + i);
       
-      const fechaBD = fecha.toISOString().split('T')[0]; // Ej: "2026-07-10"
-      const nombreDia = fecha.toLocaleDateString('es-AR', { weekday: 'long' }); // Ej: "viernes"
+      const fechaBD = fecha.toISOString().split('T')[0]; 
+      const nombreDia = fecha.toLocaleDateString('es-AR', { weekday: 'long' }); 
       const numeroDia = fecha.getDate();
-      const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' }); // Ej: "julio"
+      const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' }); 
 
       dias.push({
         fechaBD,
@@ -42,12 +41,11 @@ const ReservaCancha = () => {
   };
 
   const diasSemana = generarProximosDias();
-  const hoyBD = diasSemana[0].fechaBD; // La fecha de hoy para traer turnos desde acá
+  const hoyBD = diasSemana[0].fechaBD; 
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // 1. Cargar la info de la cancha (y sus horarios)
         const { data: dataCancha, error: errorCancha } = await supabase
           .from('canchas')
           .select('*')
@@ -57,17 +55,15 @@ const ReservaCancha = () => {
         if (errorCancha) throw errorCancha;
         setCancha(dataCancha);
 
-        // Si es el primer render y no hay día expandido, abrimos "hoy" por defecto
         if (!diaExpandido) {
           setDiaExpandido(hoyBD);
         }
 
-        // 2. Cargar TODOS los turnos desde hoy en adelante para esta cancha
         const { data: turnos, error: errorTurnos } = await supabase
           .from('turnos')
           .select('fecha, hora_inicio')
           .eq('cancha_id', idCancha)
-          .gte('fecha', hoyBD); // gte = Greater Than or Equal (Mayor o igual a hoy)
+          .gte('fecha', hoyBD); 
 
         if (errorTurnos) throw errorTurnos;
         setTurnosOcupados(turnos || []);
@@ -82,7 +78,6 @@ const ReservaCancha = () => {
     cargarDatos();
   }, [idCancha, hoyBD, diaExpandido]);
 
-  // Si la columna está vacía, usamos estos de respaldo
   const horariosBase = cancha?.horarios_disponibles 
     ? cancha.horarios_disponibles.split(',').map(h => h.trim()) 
     : ['18:00', '19:00', '20:00', '21:00', '22:00'];
@@ -163,14 +158,17 @@ const ReservaCancha = () => {
                     <span style={{ textTransform: 'capitalize', fontWeight: estaAbierto ? 'bold' : 'normal', color: estaAbierto ? '#1e3a8a' : '#374151' }}>
                       {dia.textoMostrar}
                     </span>
-                    {estaAbierto ? <ChevronUp size={20} color="#1e3a8a" /> : <ChevronDown size={20} color="#6b7280" />}
+                    <ChevronDown 
+                      size={20} 
+                      color={estaAbierto ? "#1e3a8a" : "#6b7280"} 
+                      className={`flecha-icono ${estaAbierto ? 'abierta' : ''}`} 
+                    />
                   </div>
 
                   {/* Contenido del Acordeón (Los Horarios de ese día) */}
                   {estaAbierto && (
-                    <div style={{ padding: '15px', backgroundColor: '#fff', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div className="animacion-acordeon" style={{ padding: '15px', backgroundColor: '#fff', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                       {horariosBase.map((hora) => {
-                        // Verificamos si hay una fila en BD que coincida con esta fecha exacta y esta hora
                         const estaOcupado = turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
                         const estaSeleccionado = fechaSeleccionada === dia.fechaBD && horaSeleccionada === hora;
 
