@@ -84,9 +84,15 @@ const DashboardAdmin = () => {
         .order('hora_inicio', { ascending: true });
 
       // --- CÁLCULO DE FECHAS Y MÉTRICAS ACTUALIZADO ---
+      // --- CÁLCULO DE FECHAS Y MÉTRICAS (CORREGIDO PARA HORA LOCAL) ---
       const hoyDate = new Date();
-      const hoy = hoyDate.toISOString().split('T')[0];
-      const mesActual = hoy.substring(0, 7);
+      // Armamos la fecha YYYY-MM-DD usando la hora local de Argentina, evitando el salto al día siguiente del UTC
+      const anio = hoyDate.getFullYear();
+      const mes = String(hoyDate.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoyDate.getDate()).padStart(2, '0');
+      
+      const hoy = `${anio}-${mes}-${dia}`;
+      const mesActual = `${anio}-${mes}`;
 
       // Calcular la fecha del Lunes de esta semana
       const diaSemana = hoyDate.getDay() || 7; // Convertimos Domingo (0) a 7
