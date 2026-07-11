@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabase';
 import TarjetaClub from '../../components/user/TarjetaClub';
+import { Link } from 'react-router-dom';
 
 export default function HomeUsuario() {
   const [clubes, setClubes] = useState([]);
@@ -26,14 +27,38 @@ export default function HomeUsuario() {
   return (
     <div className="home-container">
       <header className="header-fijo">
-        <div className="header-contenido">
-          <div>
+        <div className="header-contenido" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          
+          {/* ACÁ ESTÁ EL CAMBIO: El título ahora es un link a la Landing (/) */}
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
             <h1 className="header-titulo">
               Hay<span>Cancha</span>
             </h1>
             <p className="header-subtitulo">San Francisco, Cba</p>
-          </div>
-          <div className="avatar-placeholder"></div>
+          </Link>
+          
+          {/* Botón de Mis Reservas a la derecha */}
+          <Link 
+            to="/mis-reservas" 
+            style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px', 
+              backgroundColor: '#111827', 
+              color: '#fff', 
+              textDecoration: 'none', 
+              borderRadius: '20px', 
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            🗓️ Mis Reservas
+          </Link>
         </div>
       </header>
 

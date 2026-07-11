@@ -50,7 +50,8 @@ const PerfilClub = () => {
     <div className="perfil-container">
       {/* --- BANNER Y FOTO --- */}
       <div className="banner-club">
-        <Link to="/" className="btn-volver">
+        {/* ACÁ ESTÁ EL CAMBIO: Ahora vuelve a /home */}
+        <Link to="/home" className="btn-volver">
           <ArrowLeft size={20} />
         </Link>
         <img 
