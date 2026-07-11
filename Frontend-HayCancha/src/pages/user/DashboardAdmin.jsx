@@ -11,8 +11,10 @@ const DashboardAdmin = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(true);
   const [vistaActual, setVistaActual] = useState('general');
+  const [errorAcceso, setErrorAcceso] = useState(false);
 
   // Estados Globales
+  const [miClub, setMiClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [proximosTurnos, setProximosTurnos] = useState([]);
@@ -26,11 +28,53 @@ const DashboardAdmin = () => {
 
   const cargarDatos = async () => {
     try {
-      const { data: canchasData } = await supabase.from('canchas').select('*');
-      const { data: turnosData } = await supabase.from('turnos').select('*').order('fecha', { ascending: true }).order('hora_inicio', { ascending: true });
+      // 1. ¿QUIÉN INICIÓ SESIÓN?
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/');
+        return;
+      }
+
+      // 2. ¿QUÉ CLUB LE PERTENECE A ESTE CORREO?
+      const { data: clubData, error: clubError } = await supabase
+        .from('clubes')
+        .select('*')
+        .eq('admin_email', user.email)
+        .single(); // Trae solo un club
+
+      // Si no tiene club asignado, mostramos pantalla de error
+      if (clubError || !clubData) {
+        setErrorAcceso(true);
+        setCargando(false);
+        return;
+      }
+
+      setMiClub(clubData);
+
+      // 3. TRAEMOS *SOLO* LAS CANCHAS DE ESTE CLUB
+      const { data: canchasData } = await supabase
+        .from('canchas')
+        .select('*')
+        .eq('club_id', clubData.id);
 
       if (canchasData) setCanchas(canchasData);
 
+      // Si el club no tiene canchas, terminamos acá para que no dé error
+      if (!canchasData || canchasData.length === 0) {
+        setCargando(false);
+        return;
+      }
+
+      // 4. TRAEMOS *SOLO* LOS TURNOS DE ESTAS CANCHAS
+      const idsCanchas = canchasData.map(c => c.id);
+      const { data: turnosData } = await supabase
+        .from('turnos')
+        .select('*')
+        .in('cancha_id', idsCanchas) // Filtro mágico: solo turnos donde la cancha_id esté en mi lista
+        .order('fecha', { ascending: true })
+        .order('hora_inicio', { ascending: true });
+
+      // --- CÁLCULO DE MÉTRICAS (Igual que antes, pero ahora con datos filtrados) ---
       const hoy = new Date().toISOString().split('T')[0];
       const mesActual = hoy.substring(0, 7);
 
@@ -42,11 +86,9 @@ const DashboardAdmin = () => {
       const mapaClientes = {};
       const turnosFuturos = [];
 
-      if (canchasData) {
-        canchasData.forEach(c => gananciasPorCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
-      }
+      canchasData.forEach(c => gananciasPorCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
 
-      if (turnosData && canchasData) {
+      if (turnosData) {
         turnosData.forEach(turno => {
           const canchaDelTurno = canchasData.find(c => c.id === turno.cancha_id);
           const precio = canchaDelTurno ? Number(canchaDelTurno.precio_hora) : 0;
@@ -102,7 +144,7 @@ const DashboardAdmin = () => {
     if (!window.confirm("¿Cancelar y eliminar este turno?")) return;
     try {
       await supabase.from('turnos').delete().eq('id', idTurno);
-      cargarDatos(); // Recargar todo para actualizar métricas
+      cargarDatos(); 
     } catch (error) { alert("Error al cancelar el turno."); }
   };
 
@@ -136,7 +178,16 @@ const DashboardAdmin = () => {
 
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
+  // --- RENDERIZADOS CONDICIONALES ---
   if (cargando) return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6', fontWeight: 'bold' }}>Cargando sistema...</div>;
+  
+  if (errorAcceso) return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' }}>
+      <h2 style={{ color: '#ef4444' }}>Acceso Denegado</h2>
+      <p style={{ color: '#4b5563', marginBottom: '20px' }}>Tu cuenta no está vinculada a ningún club como administrador.</p>
+      <button onClick={cerrarSesion} style={{ padding: '10px 20px', backgroundColor: '#111827', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Volver al inicio</button>
+    </div>
+  );
 
   // --- COMPONENTES DE PANTALLAS ---
   const PantallaGeneral = () => (
@@ -193,7 +244,7 @@ const DashboardAdmin = () => {
             </tr>
           </thead>
           <tbody>
-            {clientes.map((cli, index) => (
+            {clientes.length === 0 ? <tr><td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Aún no hay clientes registrados.</td></tr> : clientes.map((cli, index) => (
               <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '15px 10px', fontWeight: 'bold' }}>{cli.nombre} {index === 0 && '👑'}</td>
                 <td style={{ padding: '15px 10px' }}>{cli.telefono}</td>
@@ -213,9 +264,9 @@ const DashboardAdmin = () => {
 
   const PantallaAjustes = () => (
     <div>
-      <h2 style={{ margin: '0 0 20px 0', color: '#111827' }}>Ajustes y Canchas</h2>
+      <h2 style={{ margin: '0 0 20px 0', color: '#111827' }}>Mis Canchas</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-        {canchas.map(cancha => (
+        {canchas.length === 0 ? <p>No tenés canchas cargadas todavía.</p> : canchas.map(cancha => (
           <div key={cancha.id} style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 style={{ margin: '0 0 5px 0' }}>{cancha.nombre}</h3>
@@ -233,14 +284,20 @@ const DashboardAdmin = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f9fafb', fontFamily: 'system-ui' }}>
       
-      {/* SIDEBAR LATERAL */}
+      {/* SIDEBAR LATERAL DINÁMICO */}
       <aside style={{ width: '250px', backgroundColor: '#111827', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid #1f2937' }}><h2 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}><TrendingUp color="#3b82f6" /> Admin</h2></div>
+        <div style={{ padding: '20px', borderBottom: '1px solid #1f2937' }}>
+          <h2 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#9ca3af' }}>
+            <TrendingUp color="#3b82f6" /> Panel Admin
+          </h2>
+          {/* Mostramos el nombre del club dinámicamente */}
+          {miClub && <h3 style={{ margin: '10px 0 0 0', color: '#fff', fontSize: '1.2rem' }}>{miClub.nombre}</h3>}
+        </div>
         <nav style={{ flex: 1, padding: '20px 10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
           <button onClick={() => setVistaActual('general')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', width: '100%', textAlign: 'left', backgroundColor: vistaActual === 'general' ? '#1f2937' : 'transparent', color: vistaActual === 'general' ? '#fff' : '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><LayoutDashboard size={20} /> General</button>
           <button onClick={() => setVistaActual('metricas')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', width: '100%', textAlign: 'left', backgroundColor: vistaActual === 'metricas' ? '#1f2937' : 'transparent', color: vistaActual === 'metricas' ? '#fff' : '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><BarChart3 size={20} /> Métricas</button>
           <button onClick={() => setVistaActual('clientes')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', width: '100%', textAlign: 'left', backgroundColor: vistaActual === 'clientes' ? '#1f2937' : 'transparent', color: vistaActual === 'clientes' ? '#fff' : '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><Users size={20} /> Mis Clientes</button>
-          <button onClick={() => setVistaActual('ajustes')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', width: '100%', textAlign: 'left', backgroundColor: vistaActual === 'ajustes' ? '#1f2937' : 'transparent', color: vistaActual === 'ajustes' ? '#fff' : '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><Settings size={20} /> Canchas</button>
+          <button onClick={() => setVistaActual('ajustes')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', width: '100%', textAlign: 'left', backgroundColor: vistaActual === 'ajustes' ? '#1f2937' : 'transparent', color: vistaActual === 'ajustes' ? '#fff' : '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><Settings size={20} /> Mis Canchas</button>
         </nav>
         <div style={{ padding: '20px', borderTop: '1px solid #1f2937' }}><button onClick={cerrarSesion} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}><LogOut size={20} /> Cerrar Sesión</button></div>
       </aside>
@@ -265,7 +322,7 @@ const DashboardAdmin = () => {
         {vistaActual === 'ajustes' && <PantallaAjustes />}
       </main>
 
-      {/* MODAL DE CARGA MANUAL (Aparece por encima de todo) */}
+      {/* MODAL DE CARGA MANUAL */}
       {mostrarModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '12px', width: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
