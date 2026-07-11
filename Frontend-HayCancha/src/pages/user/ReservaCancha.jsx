@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, Calendar } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 const ReservaCancha = () => {
   const { idCancha } = useParams();
+  const navigate = useNavigate(); // <-- Agregamos el hook de navegación
   const [cancha, setCancha] = useState(null);
   const [cargando, setCargando] = useState(true);
   
@@ -120,9 +121,13 @@ const ReservaCancha = () => {
     <div className="reserva-container" style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-        <Link to={`/`} style={{ color: '#000', marginRight: '15px' }}>
+        {/* --- CAMBIO ACÁ: Ahora vuelve un paso atrás en el historial --- */}
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{ color: '#000', marginRight: '15px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+        >
           <ArrowLeft size={24} />
-        </Link>
+        </button>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, textTransform: 'uppercase' }}>
           {cancha.nombre}
         </h1>
@@ -247,6 +252,7 @@ const ReservaCancha = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Este botón Atrás de acá adentro está perfecto, porque vuelve al calendario (Paso 1) */}
             <button 
               onClick={() => setPaso(1)}
               style={{ padding: '15px', backgroundColor: '#fff', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: '1' }}
@@ -270,7 +276,7 @@ const ReservaCancha = () => {
           <CheckCircle size={60} color="#10b981" style={{ margin: '0 auto 20px auto' }} />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '10px' }}>¡Reserva Confirmada!</h2>
           <p style={{ color: '#4b5563', marginBottom: '30px' }}>Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
-          <Link to="/" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+          <Link to="/home" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
             Volver al inicio
           </Link>
         </div>
