@@ -6,6 +6,7 @@ import {
   DollarSign, Calendar as CalendarIcon, Users, TrendingUp, Clock, Plus, Edit 
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import '../../index.css'; // Asegurate de que esto apunte a tu archivo CSS
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ const DashboardAdmin = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
   const [guardandoTurno, setGuardandoTurno] = useState(false);
+
+  // NUEVO: Modal Agregar Cancha
+  const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
+  const [formCancha, setFormCancha] = useState({ nombre: '', precio_hora: '' });
 
   const cargarDatos = async () => {
     try {
@@ -117,7 +122,23 @@ const DashboardAdmin = () => {
   const cambiarPrecioCancha = async (id, p) => { const n = window.prompt("Nuevo precio:", p); if(n) { await supabase.from('canchas').update({ precio_hora: Number(n) }).eq('id', id); cargarDatos(); } };
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  // --- COMPONENTES ---
+  // NUEVO: Función para guardar cancha en Supabase
+  const crearCanchaManual = async (e) => {
+    e.preventDefault();
+    if (!miClub) return;
+    
+    await supabase.from('canchas').insert([{
+      club_id: miClub.id,
+      nombre: formCancha.nombre,
+      precio_hora: Number(formCancha.precio_hora)
+    }]);
+    
+    setMostrarModalCancha(false);
+    setFormCancha({ nombre: '', precio_hora: '' });
+    cargarDatos(); // Recargamos para que aparezca
+  };
+
+  // --- COMPONENTES (Se mantienen igual salvo PantallaAjustes) ---
   const PantallaGeneral = () => (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -182,10 +203,35 @@ const DashboardAdmin = () => {
     </div>
   );
 
+  // NUEVO: Pantalla Ajustes con el diseño solicitado
   const PantallaAjustes = () => (
     <div>
-      <h2 style={{ margin: '0 0 20px 0' }}>Mis Canchas</h2>
-      {canchas.map(c => <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', background: '#fff', border: '1px solid #eee', marginBottom: '10px', borderRadius: '8px' }}>{c.nombre} - ${c.precio_hora} <button onClick={() => cambiarPrecioCancha(c.id, c.precio_hora)}><Edit size={16}/></button></div>)}
+      <header className="content-header">
+        <h1 style={{ margin: 0 }}>Mis Canchas</h1>
+        <button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}>
+          <Plus size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }}/> Agregar Cancha
+        </button>
+      </header>
+
+      <div className="canchas-list">
+        {canchas.map(c => (
+          <div key={c.id} className="cancha-card">
+            <div className="cancha-imagen-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+            <div className="cancha-info">
+              <h3>{c.nombre} - ${c.precio_hora}</h3>
+            </div>
+            <button className="btn-editar" onClick={() => cambiarPrecioCancha(c.id, c.precio_hora)} title="Editar precio">
+              <Edit size={20} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -193,34 +239,77 @@ const DashboardAdmin = () => {
   if (errorAcceso) return <div>Acceso Denegado</div>;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      <aside style={{ width: '250px', backgroundColor: '#111827', color: '#fff', padding: '20px' }}>
-        <h2>Panel Admin</h2>
-        {miClub && <h3>{miClub.nombre}</h3>}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-          <button onClick={() => setVistaActual('general')}>General</button>
-          <button onClick={() => setVistaActual('metricas')}>Métricas</button>
-          <button onClick={() => setVistaActual('clientes')}>Clientes</button>
-          <button onClick={() => setVistaActual('ajustes')}>Canchas</button>
-          <button onClick={cerrarSesion} style={{ marginTop: '20px', backgroundColor: 'red' }}>Salir</button>
+    <div className="dashboard-container">
+      {/* --- MENU LATERAL (SIDEBAR) MEJORADO --- */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h2>Panel Admin</h2>
+          {miClub && <p className="club-name">{miClub.nombre}</p>}
+        </div>
+
+        <nav className="sidebar-nav">
+          <button className={`nav-item ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => setVistaActual('general')}>
+            <LayoutDashboard size={20} /> General
+          </button>
+          
+          <button className={`nav-item ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}>
+            <BarChart3 size={20} /> Métricas
+          </button>
+          
+          <button className={`nav-item ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}>
+            <Users size={20} /> Clientes
+          </button>
+          
+          <button className={`nav-item ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}>
+            <Settings size={20} /> Canchas
+          </button>
         </nav>
+
+        <button className="btn-salir" onClick={cerrarSesion}>
+          <LogOut size={20} /> Salir
+        </button>
       </aside>
-      <main style={{ flex: 1, padding: '40px' }}>
+
+      {/* --- CONTENIDO PRINCIPAL --- */}
+      <main className="main-content">
         {vistaActual === 'general' && <PantallaGeneral />}
         {vistaActual === 'metricas' && <PantallaMetricas />}
         {vistaActual === 'clientes' && <PantallaClientes />}
         {vistaActual === 'ajustes' && <PantallaAjustes />}
       </main>
+
+      {/* Modal Agregar Turno (Se mantiene igual) */}
       {mostrarModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <form onSubmit={crearTurnoManual} style={{ background: '#fff', padding: '20px', borderRadius: '8px' }}>
+          <form onSubmit={crearTurnoManual} style={{ background: '#fff', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3>Nuevo Turno</h3>
             <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} />
             <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} />
             <input type="text" placeholder="Nombre" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} />
             <input type="text" placeholder="Tel" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} />
-            <select onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})}>{canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
-            <button type="submit">Guardar</button>
-            <button type="button" onClick={() => setMostrarModal(false)}>Cancelar</button>
+            <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})}>
+              <option value="">Seleccionar cancha...</option>
+              {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar</button>
+              <button type="button" onClick={() => setMostrarModal(false)} style={{ background: '#e5e7eb', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* NUEVO: Modal Agregar Cancha */}
+      {mostrarModalCancha && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px', width: '300px' }}>
+            <h3 style={{ margin: '0 0 10px 0' }}>Agregar Nueva Cancha</h3>
+            <input type="text" placeholder="Nombre (ej. Cancha Fútbol 5)" required onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} style={{ padding: '8px' }}/>
+            <input type="number" placeholder="Precio por hora ($)" required onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} style={{ padding: '8px' }}/>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Crear</button>
+              <button type="button" onClick={() => setMostrarModalCancha(false)} style={{ background: '#e5e7eb', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Cancelar</button>
+            </div>
           </form>
         </div>
       )}
