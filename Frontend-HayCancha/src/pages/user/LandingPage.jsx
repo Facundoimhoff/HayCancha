@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // <-- Agregamos Link acá
 import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
-import { supabase } from '../../services/supabase'; // <-- Agregamos Supabase
+import { supabase } from '../../services/supabase';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -11,15 +11,14 @@ const LandingPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(false); // Para mostrar "Ingresando..."
+  const [cargando, setCargando] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault(); 
-    setError(''); // Limpiamos errores viejos
+    setError(''); 
     setCargando(true);
     
     try {
-      // Le mandamos los datos reales a la seguridad de Supabase
       const { data, error: errorAuth } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
@@ -27,7 +26,6 @@ const LandingPage = () => {
 
       if (errorAuth) throw errorAuth;
 
-      // Si Supabase dice que está todo OK, entra al sistema
       navigate('/dashboard'); 
 
     } catch (error) {
@@ -113,7 +111,19 @@ const LandingPage = () => {
                 {cargando ? 'Verificando...' : 'Ingresar al sistema'}
               </button>
             </div>
+
+            {/* --- NUEVO BLOQUE DE PLANES --- */}
+            <div style={{ marginTop: '25px', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <p style={{ margin: 0, color: '#6b7280', fontSize: '0.95rem' }}>
+                ¿No tenés una cuenta?{' '}
+                <Link to="/planes" style={{ color: '#1e3a8a', fontWeight: 'bold', textDecoration: 'none' }}>
+                  Conocé nuestros planes
+                </Link>
+              </p>
+            </div>
+
           </form>
+          
         )}
       </div>
     </div>

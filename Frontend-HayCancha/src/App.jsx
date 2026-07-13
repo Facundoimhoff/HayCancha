@@ -5,6 +5,7 @@ import ReservaCancha from './pages/user/ReservaCancha';
 import LandingPage from './pages/user/LandingPage'; 
 import DashboardAdmin from './pages/user/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
+import Planes from './pages/user/Planes';
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardAdmin />} />
 
         <Route path="/mis-reservas" element={<MisReservas />} />
+
+        <Route path="/planes" element={<Planes />} />
         
       </Routes>
     </BrowserRouter>
