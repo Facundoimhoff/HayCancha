@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // <-- Agregamos Link acá
 import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+import FormularioContacto from './FormularioContacto';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -143,7 +144,7 @@ const LandingPage = () => {
           Ir al formulario
         </Link>
       </div>
-      
+
     </div>
   );
 };

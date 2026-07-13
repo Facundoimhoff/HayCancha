@@ -7,7 +7,7 @@ const FormularioContacto = () => {
   const navigate = useNavigate();
 
   // Reemplazá TU_CODIGO_FORMSPREE por el código que te da la página
-  const FORMSPREE_URL = "https://formspree.io/f/TU_CODIGO_FORMSPREE"; 
+  const FORMSPREE_URL = "https://formspree.io/f/xrengjgv"; 
 
   const manejarEnvio = async (e) => {
     e.preventDefault();
