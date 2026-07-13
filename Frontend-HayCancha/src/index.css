@@ -913,3 +913,53 @@ body {
     box-sizing: border-box;
   }
 }
+
+/* ======== BLOQUE EMPRESAS ======== */
+
+.bloque-empresa {
+  margin-top: 28px;
+  padding: 22px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.bloque-empresa h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.bloque-empresa p {
+  margin: 12px 0 22px;
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.btn-contacto-empresa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #374151;
+  color: #fff;
+  text-decoration: none;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all .25s ease;
+}
+
+.btn-contacto-empresa:hover {
+  background: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+.btn-contacto-empresa:active {
+  transform: translateY(0);
+}
