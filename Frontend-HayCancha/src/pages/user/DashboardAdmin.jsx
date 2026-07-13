@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
-  DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, Image as ImageIcon 
+  DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, Image as ImageIcon, Ban 
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../../index.css';
@@ -34,27 +34,20 @@ const DashboardAdmin = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
   
-  // Modal Nueva Cancha (AÑADIMOS DEPORTE, HORARIOS E IMAGEN)
+  // NUEVO: Modal Bloquear Horario
+  const [mostrarModalBloqueo, setMostrarModalBloqueo] = useState(false);
+  const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
+
+  // Modal Nueva Cancha
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ 
-    nombre: '', 
-    deporte: '',
-    precio_hora: '', 
-    hora_apertura: '08:00', 
-    hora_cierre: '23:00', 
-    imagen_url: '' 
+    nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
 
-  // Modal Editar Cancha (AÑADIMOS DEPORTE)
+  // Modal Editar Cancha
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [canchaEditando, setCanchaEditando] = useState({ 
-    id: '', 
-    nombre: '', 
-    deporte: '',
-    precio_hora: '', 
-    hora_apertura: '08:00', 
-    hora_cierre: '23:00', 
-    imagen_url: '' 
+    id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
 
   const cargarDatos = async () => {
@@ -62,21 +55,11 @@ const DashboardAdmin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
-      const { data: clubData } = await supabase
-        .from('clubes')
-        .select('*')
-        .eq('admin_email', user.email)
-        .single();
-
+      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
 
-      const { data: canchasData } = await supabase
-        .from('canchas')
-        .select('*')
-        .eq('club_id', clubData.id)
-        .order('id', { ascending: true });
-
+      const { data: canchasData } = await supabase.from('canchas').select('*').eq('club_id', clubData.id).order('id', { ascending: true });
       setCanchas(canchasData || []);
       
       if (!canchasData || canchasData.length === 0) { setCargando(false); return; }
@@ -90,12 +73,7 @@ const DashboardAdmin = () => {
       monday.setDate(now.getDate() - day + 1);
       const semanaStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
 
-      const { data: turnosData } = await supabase
-        .from('turnos')
-        .select('*')
-        .in('cancha_id', canchasData.map(c => c.id))
-        .order('fecha', { ascending: true })
-        .order('hora_inicio', { ascending: true });
+      const { data: turnosData } = await supabase.from('turnos').select('*').in('cancha_id', canchasData.map(c => c.id)).order('fecha', { ascending: true }).order('hora_inicio', { ascending: true });
 
       let iMes = 0, iSem = 0, iDia = 0, tMes = 0;
       const ganCancha = {};
@@ -107,22 +85,26 @@ const DashboardAdmin = () => {
       turnosData?.forEach(t => {
         const c = canchasData.find(x => x.id === t.cancha_id);
         const precio = c ? Number(c.precio_hora) : 0;
+        const esBloqueo = t.telefono_cliente === 'BLOQUEO'; // Identificamos si es un bloqueo
 
-        if (t.fecha.startsWith(mesActualStr)) {
-          iMes += precio;
-          tMes += 1;
-          if (c) ganCancha[t.cancha_id].ganancias += precio;
+        // Solo sumamos dinero y turnos si NO es un bloqueo
+        if (!esBloqueo) {
+          if (t.fecha.startsWith(mesActualStr)) {
+            iMes += precio;
+            tMes += 1;
+            if (c) ganCancha[t.cancha_id].ganancias += precio;
+          }
+          if (t.fecha >= semanaStr) iSem += precio;
+          if (t.fecha === hoyStr) iDia += precio;
+
+          if (!mapaClientes[t.telefono_cliente]) {
+            mapaClientes[t.telefono_cliente] = { nombre: t.nombre_cliente, telefono: t.telefono_cliente, cant: 0 };
+          }
+          mapaClientes[t.telefono_cliente].cant += 1;
         }
 
-        if (t.fecha >= semanaStr) iSem += precio;
-        if (t.fecha === hoyStr) iDia += precio;
-
-        if (t.fecha >= hoyStr) prox.push({ ...t, nombre_cancha: c?.nombre || '?' });
-        
-        if (!mapaClientes[t.telefono_cliente]) {
-          mapaClientes[t.telefono_cliente] = { nombre: t.nombre_cliente, telefono: t.telefono_cliente, cant: 0 };
-        }
-        mapaClientes[t.telefono_cliente].cant += 1;
+        // A la agenda lo mandamos igual (sea cliente o bloqueo)
+        if (t.fecha >= hoyStr) prox.push({ ...t, nombre_cancha: c?.nombre || '?', esBloqueo });
       });
 
       setMetricas({ ingresosDia: iDia, ingresosSemana: iSem, ingresosMes: iMes, turnosMes: tMes });
@@ -136,8 +118,9 @@ const DashboardAdmin = () => {
   useEffect(() => { cargarDatos(); }, []);
 
   // Funciones de Acciones
-  const cancelarTurno = async (id) => { 
-    if(window.confirm("¿Estás seguro de cancelar este turno?")) { 
+  const cancelarTurno = async (id, esBloqueo) => { 
+    const mensaje = esBloqueo ? "¿Liberar este horario bloqueado?" : "¿Estás seguro de cancelar este turno?";
+    if(window.confirm(mensaje)) { 
       await supabase.from('turnos').delete().eq('id', id); 
       cargarDatos(); 
     } 
@@ -149,71 +132,62 @@ const DashboardAdmin = () => {
     setMostrarModal(false); 
     cargarDatos(); 
   };
-  
-  const cerrarSesion = async () => { 
-    await supabase.auth.signOut(); 
-    navigate('/'); 
-  };
 
-  // NUEVA FUNCIÓN PARA CREAR CANCHA
-  const crearCanchaManual = async (e) => {
+  // NUEVO: Función para guardar un Bloqueo
+  const crearBloqueo = async (e) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase.from('turnos').insert([{
+        cancha_id: formBloqueo.cancha_id,
+        fecha: formBloqueo.fecha,
+        hora_inicio: formBloqueo.hora_inicio,
+        nombre_cliente: `Bloqueado: ${formBloqueo.motivo || 'Mantenimiento'}`,
+        telefono_cliente: 'BLOQUEO' // Esto es clave para que el sistema sepa que no es dinero real
+      }]);
+
+      if (error) throw error;
+
+      setMostrarModalBloqueo(false);
+      setFormBloqueo({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
+      await cargarDatos();
+    } catch (err) {
+      alert("Error al bloquear horario: " + err.message);
+    }
+  };
+  
+  const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
+
+  // Funciones de Canchas (Crear y Editar)
+  const crearCanchaManual = async (e) => { /* ... igual que antes ... */
     e.preventDefault();
     try {
       const { error } = await supabase.from('canchas').insert([{ 
-        club_id: miClub.id, 
-        nombre: formCancha.nombre, 
-        deporte: formCancha.deporte,
-        precio_hora: Number(formCancha.precio_hora),
-        hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre,
-        imagen_url: formCancha.imagen_url
+        club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
+        precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
+        hora_cierre: formCancha.hora_cierre, imagen_url: formCancha.imagen_url
       }]);
-
-      if (error) {
-        alert("Hubo un error al crear la cancha: " + error.message);
-        return; 
-      }
-
+      if (error) { alert("Error: " + error.message); return; }
       setMostrarModalCancha(false);
       setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
       await cargarDatos(); 
-
-    } catch (err) {
-      alert("Ocurrió un error inesperado al guardar.");
-    }
+    } catch (err) { alert("Error inesperado al guardar."); }
   };
 
-  // PREPARAR DATOS PARA EDITAR
   const abrirModalEditar = (cancha) => {
     setCanchaEditando({
-      id: cancha.id,
-      nombre: cancha.nombre,
-      deporte: cancha.deporte || '',
-      precio_hora: cancha.precio_hora,
-      hora_apertura: cancha.hora_apertura || '08:00', 
-      hora_cierre: cancha.hora_cierre || '23:00',
-      imagen_url: cancha.imagen_url || ''
+      id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
+      hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || ''
     });
     setMostrarModalEditar(true);
   };
 
-  // GUARDAR EDICIÓN
   const guardarEdicionCancha = async (e) => {
     e.preventDefault();
     const { error } = await supabase.from('canchas').update({
-      nombre: canchaEditando.nombre,
-      deporte: canchaEditando.deporte,
-      precio_hora: Number(canchaEditando.precio_hora),
-      hora_apertura: canchaEditando.hora_apertura,
-      hora_cierre: canchaEditando.hora_cierre,
-      imagen_url: canchaEditando.imagen_url
+      nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
+      hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: canchaEditando.imagen_url
     }).eq('id', canchaEditando.id);
-    
-    if (error) {
-      alert("Error al guardar los cambios: " + error.message);
-      return;
-    }
-
+    if (error) { alert("Error al guardar: " + error.message); return; }
     setMostrarModalEditar(false);
     await cargarDatos();
   };
@@ -223,9 +197,14 @@ const DashboardAdmin = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ margin: 0, color: '#111827' }}>Vista General (Este Mes)</h2>
-        <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-          <Plus size={18} /> Nuevo Turno Manual
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setMostrarModalBloqueo(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+            <Ban size={18} /> Bloquear
+          </button>
+          <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+            <Plus size={18} /> Nuevo Turno
+          </button>
+        </div>
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -243,11 +222,27 @@ const DashboardAdmin = () => {
         <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={20} /> Agenda Próxima</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {proximosTurnos.length === 0 ? <p style={{ color: '#6b7280' }}>No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
-            <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
-              <div><p style={{ margin: 0, fontWeight: 'bold' }}>{t.nombre_cliente}</p><p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>{t.fecha} • {t.hora_inicio} • {t.nombre_cancha}</p></div>
+            <div key={t.id} style={{ 
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', 
+              backgroundColor: t.esBloqueo ? '#fef3c7' : '#f9fafb', // Naranja clarito si está bloqueado
+              borderLeft: t.esBloqueo ? '4px solid #f59e0b' : '4px solid #3b82f6', // Borde naranja o azul
+              borderRadius: '8px', borderRight: '1px solid #e5e7eb', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb'
+            }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 'bold', color: t.esBloqueo ? '#b45309' : '#111827' }}>
+                  {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente}</> : t.nombre_cliente}
+                </p>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
+                  {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
+                </p>
+              </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => cancelarTurno(t.id)} style={{ backgroundColor: '#ef4444', color: '#fff', padding: '8px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
-                <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25D366', color: '#fff', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>WhatsApp</a>
+                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} style={{ backgroundColor: t.esBloqueo ? '#fff' : '#ef4444', color: t.esBloqueo ? '#b45309' : '#fff', padding: '8px', border: t.esBloqueo ? '1px solid #b45309' : 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  {t.esBloqueo ? 'Liberar' : 'Cancelar'}
+                </button>
+                {!t.esBloqueo && (
+                  <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25D366', color: '#fff', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>WhatsApp</a>
+                )}
               </div>
             </div>
           ))}
@@ -256,100 +251,60 @@ const DashboardAdmin = () => {
     </div>
   );
 
-  const PantallaMetricas = () => {
+  const PantallaMetricas = () => { /* ... igual que antes ... */
     const v = filtroTiempo === 'dia' ? metricas.ingresosDia : filtroTiempo === 'semana' ? metricas.ingresosSemana : metricas.ingresosMes;
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <h2 style={{ margin: 0 }}>Análisis de Ingresos</h2>
           <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}>
-            <option value="dia">Hoy</option>
-            <option value="semana">Esta Semana</option>
-            <option value="mes">Este Mes</option>
+            <option value="dia">Hoy</option><option value="semana">Esta Semana</option><option value="mes">Este Mes</option>
           </select>
         </div>
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', height: '350px' }}>
           <h3 style={{ color: '#16a34a' }}>${v} Recaudado</h3>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={datosGrafico}>
-              <CartesianGrid strokeDasharray="3 3"/>
-              <XAxis dataKey="nombre"/>
-              <YAxis/>
-              <Tooltip/>
-              <Bar dataKey="ganancias" fill="#3b82f6"/>
-            </BarChart>
+            <BarChart data={datosGrafico}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="nombre"/><YAxis/><Tooltip/><Bar dataKey="ganancias" fill="#3b82f6"/></BarChart>
           </ResponsiveContainer>
         </div>
       </div>
     );
   };
 
-  const PantallaClientes = () => (
+  const PantallaClientes = () => ( /* ... igual que antes ... */
     <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
       <h2 style={{ margin: '0 0 20px 0' }}>Clientes Frecuentes</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f1f5f9' }}>
-            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Nombre</th>
-            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Teléfono</th>
-            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Total Turnos</th>
-          </tr>
-        </thead>
+        <thead><tr style={{ backgroundColor: '#f1f5f9' }}><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Nombre</th><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Teléfono</th><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Total Turnos</th></tr></thead>
         <tbody>
           {clientes.map((c, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
-              <td style={{ padding: '12px' }}>{c.nombre}</td>
-              <td style={{ padding: '12px' }}>{c.telefono}</td>
-              <td style={{ padding: '12px' }}>
-                <span style={{ backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                  {c.cant} turnos
-                </span>
-              </td>
-            </tr>
+            <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}><td style={{ padding: '12px' }}>{c.nombre}</td><td style={{ padding: '12px' }}>{c.telefono}</td><td style={{ padding: '12px' }}><span style={{ backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.cant} turnos</span></td></tr>
           ))}
         </tbody>
       </table>
     </div>
   );
 
-  const PantallaAjustes = () => (
+  const PantallaAjustes = () => ( /* ... igual que antes ... */
     <div>
-      <header className="content-header">
-        <h1 style={{ margin: 0 }}>Mis Canchas</h1>
-        <button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}>
-          <Plus size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }}/> Agregar Cancha
-        </button>
-      </header>
-
+      <header className="content-header"><h1 style={{ margin: 0 }}>Mis Canchas</h1><button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}><Plus size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }}/> Agregar Cancha</button></header>
       <div className="canchas-list">
         {canchas.map(c => (
           <div key={c.id} className="cancha-card">
-            
             <div className="cancha-imagen-placeholder" style={c.imagen_url ? { padding: 0, overflow: 'hidden', border: 'none' } : {}}>
-              {c.imagen_url ? (
-                <img src={c.imagen_url} alt={c.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <ImageIcon color="#9ca3af" size={32} />
-              )}
+              {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImageIcon color="#9ca3af" size={32} />}
             </div>
-
             <div className="cancha-info">
               <h3>{c.nombre} <span style={{ fontSize: '0.8rem', backgroundColor: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', marginLeft: '8px', color: '#475569' }}>{c.deporte}</span></h3>
-              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-                ${c.precio_hora} / hora • ⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}
-              </p>
+              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>${c.precio_hora} / hora • ⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
             </div>
-            
-            <button className="btn-editar" onClick={() => abrirModalEditar(c)} title="Editar información">
-              <Edit size={20} />
-            </button>
+            <button className="btn-editar" onClick={() => abrirModalEditar(c)} title="Editar información"><Edit size={20} /></button>
           </div>
         ))}
       </div>
     </div>
   );
 
-  // --- RENDERIZADO PRINCIPAL ---
   if (cargando) return <div style={{ padding: '40px', textAlign: 'center', fontSize: '1.2rem' }}>Cargando panel...</div>;
   if (errorAcceso) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>Acceso Denegado. Solo administradores.</div>;
 
@@ -399,7 +354,32 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* 2. Modal CREAR Cancha (Mejorado para ser igual al de editar) */}
+      {/* 2. Modal Bloquear Horario (Mantenimiento) */}
+      {mostrarModalBloqueo && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <form onSubmit={crearBloqueo} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
+            <h3 style={{ margin: 0, color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px' }}><Ban size={20}/> Bloquear Horario</h3>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Usá esto para bloquear la cancha por mantenimiento o limpieza. Los clientes no podrán reservarla.</p>
+            
+            <input type="date" required onChange={(e) => setFormBloqueo({...formBloqueo, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="time" required onChange={(e) => setFormBloqueo({...formBloqueo, hora_inicio: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            
+            <select required onChange={(e) => setFormBloqueo({...formBloqueo, cancha_id: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+              <option value="">Seleccionar cancha...</option>
+              {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+
+            <input type="text" placeholder="Motivo (Ej: Mantenimiento)" onChange={(e) => setFormBloqueo({...formBloqueo, motivo: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" style={{ background: '#f59e0b', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Bloquear</button>
+              <button type="button" onClick={() => setMostrarModalBloqueo(false)} style={{ background: '#e5e7eb', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 3. Modal CREAR Cancha */}
       {mostrarModalCancha && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -445,7 +425,7 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* 3. Modal EDITAR Cancha */}
+      {/* 4. Modal EDITAR Cancha */}
       {mostrarModalEditar && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form onSubmit={guardarEdicionCancha} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -490,7 +470,6 @@ const DashboardAdmin = () => {
           </form>
         </div>
       )}
-
     </div>
   );
 };
