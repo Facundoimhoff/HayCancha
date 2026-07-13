@@ -31,7 +31,7 @@ app.post('/api/crear-suscripcion', async (req, res) => {
           currency_id: 'ARS' // Moneda: Pesos Argentinos
         },
         // Cuando el pago se apruebe, lo devolvemos a tu pantalla de configuración
-        back_url: 'http://localhost:5173/onboarding', 
+        back_url: 'https://hay-cancha-xi.vercel.app/onboarding', 
       }
     });
 

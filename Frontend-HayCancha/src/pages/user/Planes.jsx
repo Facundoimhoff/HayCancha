@@ -5,7 +5,7 @@ const Planes = () => {
   const manejarPago = async (nombrePlan, precioPlan) => {
     try {
       // Llamamos a nuestro backend en el puerto 3000
-      const respuesta = await fetch('http://localhost:3000/api/crear-suscripcion', {
+      const respuesta = await fetch('https://haycancha.onrender.com/api/crear-suscripcion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: nombrePlan, precio: precioPlan })
@@ -88,7 +88,7 @@ const Planes = () => {
             </ul>
 
             <button 
-              onClick={() => manejarPago('Pro', 1)}
+              onClick={() => manejarPago('Pro', 15000)}
               style={{ width: '100%', padding: '15px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
