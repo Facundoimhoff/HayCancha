@@ -5,7 +5,7 @@ import { supabase } from '../../services/supabase';
 
 const ReservaCancha = () => {
   const { idCancha } = useParams();
-  const navigate = useNavigate(); // <-- Agregamos el hook de navegación
+  const navigate = useNavigate(); 
   const [cancha, setCancha] = useState(null);
   const [cargando, setCargando] = useState(true);
   
@@ -79,9 +79,25 @@ const ReservaCancha = () => {
     cargarDatos();
   }, [idCancha, hoyBD, diaExpandido]);
 
-  const horariosBase = cancha?.horarios_disponibles 
-    ? cancha.horarios_disponibles.split(',').map(h => h.trim()) 
-    : ['18:00', '19:00', '20:00', '21:00', '22:00'];
+  // --- LÓGICA DINÁMICA DE HORARIOS ---
+  const generarHorariosDisponibles = (apertura, cierre) => {
+    const horarios = [];
+    // Si por algún motivo llegan vacíos, seteamos valores seguros por defecto
+    const horaInicioStr = apertura || '08:00';
+    const horaFinStr = cierre || '23:00';
+
+    let horaActual = parseInt(horaInicioStr.split(':')[0]); 
+    const horaFin = parseInt(horaFinStr.split(':')[0]);    
+
+    while (horaActual < horaFin) {
+      horarios.push(`${horaActual.toString().padStart(2, '0')}:00`);
+      horaActual++;
+    }
+    
+    return horarios;
+  };
+
+  const horariosBase = cancha ? generarHorariosDisponibles(cancha.hora_apertura, cancha.hora_cierre) : [];
 
   const confirmarReserva = async () => {
     try {
@@ -121,7 +137,6 @@ const ReservaCancha = () => {
     <div className="reserva-container" style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-        {/* --- CAMBIO ACÁ: Ahora vuelve un paso atrás en el historial --- */}
         <button 
           onClick={() => navigate(-1)} 
           style={{ color: '#000', marginRight: '15px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
@@ -252,7 +267,6 @@ const ReservaCancha = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
-            {/* Este botón Atrás de acá adentro está perfecto, porque vuelve al calendario (Paso 1) */}
             <button 
               onClick={() => setPaso(1)}
               style={{ padding: '15px', backgroundColor: '#fff', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: '1' }}
