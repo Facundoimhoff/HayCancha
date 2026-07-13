@@ -6,6 +6,7 @@ import LandingPage from './pages/user/LandingPage';
 import DashboardAdmin from './pages/user/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
+import Onboarding from './pages/user/Onboarding';
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
         <Route path="/mis-reservas" element={<MisReservas />} />
 
         <Route path="/planes" element={<Planes />} />
+
+        <Route path="/onboarding" element={<Onboarding />} />
         
       </Routes>
     </BrowserRouter>

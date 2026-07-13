@@ -2,9 +2,26 @@ import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Planes = () => {
-  const manejarPago = (plan) => {
-    // Acá luego conectaremos la API de Mercado Pago
-    alert(`Próximamente: Redirigiendo a Mercado Pago para el plan ${plan}`);
+  const manejarPago = async (nombrePlan, precioPlan) => {
+    try {
+      // Llamamos a nuestro backend en el puerto 3000
+      const respuesta = await fetch('http://localhost:3000/api/crear-suscripcion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: nombrePlan, precio: precioPlan })
+      });
+      
+      const data = await respuesta.json();
+      
+      // Si Mercado Pago nos devolvió el link, redirigimos al usuario a la pasarela
+      if (data.linkPago) {
+        window.location.href = data.linkPago; // Magia: te lleva a Mercado Pago
+      } else {
+        alert('Error: Mercado Pago no devolvió el link de pago.');
+      }
+    } catch (error) {
+      alert('Hubo un error al conectar con la pasarela de pagos. Asegurate de que el backend (puerto 3000) esté encendido.');
+    }
   };
 
   return (
@@ -42,7 +59,7 @@ const Planes = () => {
             </ul>
 
             <button 
-              onClick={() => manejarPago('Basico')}
+              onClick={() => manejarPago('Básico', 15000)} 
               style={{ width: '100%', padding: '15px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseOver={(e) => { e.target.style.backgroundColor = '#2563eb'; e.target.style.color = '#fff'; }}
               onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.color = '#2563eb'; }}
@@ -71,7 +88,7 @@ const Planes = () => {
             </ul>
 
             <button 
-              onClick={() => manejarPago('Pro')}
+              onClick={() => manejarPago('Pro', 1)}
               style={{ width: '100%', padding: '15px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
