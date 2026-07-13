@@ -7,6 +7,7 @@ import DashboardAdmin from './pages/user/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
 import Onboarding from './pages/user/Onboarding';
+import FormularioContacto from './pages/user/FormularioContacto';
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
         <Route path="/planes" element={<Planes />} />
 
         <Route path="/onboarding" element={<Onboarding />} />
+
+        <Route path="/contacto" element={<FormularioContacto />} />
         
       </Routes>
     </BrowserRouter>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // <-- Agregamos Link acá
 import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import FormularioContacto from './FormularioContacto';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -131,6 +130,20 @@ const LandingPage = () => {
       <div style={{ padding: '50px 20px', backgroundColor: '#f9fafb' }}>
         <FormularioContacto />
       </div>
+
+      <div style={{ padding: '60px 20px', backgroundColor: '#eff6ff', textAlign: 'center', marginTop: '40px', borderTop: '1px solid #bfdbfe' }}>
+        <h2 style={{ color: '#1e3a8a', marginBottom: '10px', fontSize: '1.8rem' }}>¿Sos un club y querés este sistema?</h2>
+        <p style={{ color: '#4b5563', marginBottom: '25px', fontSize: '1.1rem' }}>
+          ¿Tenés alguna sugerencia o querés probar la plataforma? Escribinos.
+        </p>
+        <Link 
+          to="/contacto" 
+          style={{ display: 'inline-block', backgroundColor: '#2563eb', color: 'white', padding: '14px 28px', borderRadius: '8px', fontWeight: 'bold', textDecoration: 'none', fontSize: '1.1rem', transition: 'background-color 0.2s' }}
+        >
+          Ir al formulario
+        </Link>
+      </div>
+      
     </div>
   );
 };
