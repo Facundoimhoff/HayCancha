@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // <-- Agregamos Link acá
 import { User, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import FormularioContacto from './FormularioContacto';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -116,24 +115,20 @@ const LandingPage = () => {
               Contactanos y conocé cómo implementar Hay Cancha en tu institución.
             </p>
 
-            <button
-              onClick={() =>
-                document
-                  .getElementById('contacto')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              style={{
-                backgroundColor: '#2563eb',
-                color: '#fff',
-                border: 'none',
-                padding: '10px 24px',
-                borderRadius: '8px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-            >
-              Contacto
-            </button>
+            <Link
+    to="/contacto"
+    style={{
+        display: 'inline-block',
+        backgroundColor: '#2563eb',
+        color: 'white',
+        padding: '10px 24px',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        textDecoration: 'none'
+    }}
+>
+    Ir al formulario
+</Link>
           </div>
         </>
       ) : (
@@ -262,16 +257,6 @@ const LandingPage = () => {
           </div>
         </form>
       )}
-    </div>
-
-    <div
-      id="contacto"
-      style={{
-        padding: '50px 20px',
-        backgroundColor: '#f9fafb',
-      }}
-    >
-      <FormularioContacto />
     </div>
   </div>
   );
