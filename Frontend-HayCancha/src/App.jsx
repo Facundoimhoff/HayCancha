@@ -30,6 +30,8 @@ function App() {
         <Route path="/planes" element={<Planes />} />
 
         <Route path="/onboarding" element={<Onboarding />} />
+
+        <Route path="/contacto" element={<FormularioContacto />} />
         
       </Routes>
     </BrowserRouter>
