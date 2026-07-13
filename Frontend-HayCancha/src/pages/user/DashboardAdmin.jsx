@@ -22,16 +22,23 @@ const DashboardAdmin = () => {
   const [datosGrafico, setDatosGrafico] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
-  const [metricas, setMetricas] = useState({ ingresosDia: 0, ingresosSemana: 0, ingresosMes: 0, turnosMes: 0 });
+  // Métricas
+  const [metricas, setMetricas] = useState({ 
+    ingresosDia: 0, 
+    ingresosSemana: 0, 
+    ingresosMes: 0, 
+    turnosMes: 0 
+  });
 
-  // Modales
+  // Modal Turno Manual
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
   
+  // Modal Nueva Cancha
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ nombre: '', precio_hora: '' });
 
-  // NUEVO: Estados para Editar Cancha
+  // Modal Editar Cancha
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [canchaEditando, setCanchaEditando] = useState({ 
     id: '', nombre: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
@@ -42,25 +49,41 @@ const DashboardAdmin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
-      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
+      const { data: clubData } = await supabase
+        .from('clubes')
+        .select('*')
+        .eq('admin_email', user.email)
+        .single();
+
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
 
-      const { data: canchasData } = await supabase.from('canchas').select('*').eq('club_id', clubData.id);
+      const { data: canchasData } = await supabase
+        .from('canchas')
+        .select('*')
+        .eq('club_id', clubData.id)
+        .order('id', { ascending: true });
+
       setCanchas(canchasData || []);
       
       if (!canchasData || canchasData.length === 0) { setCargando(false); return; }
 
-      // Fechas para métricas
+      // --- CÁLCULO DE FECHAS LOCALES ---
       const now = new Date();
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
       const day = now.getDay() || 7; 
       const monday = new Date(now);
       monday.setDate(now.getDate() - day + 1);
       const semanaStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
 
-      const { data: turnosData } = await supabase.from('turnos').select('*').in('cancha_id', canchasData.map(c => c.id)).order('fecha').order('hora_inicio');
+      const { data: turnosData } = await supabase
+        .from('turnos')
+        .select('*')
+        .in('cancha_id', canchasData.map(c => c.id))
+        .order('fecha', { ascending: true })
+        .order('hora_inicio', { ascending: true });
 
       let iMes = 0, iSem = 0, iDia = 0, tMes = 0;
       const ganCancha = {};
@@ -73,12 +96,20 @@ const DashboardAdmin = () => {
         const c = canchasData.find(x => x.id === t.cancha_id);
         const precio = c ? Number(c.precio_hora) : 0;
 
-        if (t.fecha.startsWith(mesActualStr)) { iMes += precio; tMes += 1; if (c) ganCancha[t.cancha_id].ganancias += precio; }
+        if (t.fecha.startsWith(mesActualStr)) {
+          iMes += precio;
+          tMes += 1;
+          if (c) ganCancha[t.cancha_id].ganancias += precio;
+        }
+
         if (t.fecha >= semanaStr) iSem += precio;
         if (t.fecha === hoyStr) iDia += precio;
+
         if (t.fecha >= hoyStr) prox.push({ ...t, nombre_cancha: c?.nombre || '?' });
         
-        if (!mapaClientes[t.telefono_cliente]) mapaClientes[t.telefono_cliente] = { nombre: t.nombre_cliente, telefono: t.telefono_cliente, cant: 0 };
+        if (!mapaClientes[t.telefono_cliente]) {
+          mapaClientes[t.telefono_cliente] = { nombre: t.nombre_cliente, telefono: t.telefono_cliente, cant: 0 };
+        }
         mapaClientes[t.telefono_cliente].cant += 1;
       });
 
@@ -92,24 +123,44 @@ const DashboardAdmin = () => {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  const cancelarTurno = async (id) => { if(window.confirm("¿Cancelar turno?")) { await supabase.from('turnos').delete().eq('id', id); cargarDatos(); } };
-  const crearTurnoManual = async (e) => { e.preventDefault(); await supabase.from('turnos').insert([formTurno]); setMostrarModal(false); cargarDatos(); };
-  const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
+  // Funciones de Acciones
+  const cancelarTurno = async (id) => { 
+    if(window.confirm("¿Estás seguro de cancelar este turno?")) { 
+      await supabase.from('turnos').delete().eq('id', id); 
+      cargarDatos(); 
+    } 
+  };
+  
+  const crearTurnoManual = async (e) => { 
+    e.preventDefault(); 
+    await supabase.from('turnos').insert([formTurno]); 
+    setMostrarModal(false); 
+    cargarDatos(); 
+  };
+  
+  const cerrarSesion = async () => { 
+    await supabase.auth.signOut(); 
+    navigate('/'); 
+  };
 
   const crearCanchaManual = async (e) => {
     e.preventDefault();
-    await supabase.from('canchas').insert([{ club_id: miClub.id, nombre: formCancha.nombre, precio_hora: Number(formCancha.precio_hora) }]);
+    await supabase.from('canchas').insert([{ 
+      club_id: miClub.id, 
+      nombre: formCancha.nombre, 
+      precio_hora: Number(formCancha.precio_hora) 
+    }]);
     setMostrarModalCancha(false);
+    setFormCancha({ nombre: '', precio_hora: '' });
     cargarDatos(); 
   };
 
-  // NUEVO: Funciones para Editar Cancha
   const abrirModalEditar = (cancha) => {
     setCanchaEditando({
       id: cancha.id,
       nombre: cancha.nombre,
       precio_hora: cancha.precio_hora,
-      hora_apertura: cancha.hora_apertura || '08:00', // Valor por defecto si está vacío
+      hora_apertura: cancha.hora_apertura || '08:00', 
       hora_cierre: cancha.hora_cierre || '23:00',
       imagen_url: cancha.imagen_url || ''
     });
@@ -130,21 +181,100 @@ const DashboardAdmin = () => {
     cargarDatos();
   };
 
+  // --- COMPONENTES DE PANTALLA ---
+  const PantallaGeneral = () => (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0, color: '#111827' }}>Vista General (Este Mes)</h2>
+        <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+          <Plus size={18} /> Nuevo Turno Manual
+        </button>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb' }}>
+          <div style={{ backgroundColor: '#dcfce7', padding: '15px', borderRadius: '10px' }}><DollarSign size={24} color="#16a34a" /></div>
+          <div><p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem', fontWeight: 'bold' }}>Caja Acumulada</p><h3 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>${metricas.ingresosMes}</h3></div>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb' }}>
+          <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '10px' }}><CalendarIcon size={24} color="#2563eb" /></div>
+          <div><p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem', fontWeight: 'bold' }}>Turnos del Mes</p><h3 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>{metricas.turnosMes}</h3></div>
+        </div>
+      </div>
 
-  // --- PANTALLAS ---
-  const PantallaGeneral = () => ( /* ... (Igual que antes, lo omito por brevedad, dejá tu código de General acá) ... */
-    <div><h2 style={{ marginBottom: '20px' }}>Vista General</h2> {/* ... */} </div>
+      <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '20px' }}>
+        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={20} /> Agenda Próxima</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {proximosTurnos.length === 0 ? <p style={{ color: '#6b7280' }}>No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
+            <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+              <div><p style={{ margin: 0, fontWeight: 'bold' }}>{t.nombre_cliente}</p><p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>{t.fecha} • {t.hora_inicio} • {t.nombre_cancha}</p></div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => cancelarTurno(t.id)} style={{ backgroundColor: '#ef4444', color: '#fff', padding: '8px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
+                <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25D366', color: '#fff', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>WhatsApp</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 
-  const PantallaMetricas = () => ( /* ... (Igual que antes) ... */
-    <div><h2>Métricas</h2>{/* ... */}</div>
+  const PantallaMetricas = () => {
+    const v = filtroTiempo === 'dia' ? metricas.ingresosDia : filtroTiempo === 'semana' ? metricas.ingresosSemana : metricas.ingresosMes;
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>Análisis de Ingresos</h2>
+          <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}>
+            <option value="dia">Hoy</option>
+            <option value="semana">Esta Semana</option>
+            <option value="mes">Este Mes</option>
+          </select>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', height: '350px' }}>
+          <h3 style={{ color: '#16a34a' }}>${v} Recaudado</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={datosGrafico}>
+              <CartesianGrid strokeDasharray="3 3"/>
+              <XAxis dataKey="nombre"/>
+              <YAxis/>
+              <Tooltip/>
+              <Bar dataKey="ganancias" fill="#3b82f6"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
+  const PantallaClientes = () => (
+    <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+      <h2 style={{ margin: '0 0 20px 0' }}>Clientes Frecuentes</h2>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f1f5f9' }}>
+            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Nombre</th>
+            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Teléfono</th>
+            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Total Turnos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {clientes.map((c, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+              <td style={{ padding: '12px' }}>{c.nombre}</td>
+              <td style={{ padding: '12px' }}>{c.telefono}</td>
+              <td style={{ padding: '12px' }}>
+                <span style={{ backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                  {c.cant} turnos
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 
-  const PantallaClientes = () => ( /* ... (Igual que antes) ... */
-    <div><h2>Clientes</h2>{/* ... */}</div>
-  );
-
-  // NUEVA: Pantalla Ajustes actualizada con el botón de editar
   const PantallaAjustes = () => (
     <div>
       <header className="content-header">
@@ -158,7 +288,6 @@ const DashboardAdmin = () => {
         {canchas.map(c => (
           <div key={c.id} className="cancha-card">
             
-            {/* Si tiene imagen guardada, la muestra. Si no, muestra el icono gris */}
             <div className="cancha-imagen-placeholder" style={c.imagen_url ? { padding: 0, overflow: 'hidden', border: 'none' } : {}}>
               {c.imagen_url ? (
                 <img src={c.imagen_url} alt={c.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -183,8 +312,9 @@ const DashboardAdmin = () => {
     </div>
   );
 
-  if (cargando) return <div>Cargando...</div>;
-  if (errorAcceso) return <div>Acceso Denegado</div>;
+  // --- RENDERIZADO PRINCIPAL ---
+  if (cargando) return <div style={{ padding: '40px', textAlign: 'center', fontSize: '1.2rem' }}>Cargando panel...</div>;
+  if (errorAcceso) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>Acceso Denegado. Solo administradores.</div>;
 
   return (
     <div className="dashboard-container">
@@ -211,7 +341,45 @@ const DashboardAdmin = () => {
         {vistaActual === 'ajustes' && <PantallaAjustes />}
       </main>
 
-      {/* MODAL: EDITAR CANCHA */}
+      {/* MODALES */}
+
+      {/* Modal Agregar Turno Manual */}
+      {mostrarModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <form onSubmit={crearTurnoManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
+            <h3 style={{ margin: 0 }}>Nuevo Turno Manual</h3>
+            <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="text" placeholder="Nombre Cliente" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="text" placeholder="Teléfono" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+              <option value="">Seleccionar cancha...</option>
+              {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Guardar</button>
+              <button type="button" onClick={() => setMostrarModal(false)} style={{ background: '#e5e7eb', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Agregar Nueva Cancha */}
+      {mostrarModalCancha && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
+            <h3 style={{ margin: 0 }}>Crear Nueva Cancha</h3>
+            <input type="text" placeholder="Nombre (ej. Cancha Fútbol 5)" required onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}/>
+            <input type="number" placeholder="Precio por hora ($)" required onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}/>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Crear</button>
+              <button type="button" onClick={() => setMostrarModalCancha(false)} style={{ background: '#e5e7eb', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Editar Cancha Existente */}
       {mostrarModalEditar && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form onSubmit={guardarEdicionCancha} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -252,7 +420,6 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* (Acá abajo dejás tus otros modales que ya tenías: el de Nuevo Turno y el de Agregar Cancha nueva) */}
     </div>
   );
 };
