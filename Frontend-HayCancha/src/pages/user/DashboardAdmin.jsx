@@ -143,16 +143,36 @@ const DashboardAdmin = () => {
     navigate('/'); 
   };
 
-  const crearCanchaManual = async (e) => {
+ const crearCanchaManual = async (e) => {
     e.preventDefault();
-    await supabase.from('canchas').insert([{ 
-      club_id: miClub.id, 
-      nombre: formCancha.nombre, 
-      precio_hora: Number(formCancha.precio_hora) 
-    }]);
-    setMostrarModalCancha(false);
-    setFormCancha({ nombre: '', precio_hora: '' });
-    cargarDatos(); 
+    
+    try {
+      const { error } = await supabase.from('canchas').insert([{ 
+        club_id: miClub.id, 
+        nombre: formCancha.nombre, 
+        precio_hora: Number(formCancha.precio_hora),
+        // Agregamos valores por defecto para que Supabase no rechace la creación
+        hora_apertura: '08:00',
+        hora_cierre: '23:00',
+        imagen_url: ''
+      }]);
+
+      // Si hay un error en la base de datos, lo mostramos en pantalla
+      if (error) {
+        console.error("Error de Supabase:", error);
+        alert("Hubo un error al crear la cancha: " + error.message);
+        return; 
+      }
+
+      // Si todo sale bien, cerramos el modal, limpiamos y recargamos
+      setMostrarModalCancha(false);
+      setFormCancha({ nombre: '', precio_hora: '' });
+      await cargarDatos(); 
+
+    } catch (err) {
+      console.error("Error inesperado:", err);
+      alert("Ocurrió un error inesperado al guardar.");
+    }
   };
 
   const abrirModalEditar = (cancha) => {
