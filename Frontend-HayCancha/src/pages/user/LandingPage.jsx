@@ -43,7 +43,8 @@ const LandingPage = () => {
         {!mostrarLogin ? (
           <>
             <div className="landing-opciones">
-              <button onClick={() => navigate('/home')} className="btn-cliente">
+              {/* ACÁ ESTÁ EL CAMBIO: Ahora lleva a /seleccionar-ubicacion */}
+              <button onClick={() => navigate('/seleccionar-ubicacion')} className="btn-cliente">
                 <User size={24} style={{ marginRight: '15px' }} />
 
                 <div>

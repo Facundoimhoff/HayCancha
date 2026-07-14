@@ -8,6 +8,7 @@ import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
 import Onboarding from './pages/user/Onboarding';
 import FormularioContacto from './pages/user/FormularioContacto';
+import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 
 function App() {
   return (
@@ -33,6 +34,8 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
 
         <Route path="/contacto" element={<FormularioContacto />} />
+
+        <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
         
       </Routes>
     </BrowserRouter>
