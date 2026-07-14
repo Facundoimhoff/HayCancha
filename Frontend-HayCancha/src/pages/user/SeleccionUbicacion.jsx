@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { MapPin, Search, ArrowLeft, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowLeft, ArrowRight, Map } from 'lucide-react';
 
 const SeleccionUbicacion = () => {
   const [provinciaSeleccionada, setProvinciaSeleccionada] = useState('');
-  const [clubes, setClubes] = useState([]);
+  const [ciudadSeleccionada, setCiudadSeleccionada] = useState('');
+  const [clubesProvincia, setClubesProvincia] = useState([]);
   const [buscando, setBuscando] = useState(false);
-  const [filtroCiudad, setFiltroCiudad] = useState(''); // Para buscar por ciudad
   const navigate = useNavigate();
 
-  // Podés ir agregando más provincias a medida que consigas clubes ahí
+  // Lista de provincias. Podés ir sumando a medida que te expandas.
   const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán"];
 
-  const buscarPorProvincia = async (provincia) => {
+  const seleccionarProvincia = async (provincia) => {
     setBuscando(true);
     setProvinciaSeleccionada(provincia);
-    setFiltroCiudad(''); // Reseteamos la ciudad si cambia de provincia
+    setCiudadSeleccionada(''); // Si cambia de provincia, reseteamos la ciudad elegida
     
-    // Traemos todos los clubes de esa provincia
+    // Traemos todos los clubes de esa provincia desde Supabase
     const { data, error } = await supabase
       .from('clubes')
       .select('*')
@@ -27,15 +27,16 @@ const SeleccionUbicacion = () => {
     if (error) {
       console.error("Error al buscar:", error);
     } else {
-      setClubes(data || []);
+      setClubesProvincia(data || []);
     }
     setBuscando(false);
   };
 
-  // Esta función filtra los clubes en tiempo real a medida que el usuario escribe la ciudad
-  const clubesFiltrados = clubes.filter(club => 
-    club.ciudad && club.ciudad.toLowerCase().includes(filtroCiudad.toLowerCase())
-  );
+  // MAGIA REACT: Extraemos las ciudades de los clubes y quitamos las repetidas y las vacías
+  const ciudadesDisponibles = [...new Set(clubesProvincia.map(club => club.ciudad))].filter(Boolean);
+
+  // Filtramos para mostrar únicamente los clubes de la ciudad seleccionada
+  const clubesAMostrar = clubesProvincia.filter(club => club.ciudad === ciudadSeleccionada);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '20px' }}>
@@ -43,84 +44,104 @@ const SeleccionUbicacion = () => {
         
         <button 
           onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#4b5563', marginBottom: '20px', padding: 0 }}
+          style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#4b5563', marginBottom: '25px', padding: 0, fontWeight: 'bold' }}
         >
-          <ArrowLeft size={20} /> Volver
+          <ArrowLeft size={20} /> Volver al inicio
         </button>
 
-        <h2 style={{ color: '#111827', margin: '0 0 5px 0' }}>¿Dónde vas a jugar?</h2>
-        <p style={{ color: '#6b7280', marginBottom: '20px' }}>Seleccioná tu provincia para ver los clubes disponibles.</p>
-        
-        {/* BOTONES DE PROVINCIAS */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '30px' }}>
-          {provincias.map(prov => (
-            <button 
-              key={prov} 
-              onClick={() => buscarPorProvincia(prov)}
-              style={{ 
-                padding: '10px 15px', 
-                border: '1px solid #d1d5db', 
-                borderRadius: '8px', 
-                background: provinciaSeleccionada === prov ? '#2563eb' : 'white', 
-                color: provinciaSeleccionada === prov ? 'white' : '#374151', 
-                cursor: 'pointer', 
-                fontWeight: 'bold',
-                transition: 'all 0.2s'
-              }}
-            >
-              {prov}
-            </button>
-          ))}
+        {/* PASO 1: SELECCIONAR PROVINCIA */}
+        <div>
+          <h2 style={{ color: '#111827', margin: '0 0 5px 0' }}>1. Elegí tu Provincia</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
+            {provincias.map(prov => (
+              <button 
+                key={prov} 
+                onClick={() => seleccionarProvincia(prov)}
+                style={{ 
+                  padding: '10px 15px', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '8px', 
+                  background: provinciaSeleccionada === prov ? '#2563eb' : 'white', 
+                  color: provinciaSeleccionada === prov ? 'white' : '#374151', 
+                  cursor: 'pointer', 
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {prov}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* RESULTADOS Y BUSCADOR DE CIUDAD */}
+        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '25px 0' }} />
+
+        {/* PASO 2: SELECCIONAR CIUDAD */}
         {provinciaSeleccionada && (
-          <div>
-            <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', marginBottom: '15px' }}>
-              Clubes en {provinciaSeleccionada}
-            </h3>
-
-            {/* BARRA PARA BUSCAR POR CIUDAD */}
-            <div style={{ position: 'relative', marginBottom: '20px' }}>
-              <Search size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
-              <input 
-                type="text" 
-                placeholder="Filtrar por ciudad (Ej: San Francisco)" 
-                value={filtroCiudad}
-                onChange={(e) => setFiltroCiudad(e.target.value)}
-                style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-              />
-            </div>
-
+          <div style={{ marginBottom: '25px' }}>
+            <h2 style={{ color: '#111827', margin: '0 0 5px 0' }}>2. Elegí tu Ciudad</h2>
+            
             {buscando ? (
-              <p style={{ textAlign: 'center', color: '#6b7280' }}>Buscando clubes...</p>
-            ) : clubesFiltrados.length > 0 ? (
-              <div style={{ display: 'grid', gap: '15px' }}>
-                {clubesFiltrados.map(club => (
-                  <div 
-                    key={club.id} 
-                    onClick={() => navigate(`/club/${club.id}`)} 
-                    style={{ padding: '15px', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#2563eb'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+              <p style={{ color: '#6b7280', marginTop: '10px' }}>Buscando ciudades...</p>
+            ) : ciudadesDisponibles.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
+                {ciudadesDisponibles.map(ciudad => (
+                  <button 
+                    key={ciudad}
+                    onClick={() => setCiudadSeleccionada(ciudad)}
+                    style={{ 
+                      padding: '8px 16px', 
+                      border: '1px solid #93c5fd', 
+                      borderRadius: '20px', 
+                      background: ciudadSeleccionada === ciudad ? '#eff6ff' : 'white', 
+                      color: ciudadSeleccionada === ciudad ? '#1e40af' : '#4b5563',
+                      borderColor: ciudadSeleccionada === ciudad ? '#3b82f6' : '#d1d5db',
+                      cursor: 'pointer', 
+                      fontWeight: '500',
+                    }}
                   >
-                    <div>
-                      <strong style={{ display: 'block', fontSize: '1.1rem', color: '#111827' }}>{club.nombre}</strong>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
-                        <MapPin size={14} /> {club.ciudad}
-                      </span>
-                    </div>
-                    <ArrowRight size={18} color="#9ca3af" />
-                  </div>
+                    <Map size={14} style={{ display: 'inline', marginRight: '5px', marginBottom: '-2px' }} />
+                    {ciudad}
+                  </button>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
-                <p style={{ margin: 0, color: '#4b5563' }}>No encontramos clubes en esta ubicación.</p>
-              </div>
+              <p style={{ color: '#ef4444', marginTop: '10px', backgroundColor: '#fee2e2', padding: '10px', borderRadius: '8px' }}>
+                Aún no tenemos clubes registrados en {provinciaSeleccionada}.
+              </p>
             )}
           </div>
         )}
+
+        {/* PASO 3: MOSTRAR CLUBES */}
+        {ciudadSeleccionada && (
+          <div style={{ marginTop: '20px' }}>
+            <h3 style={{ color: '#111827', marginBottom: '15px' }}>
+              Clubes en {ciudadSeleccionada}
+            </h3>
+
+            <div style={{ display: 'grid', gap: '15px' }}>
+              {clubesAMostrar.map(club => (
+                <div 
+                  key={club.id} 
+                  onClick={() => navigate(`/club/${club.id}`)} 
+                  style={{ padding: '15px', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#2563eb'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                >
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '1.1rem', color: '#111827' }}>{club.nombre}</strong>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
+                      <MapPin size={14} /> {club.ciudad}, {club.provincia}
+                    </span>
+                  </div>
+                  <ArrowRight size={18} color="#9ca3af" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
