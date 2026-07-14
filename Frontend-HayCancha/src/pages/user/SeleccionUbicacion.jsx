@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { MapPin, Search, ArrowLeft } from 'lucide-react';
+import { MapPin, Search, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const SeleccionUbicacion = () => {
   const [provinciaSeleccionada, setProvinciaSeleccionada] = useState('');
