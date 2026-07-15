@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft } from 'lucide-react';
-
+import { supabase } from '../services/supabase'; // ¡Volvemos a traer a supabase!
 
 const Planes = () => {
   const navigate = useNavigate();
@@ -10,21 +10,24 @@ const Planes = () => {
   const iniciarPago = async () => {
     setCargando(true);
     try {
-      // ACÁ LLAMÁS A TU BACKEND O FUNCIÓN DE SUPABASE PARA CREAR EL PAGO
-      // Ejemplo: const response = await fetch('TU_URL_DE_MERCADO_PAGO', { ... })
-      // const data = await response.json();
-      
-      // Simulamos la respuesta rápida para que veas que no tiene que tardar
-      console.log("Iniciando pago por $15...");
-      
-      // LA REDIRECCIÓN DEBE SER INMEDIATA AL init_point QUE TE DA MERCADO PAGO
-      // window.location.href = data.init_point; 
+      // 1. Llamamos a tu "cuarto seguro" en Supabase en 1 línea de código
+      const { data, error } = await supabase.functions.invoke('crear-pago');
+
+      if (error) {
+        throw error;
+      }
+
+      // 2. Si todo sale bien, Mercado Pago nos devuelve el init_point y viajamos al instante
+      if (data && data.init_point) {
+        window.location.href = data.init_point; 
+      } else {
+        throw new Error("No se recibió el link de pago");
+      }
       
     } catch (error) {
       console.error("Error al iniciar el pago:", error);
       alert("Hubo un error al conectar con Mercado Pago.");
-    } finally {
-      setCargando(false);
+      setCargando(false); // Solo lo apagamos si falla, si hay éxito ya se fue de la página
     }
   };
 
@@ -78,7 +81,7 @@ const Planes = () => {
             disabled={cargando}
             style={{ width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', border: 'none', cursor: cargando ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s', opacity: cargando ? 0.8 : 1 }}
           >
-            {cargando ? 'Conectando con Mercado Pago...' : 'Comenzar ahora'}
+            {cargando ? 'Conectando seguro...' : 'Comenzar ahora'}
           </button>
         </div>
 
