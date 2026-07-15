@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft } from 'lucide-react';
-import { supabase } from '../services/supabase'; // ¡Volvemos a traer a supabase!
+import { supabase } from '../../services/supabase';
 
 const Planes = () => {
   const navigate = useNavigate();
