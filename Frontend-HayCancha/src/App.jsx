@@ -9,6 +9,7 @@ import Planes from './pages/user/Planes';
 import Onboarding from './pages/user/Onboarding';
 import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
+import RegistroClub from './pages/user/RegistroClub';
 
 function App() {
   return (
@@ -36,6 +37,8 @@ function App() {
         <Route path="/contacto" element={<FormularioContacto />} />
 
         <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
+
+        <Route path="/registro-club" element={<RegistroClub />} />
         
       </Routes>
     </BrowserRouter>
