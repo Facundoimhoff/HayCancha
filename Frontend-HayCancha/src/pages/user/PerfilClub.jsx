@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone } from 'lucide-react';
 import { supabase } from '../../services/supabase'; 
 
 const PerfilClub = () => {
   const { id } = useParams();
+  const navigate = useNavigate(); // <- FALTABA ESTO ACÁ TAMBIÉN
   const [club, setClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -47,17 +48,23 @@ const PerfilClub = () => {
   if (!club) return <div className="mensaje-vacio">Club no encontrado</div>;
 
   return (
-    <div className="perfil-container">
+    <div className="perfil-container" style={{ position: 'relative' }}>
+      
+      {/* BOTÓN VOLVER FLOTANTE (ESTILO APP NATIVA) */}
+      <button 
+        onClick={() => navigate(-1)}
+        style={{ position: 'absolute', top: '20px', left: '20px', backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', padding: '10px 15px', borderRadius: '25px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontWeight: 'bold', color: '#1e293b', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 10 }}
+      >
+        <ArrowLeft size={18} /> Volver
+      </button>
+
       {/* --- BANNER Y FOTO --- */}
       <div className="banner-club">
-        {/* ACÁ ESTÁ EL CAMBIO: Ahora vuelve a /home */}
-        <button onClick={() => navigate(-1)}>
-  Volver
-</button>
         <img 
-          src={club.imagen_url} 
+          src={club.imagen_url || "https://images.unsplash.com/photo-1574629810360-7efbb1925536?q=80&w=1000&auto=format&fit=crop"} 
           alt={`Foto de ${club.nombre}`} 
           className="banner-imagen" 
+          style={{ width: '100%', height: '250px', objectFit: 'cover' }}
         />
       </div>
 
@@ -67,7 +74,7 @@ const PerfilClub = () => {
         
         <div className="info-club-direccion">
           <MapPin size={16} className="icono-margen" />
-          <span>{club.direccion}</span>
+          <span>{club.direccion || club.ciudad}</span>
         </div>
 
         <div className="info-club-telefono">
@@ -107,7 +114,7 @@ const PerfilClub = () => {
                   <div className="cancha-header">
                     <h3 className="cancha-nombre">{cancha.nombre}</h3>
                     <span className="cancha-tipo">
-                      {cancha.tipo}
+                      {cancha.tipo || cancha.deporte}
                     </span>
                   </div>
                   <p className="cancha-precio">

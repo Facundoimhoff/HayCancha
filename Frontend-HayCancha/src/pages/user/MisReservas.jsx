@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '../../services/supabase';
-import { Search, CalendarX2, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, CalendarX2, Clock, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MisReservas = () => {
+  const navigate = useNavigate(); // <- FALTABA ESTO PARA QUE FUNCIONE EL BOTÓN
   const [telefonoBusqueda, setTelefonoBusqueda] = useState('');
   const [misTurnos, setMisTurnos] = useState([]);
   const [buscando, setBuscando] = useState(false);
@@ -68,11 +69,15 @@ const MisReservas = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '40px 20px', fontFamily: 'system-ui' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         
+        {/* ENCABEZADO CON BOTÓN VOLVER ARREGLADO */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 style={{ margin: 0, color: '#111827' }}>Mis Reservas</h1>
-          <button onClick={() => navigate(-1)}>
-  Volver
-</button>
+          <button 
+            onClick={() => navigate(-1)}
+            style={{ background: '#e2e8f0', border: 'none', padding: '8px 16px', borderRadius: '20px', color: '#334155', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+          >
+            <ArrowLeft size={16} /> Volver
+          </button>
         </div>
 
         {/* Buscador por Teléfono */}
