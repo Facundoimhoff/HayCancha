@@ -18,7 +18,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         
         {/* La vista para el cliente que solo quiere reservar */}
-        <Route path="/home" element={<HomeUsuario />} /> 
+        <Route path="/explorar/:provincia/:ciudad" element={<HomeUsuario />} /> 
         
         {/* Las rutas que ya tenías funcionando */}
         <Route path="/club/:id" element={<PerfilClub />} />
