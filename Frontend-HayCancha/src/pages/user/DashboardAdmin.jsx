@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
-  DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, Image as ImageIcon, Ban 
+  DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
+  Building, MapPin, Map, CheckCircle // <-- Agregados los nuevos iconos
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../../index.css';
@@ -34,7 +35,7 @@ const DashboardAdmin = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
   
-  // NUEVO: Modal Bloquear Horario
+  // Modal Bloquear Horario
   const [mostrarModalBloqueo, setMostrarModalBloqueo] = useState(false);
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
@@ -85,9 +86,8 @@ const DashboardAdmin = () => {
       turnosData?.forEach(t => {
         const c = canchasData.find(x => x.id === t.cancha_id);
         const precio = c ? Number(c.precio_hora) : 0;
-        const esBloqueo = t.telefono_cliente === 'BLOQUEO'; // Identificamos si es un bloqueo
+        const esBloqueo = t.telefono_cliente === 'BLOQUEO'; 
 
-        // Solo sumamos dinero y turnos si NO es un bloqueo
         if (!esBloqueo) {
           if (t.fecha.startsWith(mesActualStr)) {
             iMes += precio;
@@ -103,7 +103,6 @@ const DashboardAdmin = () => {
           mapaClientes[t.telefono_cliente].cant += 1;
         }
 
-        // A la agenda lo mandamos igual (sea cliente o bloqueo)
         if (t.fecha >= hoyStr) prox.push({ ...t, nombre_cancha: c?.nombre || '?', esBloqueo });
       });
 
@@ -133,7 +132,6 @@ const DashboardAdmin = () => {
     cargarDatos(); 
   };
 
-  // NUEVO: Función para guardar un Bloqueo
   const crearBloqueo = async (e) => {
     e.preventDefault();
     try {
@@ -142,7 +140,7 @@ const DashboardAdmin = () => {
         fecha: formBloqueo.fecha,
         hora_inicio: formBloqueo.hora_inicio,
         nombre_cliente: `Bloqueado: ${formBloqueo.motivo || 'Mantenimiento'}`,
-        telefono_cliente: 'BLOQUEO' // Esto es clave para que el sistema sepa que no es dinero real
+        telefono_cliente: 'BLOQUEO' 
       }]);
 
       if (error) throw error;
@@ -157,8 +155,8 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  // Funciones de Canchas (Crear y Editar)
-  const crearCanchaManual = async (e) => { /* ... igual que antes ... */
+  // Funciones de Canchas
+  const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
       const { error } = await supabase.from('canchas').insert([{ 
@@ -193,6 +191,95 @@ const DashboardAdmin = () => {
   };
 
   // --- COMPONENTES DE PANTALLA ---
+
+  // NUEVA PANTALLA: Perfil del Club
+  const PantallaPerfil = () => {
+    const [formPerfil, setFormPerfil] = useState({
+      nombre: miClub?.nombre || '',
+      provincia: miClub?.provincia || '',
+      ciudad: miClub?.ciudad || ''
+    });
+    const [guardando, setGuardando] = useState(false);
+    const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
+    
+    // Lista de provincias
+    const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán", "Salta", "Neuquén", "Río Negro"];
+
+    const guardarPerfil = async (e) => {
+      e.preventDefault();
+      setGuardando(true);
+      setMensaje({ texto: '', tipo: '' });
+
+      try {
+        const { error } = await supabase.from('clubes').update({
+          nombre: formPerfil.nombre,
+          provincia: formPerfil.provincia,
+          ciudad: formPerfil.ciudad
+        }).eq('id', miClub.id);
+
+        if (error) throw error;
+
+        // Actualizamos el estado global para que cambie el nombre en el menú lateral
+        setMiClub({ ...miClub, ...formPerfil });
+        setMensaje({ texto: '¡Datos actualizados correctamente!', tipo: 'exito' });
+        setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
+      } catch (err) {
+        setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' });
+      } finally {
+        setGuardando(false);
+      }
+    };
+
+    return (
+      <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '12px', border: '1px solid #e5e7eb', maxWidth: '600px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px', borderBottom: '1px solid #e5e7eb', paddingBottom: '15px' }}>
+          <Building size={24} color="#2563eb" />
+          <h2 style={{ margin: 0, color: '#111827' }}>Perfil de tu Club</h2>
+        </div>
+
+        {mensaje.texto && (
+          <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: mensaje.tipo === 'exito' ? '#dcfce7' : '#fee2e2', color: mensaje.tipo === 'exito' ? '#166534' : '#ef4444' }}>
+            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
+            <strong>{mensaje.texto}</strong>
+          </div>
+        )}
+
+        <form onSubmit={guardarPerfil} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Nombre del Club</label>
+            <div style={{ position: 'relative' }}>
+              <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
+              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Provincia</label>
+            <div style={{ position: 'relative' }}>
+              <Map size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
+              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', backgroundColor: 'white' }}>
+                <option value="">Seleccioná tu provincia</option>
+                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Ciudad</label>
+            <div style={{ position: 'relative' }}>
+              <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
+              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+
+          <button type="submit" disabled={guardando} style={{ marginTop: '10px', backgroundColor: '#2563eb', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: guardando ? 'not-allowed' : 'pointer', opacity: guardando ? 0.7 : 1 }}>
+            {guardando ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
+        </form>
+      </div>
+    );
+  };
+
   const PantallaGeneral = () => (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -224,8 +311,8 @@ const DashboardAdmin = () => {
           {proximosTurnos.length === 0 ? <p style={{ color: '#6b7280' }}>No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
             <div key={t.id} style={{ 
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', 
-              backgroundColor: t.esBloqueo ? '#fef3c7' : '#f9fafb', // Naranja clarito si está bloqueado
-              borderLeft: t.esBloqueo ? '4px solid #f59e0b' : '4px solid #3b82f6', // Borde naranja o azul
+              backgroundColor: t.esBloqueo ? '#fef3c7' : '#f9fafb', 
+              borderLeft: t.esBloqueo ? '4px solid #f59e0b' : '4px solid #3b82f6', 
               borderRadius: '8px', borderRight: '1px solid #e5e7eb', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb'
             }}>
               <div>
@@ -251,7 +338,7 @@ const DashboardAdmin = () => {
     </div>
   );
 
-  const PantallaMetricas = () => { /* ... igual que antes ... */
+  const PantallaMetricas = () => { 
     const v = filtroTiempo === 'dia' ? metricas.ingresosDia : filtroTiempo === 'semana' ? metricas.ingresosSemana : metricas.ingresosMes;
     return (
       <div>
@@ -271,7 +358,7 @@ const DashboardAdmin = () => {
     );
   };
 
-  const PantallaClientes = () => ( /* ... igual que antes ... */
+  const PantallaClientes = () => ( 
     <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
       <h2 style={{ margin: '0 0 20px 0' }}>Clientes Frecuentes</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -285,7 +372,7 @@ const DashboardAdmin = () => {
     </div>
   );
 
-  const PantallaAjustes = () => ( /* ... igual que antes ... */
+  const PantallaAjustes = () => ( 
     <div>
       <header className="content-header"><h1 style={{ margin: 0 }}>Mis Canchas</h1><button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}><Plus size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }}/> Agregar Cancha</button></header>
       <div className="canchas-list">
@@ -320,6 +407,9 @@ const DashboardAdmin = () => {
           <button className={`nav-item ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}><BarChart3 size={20} /> Métricas</button>
           <button className={`nav-item ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}><Users size={20} /> Clientes</button>
           <button className={`nav-item ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}><Settings size={20} /> Canchas</button>
+          
+          {/* NUEVO BOTÓN: MI CLUB */}
+          <button className={`nav-item ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => setVistaActual('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
         <button className="btn-salir" onClick={cerrarSesion}><LogOut size={20} /> Salir</button>
       </aside>
@@ -329,6 +419,9 @@ const DashboardAdmin = () => {
         {vistaActual === 'metricas' && <PantallaMetricas />}
         {vistaActual === 'clientes' && <PantallaClientes />}
         {vistaActual === 'ajustes' && <PantallaAjustes />}
+        
+        {/* NUEVA PANTALLA RENDERIZADA */}
+        {vistaActual === 'perfil' && <PantallaPerfil />}
       </main>
 
       {/* --- MODALES --- */}
