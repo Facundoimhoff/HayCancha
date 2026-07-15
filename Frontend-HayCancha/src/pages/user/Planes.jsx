@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft } from 'lucide-react';
-import { supabase } from '../services/supabase'; // Ajustá la ruta si es necesario
+
 
 const Planes = () => {
   const navigate = useNavigate();

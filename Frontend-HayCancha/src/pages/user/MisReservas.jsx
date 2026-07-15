@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../services/supabase';
 import { Search, CalendarX2, Clock, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const MisReservas = () => {
   const navigate = useNavigate(); // <- FALTABA ESTO PARA QUE FUNCIONE EL BOTÓN
