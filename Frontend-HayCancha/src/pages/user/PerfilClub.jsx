@@ -51,9 +51,9 @@ const PerfilClub = () => {
       {/* --- BANNER Y FOTO --- */}
       <div className="banner-club">
         {/* ACÁ ESTÁ EL CAMBIO: Ahora vuelve a /home */}
-        <Link to="/home" className="btn-volver">
-          <ArrowLeft size={20} />
-        </Link>
+        <button onClick={() => navigate(-1)}>
+  Volver
+</button>
         <img 
           src={club.imagen_url} 
           alt={`Foto de ${club.nombre}`} 

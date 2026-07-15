@@ -70,7 +70,9 @@ const MisReservas = () => {
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 style={{ margin: 0, color: '#111827' }}>Mis Reservas</h1>
-          <Link to="/home" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 'bold' }}>Volver al inicio</Link>
+          <button onClick={() => navigate(-1)}>
+  Volver
+</button>
         </div>
 
         {/* Buscador por Teléfono */}
