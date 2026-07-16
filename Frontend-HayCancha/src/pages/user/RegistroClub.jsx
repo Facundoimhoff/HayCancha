@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabase'; 
+import { supabase } from '../../services/supabase';
 
 const RegistroClub = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
+  const [imagenFile, setImagenFile] = useState(null); // <-- NUEVO: Guardamos el archivo físico acá
+  
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -12,7 +14,6 @@ const RegistroClub = () => {
     ciudad: '',
     direccion: '',
     estacionamiento: false,
-    imagen_url: '',
     email: '',
     password: ''
   });
@@ -25,12 +26,19 @@ const RegistroClub = () => {
     }));
   };
 
+  // <-- NUEVO: Función especial para atrapar la imagen cuando el usuario la selecciona
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImagenFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCargando(true);
 
     try {
-      // 1. Creamos la cuenta del Admin en Supabase
+      // 1. Creamos la cuenta del Admin
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -38,8 +46,31 @@ const RegistroClub = () => {
 
       if (authError) throw authError;
 
-      // 2. Guardamos los datos del club en la tabla 'clubes'
-      // Ahora sí, mandamos todos los datos completos a la base de datos
+      // 2. LÓGICA DE SUBIDA DE IMAGEN
+      let logoUrl = ''; // Variable vacía por si no suben nada
+      
+      if (imagenFile) {
+        // Le inventamos un nombre único usando la fecha y hora para que no se pisen
+        const fileExt = imagenFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `logos/${fileName}`; // Se va a crear una carpetita "logos" adentro de tu bucket
+
+        // Subimos el archivo a Supabase
+        const { error: uploadError } = await supabase.storage
+          .from('imagenes')
+          .upload(filePath, imagenFile);
+
+        if (uploadError) throw uploadError;
+
+        // Pedimos el link público para guardarlo en la base de datos
+        const { data: urlData } = supabase.storage
+          .from('imagenes')
+          .getPublicUrl(filePath);
+
+        logoUrl = urlData.publicUrl;
+      }
+
+      // 3. Guardamos todo en la base de datos (con el link de la foto ya listo)
       const { error: clubError } = await supabase
         .from('clubes')
         .insert([
@@ -50,16 +81,14 @@ const RegistroClub = () => {
             ciudad: formData.ciudad,
             direccion: formData.direccion,
             estacionamiento: formData.estacionamiento,
-            imagen_url: formData.imagen_url,
-            admin_id: authData.user.id // Vinculamos automáticamente el club con el nuevo administrador
+            imagen_url: logoUrl, // <-- Guardamos el link real que nos dio Supabase
+            admin_id: authData.user.id
           }
         ]);
 
       if (clubError) throw clubError;
 
       alert("¡Bienvenido a la familia! Tu club se registró con éxito. Por favor, iniciá sesión para empezar a cargar tus canchas.");
-      
-      // Lo mandamos a la pantalla de Login para que entre con su nuevo usuario
       navigate('/login'); 
 
     } catch (error) {
@@ -81,7 +110,6 @@ const RegistroClub = () => {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* SECCIÓN DATOS DEL CLUB */}
           <div>
             <h3 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '15px' }}>1. Datos del Club</h3>
             
@@ -95,7 +123,18 @@ const RegistroClub = () => {
               </div>
               
               <input type="text" name="direccion" placeholder="Dirección exacta" required onChange={handleChange} style={inputStyle} />
-              <input type="url" name="imagen_url" placeholder="Link del logo del club (http://...)" required onChange={handleChange} style={inputStyle} />
+              
+              {/* <-- NUEVO INPUT DE TIPO FILE --> */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>Logo del Club (Imagen)</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageChange} 
+                  required 
+                  style={{...inputStyle, padding: '8px', cursor: 'pointer'}} 
+                />
+              </div>
               
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#475569' }}>
                 <input type="checkbox" name="estacionamiento" onChange={handleChange} style={{ width: '18px', height: '18px' }} />
@@ -104,7 +143,6 @@ const RegistroClub = () => {
             </div>
           </div>
 
-          {/* SECCIÓN CUENTA DE ADMIN */}
           <div style={{ marginTop: '10px' }}>
             <h3 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '15px' }}>2. Tu Cuenta de Administrador</h3>
             <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Con estos datos vas a entrar a tu panel para gestionar las canchas.</p>
@@ -120,7 +158,7 @@ const RegistroClub = () => {
             disabled={cargando}
             style={{ marginTop: '20px', width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '16px', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', border: 'none', cursor: cargando ? 'not-allowed' : 'pointer', opacity: cargando ? 0.7 : 1 }}
           >
-            {cargando ? 'Creando tu espacio...' : 'Finalizar Configuración'}
+            {cargando ? 'Subiendo imagen y creando...' : 'Finalizar Configuración'}
           </button>
 
         </form>
