@@ -20,6 +20,7 @@ const DashboardAdmin = () => {
   const [canchas, setCanchas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [proximosTurnos, setProximosTurnos] = useState([]);
+  const [turnosPasados, setTurnosPasados] = useState([]);
   const [datosGrafico, setDatosGrafico] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
@@ -55,13 +56,17 @@ const DashboardAdmin = () => {
     id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
 
+  // Fecha y Mes en Español para los títulos dinámicos
+  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const now = new Date();
+  const mesActualNombre = `${meses[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
+
   const cargarDatos = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
       const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
-      // Si por alguna razón tu base sigue usando admin_email en vez de admin_id, cambialo arriba.
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
 
@@ -70,7 +75,6 @@ const DashboardAdmin = () => {
       
       if (!canchasData || canchasData.length === 0) { setCargando(false); return; }
 
-      const now = new Date();
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       
@@ -85,6 +89,7 @@ const DashboardAdmin = () => {
       const ganCancha = {};
       const mapaClientes = {};
       const prox = [];
+      const pasados = []; 
 
       canchasData.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
 
@@ -108,20 +113,24 @@ const DashboardAdmin = () => {
           mapaClientes[t.telefono_cliente].cant += 1;
         }
 
-        if (t.fecha >= hoyStr) prox.push({ ...t, nombre_cancha: c?.nombre || '?', esBloqueo });
+        if (t.fecha >= hoyStr) {
+          prox.push({ ...t, nombre_cancha: c?.nombre || '?', esBloqueo, precio });
+        } else if (t.fecha.startsWith(mesActualStr)) {
+          pasados.push({ ...t, nombre_cancha: c?.nombre || '?', esBloqueo, precio });
+        }
       });
 
       setMetricas({ ingresosDia: iDia, ingresosSemana: iSem, ingresosMes: iMes, turnosMes: tMes });
       setClientes(Object.values(mapaClientes).sort((a, b) => b.cant - a.cant));
       setDatosGrafico(Object.values(ganCancha));
       setProximosTurnos(prox);
+      setTurnosPasados(pasados.reverse()); 
 
     } catch (e) { console.error(e); } finally { setCargando(false); }
   };
 
   useEffect(() => { cargarDatos(); }, []);
 
-  // Funciones de Acciones
   const cancelarTurno = async (id, esBloqueo) => { 
     const mensaje = esBloqueo ? "¿Liberar este horario bloqueado?" : "¿Estás seguro de cancelar este turno?";
     if(window.confirm(mensaje)) { 
@@ -147,63 +156,38 @@ const DashboardAdmin = () => {
         nombre_cliente: `Bloqueado: ${formBloqueo.motivo || 'Mantenimiento'}`,
         telefono_cliente: 'BLOQUEO' 
       }]);
-
       if (error) throw error;
-
       setMostrarModalBloqueo(false);
       setFormBloqueo({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
       await cargarDatos();
-    } catch (err) {
-      alert("Error al bloquear horario: " + err.message);
-    }
+    } catch (err) { alert("Error al bloquear horario: " + err.message); }
   };
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
-
-  // --- LOGICA DE CREAR Y EDITAR CANCHAS CON FOTOS --- //
 
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
       let logoUrl = formCancha.imagen_url;
-
-      // Magia de subida de imagen
       if (imagenCanchaFile) {
         const fileExt = imagenCanchaFile.name.split('.').pop();
         const fileName = `canchas/${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('imagenes')
-          .upload(fileName, imagenCanchaFile);
-
+        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, imagenCanchaFile);
         if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('imagenes')
-          .getPublicUrl(fileName);
-
+        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
         logoUrl = urlData.publicUrl;
       }
-
       const { error } = await supabase.from('canchas').insert([{ 
-        club_id: miClub.id, 
-        nombre: formCancha.nombre, 
-        deporte: formCancha.deporte,
-        precio_hora: Number(formCancha.precio_hora), 
-        hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre, 
-        imagen_url: logoUrl
+        club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
+        precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
+        hora_cierre: formCancha.hora_cierre, imagen_url: logoUrl
       }]);
-
       if (error) { alert("Error: " + error.message); return; }
-      
       setMostrarModalCancha(false);
       setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
-      setImagenCanchaFile(null); // Reseteamos la foto
+      setImagenCanchaFile(null); 
       await cargarDatos(); 
-    } catch (err) { 
-      alert("Error inesperado al guardar: " + err.message); 
-    }
+    } catch (err) { alert("Error inesperado al guardar: " + err.message); }
   };
 
   const abrirModalEditar = (cancha) => {
@@ -211,7 +195,7 @@ const DashboardAdmin = () => {
       id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
       hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || ''
     });
-    setImagenCanchaEditFile(null); // Limpiamos si había alguna foto vieja seleccionada
+    setImagenCanchaEditFile(null); 
     setMostrarModalEditar(true);
   };
 
@@ -219,80 +203,42 @@ const DashboardAdmin = () => {
     e.preventDefault();
     try {
       let logoUrl = canchaEditando.imagen_url;
-
-      // Magia de subida de imagen para EDICIÓN
       if (imagenCanchaEditFile) {
         const fileExt = imagenCanchaEditFile.name.split('.').pop();
         const fileName = `canchas/${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('imagenes')
-          .upload(fileName, imagenCanchaEditFile);
-
+        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, imagenCanchaEditFile);
         if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('imagenes')
-          .getPublicUrl(fileName);
-
+        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
         logoUrl = urlData.publicUrl;
       }
-
       const { error } = await supabase.from('canchas').update({
-        nombre: canchaEditando.nombre, 
-        deporte: canchaEditando.deporte, 
-        precio_hora: Number(canchaEditando.precio_hora),
-        hora_apertura: canchaEditando.hora_apertura, 
-        hora_cierre: canchaEditando.hora_cierre, 
-        imagen_url: logoUrl
+        nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
+        hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: logoUrl
       }).eq('id', canchaEditando.id);
-      
       if (error) { alert("Error al guardar: " + error.message); return; }
-      
       setMostrarModalEditar(false);
       setImagenCanchaEditFile(null);
       await cargarDatos();
-    } catch (err) {
-      alert("Error inesperado al editar: " + err.message);
-    }
+    } catch (err) { alert("Error inesperado al editar: " + err.message); }
   };
 
-
-  // --- COMPONENTES DE PANTALLA ---
-
   const PantallaPerfil = () => {
-    const [formPerfil, setFormPerfil] = useState({
-      nombre: miClub?.nombre || '',
-      provincia: miClub?.provincia || '',
-      ciudad: miClub?.ciudad || ''
-    });
+    const [formPerfil, setFormPerfil] = useState({ nombre: miClub?.nombre || '', provincia: miClub?.provincia || '', ciudad: miClub?.ciudad || '' });
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-    
     const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán", "Salta", "Neuquén", "Río Negro"];
 
     const guardarPerfil = async (e) => {
       e.preventDefault();
       setGuardando(true);
       setMensaje({ texto: '', tipo: '' });
-
       try {
-        const { error } = await supabase.from('clubes').update({
-          nombre: formPerfil.nombre,
-          provincia: formPerfil.provincia,
-          ciudad: formPerfil.ciudad
-        }).eq('id', miClub.id);
-
+        const { error } = await supabase.from('clubes').update({ nombre: formPerfil.nombre, provincia: formPerfil.provincia, ciudad: formPerfil.ciudad }).eq('id', miClub.id);
         if (error) throw error;
-
         setMiClub({ ...miClub, ...formPerfil });
         setMensaje({ texto: '¡Datos actualizados correctamente!', tipo: 'exito' });
         setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
-      } catch (err) {
-        setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' });
-      } finally {
-        setGuardando(false);
-      }
+      } catch (err) { setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' }); } finally { setGuardando(false); }
     };
 
     return (
@@ -301,45 +247,25 @@ const DashboardAdmin = () => {
           <Building size={24} color="#2563eb" />
           <h2 style={{ margin: 0, color: '#111827' }}>Perfil de tu Club</h2>
         </div>
-
         {mensaje.texto && (
           <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: mensaje.tipo === 'exito' ? '#dcfce7' : '#fee2e2', color: mensaje.tipo === 'exito' ? '#166534' : '#ef4444' }}>
-            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
-            <strong>{mensaje.texto}</strong>
+            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}<strong>{mensaje.texto}</strong>
           </div>
         )}
-
         <form onSubmit={guardarPerfil} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Nombre del Club</label>
-            <div style={{ position: 'relative' }}>
-              <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
-              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
-            </div>
+            <div style={{ position: 'relative' }}><Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} /></div>
           </div>
-
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Provincia</label>
-            <div style={{ position: 'relative' }}>
-              <Map size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
-              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', backgroundColor: 'white' }}>
-                <option value="">Seleccioná tu provincia</option>
-                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
-              </select>
-            </div>
+            <div style={{ position: 'relative' }}><Map size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', backgroundColor: 'white' }}><option value="">Seleccioná tu provincia</option>{provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}</select></div>
           </div>
-
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Ciudad</label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
-              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
-            </div>
+            <div style={{ position: 'relative' }}><MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} /></div>
           </div>
-
-          <button type="submit" disabled={guardando} style={{ marginTop: '10px', backgroundColor: '#2563eb', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: guardando ? 'not-allowed' : 'pointer', opacity: guardando ? 0.7 : 1 }}>
-            {guardando ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
+          <button type="submit" disabled={guardando} style={{ marginTop: '10px', backgroundColor: '#2563eb', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: guardando ? 'not-allowed' : 'pointer', opacity: guardando ? 0.7 : 1 }}>{guardando ? 'Guardando...' : 'Guardar Cambios'}</button>
         </form>
       </div>
     );
@@ -348,14 +274,10 @@ const DashboardAdmin = () => {
   const PantallaGeneral = () => (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: '#111827' }}>Vista General (Este Mes)</h2>
+        <h2 style={{ margin: 0, color: '#111827' }}>Vista General</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => setMostrarModalBloqueo(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-            <Ban size={18} /> Bloquear
-          </button>
-          <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-            <Plus size={18} /> Nuevo Turno
-          </button>
+          <button onClick={() => setMostrarModalBloqueo(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}><Ban size={18} /> Bloquear</button>
+          <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}><Plus size={18} /> Nuevo Turno</button>
         </div>
       </div>
       
@@ -370,8 +292,11 @@ const DashboardAdmin = () => {
         </div>
       </div>
 
+      {/* --- SECCIÓN 1: TURNOS PRÓXIMOS CON TÍTULO DINÁMICO --- */}
       <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={20} /> Agenda Próxima</h3>
+        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', textTransform: 'uppercase' }}>
+          <Clock size={20} /> Turnos Próximos de {mesActualNombre}
+        </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {proximosTurnos.length === 0 ? <p style={{ color: '#6b7280' }}>No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
             <div key={t.id} style={{ 
@@ -398,6 +323,39 @@ const DashboardAdmin = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* --- SECCIÓN 2: TURNOS JUGADOS CON TÍTULO DINÁMICO --- */}
+      <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '20px', marginTop: '20px' }}>
+        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', textTransform: 'uppercase' }}>
+          <CheckCircle size={20} /> Turnos Jugados de {mesActualNombre}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {turnosPasados.length === 0 ? (
+            <p style={{ color: '#6b7280' }}>Todavía no hay turnos completados en este mes.</p>
+          ) : (
+            turnosPasados.map(t => (
+              <div key={t.id} style={{ 
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', 
+                backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' 
+              }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 'bold', color: '#475569' }}>
+                    {t.esBloqueo ? `Bloqueo Mantenimiento: ${t.nombre_cliente}` : t.nombre_cliente}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
+                    {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
+                  </p>
+                </div>
+                {!t.esBloqueo && (
+                  <div style={{ fontWeight: 'bold', color: '#16a34a', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '20px' }}>
+                    + ${t.precio}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -487,7 +445,6 @@ const DashboardAdmin = () => {
 
       {/* --- MODALES --- */}
 
-      {/* 1. Modal Agregar Turno Manual */}
       {mostrarModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form onSubmit={crearTurnoManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
@@ -508,7 +465,6 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* 2. Modal Bloquear Horario (Mantenimiento) */}
       {mostrarModalBloqueo && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form onSubmit={crearBloqueo} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
@@ -533,7 +489,6 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* 3. Modal CREAR Cancha */}
       {mostrarModalCancha && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -590,7 +545,6 @@ const DashboardAdmin = () => {
         </div>
       )}
 
-      {/* 4. Modal EDITAR Cancha */}
       {mostrarModalEditar && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <form onSubmit={guardarEdicionCancha} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -623,7 +577,6 @@ const DashboardAdmin = () => {
               </div>
             </div>
 
-            {/* NUEVO INPUT DE IMAGEN PARA EDICIÓN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
               <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>Cambiar Foto (Opcional)</label>
               <input 
