@@ -25,7 +25,7 @@ const LandingPage = () => {
 
       if (errorAuth) throw errorAuth;
 
-      navigate('/dashboard');
+      navigate('/panel');
     } catch (error) {
       console.error("Error al iniciar sesión:", error.message);
       setError('Correo o contraseña incorrectos. Probá de nuevo.');
