@@ -26,7 +26,7 @@ serve(async (req) => {
           currency_id: 'ARS'
         }
       ],
-      // MAGIA: URLs para que vuelvan a tu app automáticamente
+      statement_descriptor: "HAYCANCHA", // <-- Esto aparece en el resumen de la tarjeta
       back_urls: {
         success: "https://hay-cancha-xi.vercel.app/dashboard", // Vuelve a su panel
         failure: "https://hay-cancha-xi.vercel.app/planes",

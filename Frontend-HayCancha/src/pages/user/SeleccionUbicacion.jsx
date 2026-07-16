@@ -17,6 +17,9 @@ const SeleccionUbicacion = () => {
     "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
   ];
 
+  // 1. EL TRUCO DEL ORDEN: Ordenamos las provincias alfabéticamente de la A a la Z
+  const provinciasOrdenadas = [...provincias].sort((a, b) => a.localeCompare(b));
+
   const seleccionarProvincia = async (provincia) => {
     setBuscando(true);
     setProvinciaSeleccionada(provincia);
@@ -51,12 +54,22 @@ const SeleccionUbicacion = () => {
         {/* PASO 1: PROVINCIA */}
         <div>
           <h2 style={{ color: '#111827', margin: '0 0 5px 0' }}>1. Elegí tu Provincia</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
-            {provincias.map(prov => (
+          
+          {/* 2. EL TRUCO DEL SCROLL HORIZONTAL */}
+          <div style={{ 
+            display: 'flex', 
+            overflowX: 'auto', /* Esto crea la barrita */
+            gap: '10px', 
+            marginTop: '15px',
+            paddingBottom: '10px' /* Para que la barra de scroll no tape los botones */
+          }}>
+            {provinciasOrdenadas.map(prov => (
               <button 
                 key={prov} 
                 onClick={() => seleccionarProvincia(prov)}
                 style={{ 
+                  whiteSpace: 'nowrap', /* Evita que "Buenos Aires" se parta en dos renglones */
+                  flexShrink: 0, /* Evita que los botones se deformen o achiquen */
                   padding: '10px 15px', border: '1px solid #d1d5db', borderRadius: '8px', 
                   background: provinciaSeleccionada === prov ? '#2563eb' : 'white', 
                   color: provinciaSeleccionada === prov ? 'white' : '#374151', 
