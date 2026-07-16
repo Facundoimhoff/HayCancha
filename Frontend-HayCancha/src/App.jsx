@@ -10,6 +10,7 @@ import Onboarding from './pages/user/Onboarding';
 import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';
+import ActualizarPassword from './pages/user/ActualizarPassword';
 
 function App() {
   return (
@@ -39,6 +40,8 @@ function App() {
         <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
 
         <Route path="/dashboard" element={<RegistroClub />} />
+
+        <Route path="/actualizar-password" element={<ActualizarPassword />} />
         
       </Routes>
     </BrowserRouter>
