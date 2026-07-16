@@ -26,7 +26,7 @@ function App() {
         <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
         
         {/* Dashboard temporal para comprobar que el Login funciona */}
-        <Route path="/dashboard" element={<DashboardAdmin />} />
+        <Route path="/panel" element={<DashboardAdmin />} />
 
         <Route path="/mis-reservas" element={<MisReservas />} />
 
@@ -38,7 +38,7 @@ function App() {
 
         <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
 
-        <Route path="/registro-club" element={<RegistroClub />} />
+        <Route path="/dashboard" element={<RegistroClub />} />
         
       </Routes>
     </BrowserRouter>
