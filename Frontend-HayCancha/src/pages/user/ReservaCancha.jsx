@@ -290,7 +290,7 @@ const ReservaCancha = () => {
           <CheckCircle size={60} color="#10b981" style={{ margin: '0 auto 20px auto' }} />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '10px' }}>¡Reserva Confirmada!</h2>
           <p style={{ color: '#4b5563', marginBottom: '30px' }}>Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
-          <Link to="/home" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+          <Link to="/" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
             Volver al inicio
           </Link>
         </div>
