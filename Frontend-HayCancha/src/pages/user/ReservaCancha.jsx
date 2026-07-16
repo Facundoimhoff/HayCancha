@@ -7,6 +7,7 @@ const ReservaCancha = () => {
   const { idCancha } = useParams();
   const navigate = useNavigate(); 
   const [cancha, setCancha] = useState(null);
+  const [club, setClub] = useState(null); // <-- NUEVO: Guardamos los datos del club para saber su ciudad
   const [cargando, setCargando] = useState(true);
   
   // Estados para el flujo
@@ -47,6 +48,7 @@ const ReservaCancha = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        // 1. Cargamos la Cancha
         const { data: dataCancha, error: errorCancha } = await supabase
           .from('canchas')
           .select('*')
@@ -55,6 +57,19 @@ const ReservaCancha = () => {
 
         if (errorCancha) throw errorCancha;
         setCancha(dataCancha);
+
+        // 2. Cargamos el Club de esa Cancha (para saber a dónde volver)
+        if (dataCancha?.club_id) {
+          const { data: dataClub, error: errorClub } = await supabase
+            .from('clubes')
+            .select('provincia, ciudad')
+            .eq('id', dataCancha.club_id)
+            .single();
+            
+          if (!errorClub) {
+            setClub(dataClub);
+          }
+        }
 
         if (!diaExpandido) {
           setDiaExpandido(hoyBD);
@@ -82,7 +97,6 @@ const ReservaCancha = () => {
   // --- LÓGICA DINÁMICA DE HORARIOS ---
   const generarHorariosDisponibles = (apertura, cierre) => {
     const horarios = [];
-    // Si por algún motivo llegan vacíos, seteamos valores seguros por defecto
     const horaInicioStr = apertura || '08:00';
     const horaFinStr = cierre || '23:00';
 
@@ -128,6 +142,14 @@ const ReservaCancha = () => {
   const seleccionarTurno = (fecha, hora) => {
     setFechaSeleccionada(fecha);
     setHoraSeleccionada(hora);
+  };
+
+  // Función para armar la URL de vuelta dinámica
+  const obtenerRutaVuelta = () => {
+    if (club && club.provincia && club.ciudad) {
+      return `/explorar/${encodeURIComponent(club.provincia)}/${encodeURIComponent(club.ciudad)}`;
+    }
+    return '/'; // Si por algún motivo falla, lo mandamos al inicio por seguridad
   };
 
   if (cargando) return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando disponibilidad...</div>;
@@ -290,8 +312,11 @@ const ReservaCancha = () => {
           <CheckCircle size={60} color="#10b981" style={{ margin: '0 auto 20px auto' }} />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '10px' }}>¡Reserva Confirmada!</h2>
           <p style={{ color: '#4b5563', marginBottom: '30px' }}>Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
-          <Link to="/" style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
-            Volver al inicio
+          <Link 
+            to={obtenerRutaVuelta()} 
+            style={{ padding: '12px 24px', backgroundColor: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}
+          >
+            Volver a los clubes
           </Link>
         </div>
       )}
