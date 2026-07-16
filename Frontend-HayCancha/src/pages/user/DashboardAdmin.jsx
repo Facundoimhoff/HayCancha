@@ -60,7 +60,7 @@ const DashboardAdmin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
-      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_id', user.id).single();
+      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
       // Si por alguna razón tu base sigue usando admin_email en vez de admin_id, cambialo arriba.
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
