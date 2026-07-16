@@ -153,7 +153,8 @@ const DashboardAdmin = () => {
         cancha_id: formBloqueo.cancha_id,
         fecha: formBloqueo.fecha,
         hora_inicio: formBloqueo.hora_inicio,
-        nombre_cliente: `Bloqueado: ${formBloqueo.motivo || 'Mantenimiento'}`,
+        // <-- ACÁ CAMBIAMOS PARA QUE SÓLO GUARDE "Bloqueo por: [motivo]"
+        nombre_cliente: formBloqueo.motivo ? `Bloqueo por: ${formBloqueo.motivo}` : 'Bloqueo por: Mantenimiento',
         telefono_cliente: 'BLOQUEO' 
       }]);
       if (error) throw error;
@@ -307,7 +308,8 @@ const DashboardAdmin = () => {
             }}>
               <div>
                 <p style={{ margin: 0, fontWeight: 'bold', color: t.esBloqueo ? '#b45309' : '#111827' }}>
-                  {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente}</> : t.nombre_cliente}
+                  {/* Para arreglar los bloqueos viejos usamos un .replace, así quedan limpitos */}
+                  {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
                 </p>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
                   {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
@@ -341,8 +343,8 @@ const DashboardAdmin = () => {
                 backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' 
               }}>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 'bold', color: '#475569' }}>
-                    {t.esBloqueo ? `Bloqueo Mantenimiento: ${t.nombre_cliente}` : t.nombre_cliente}
+                  <p style={{ margin: 0, fontWeight: 'bold', color: t.esBloqueo ? '#b45309' : '#475569' }}>
+                    {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
                     {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
