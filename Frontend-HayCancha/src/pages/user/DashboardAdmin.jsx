@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle // <-- Agregados los nuevos iconos
+  Building, MapPin, Map, CheckCircle 
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../../index.css';
@@ -23,6 +23,10 @@ const DashboardAdmin = () => {
   const [datosGrafico, setDatosGrafico] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
+  // Archivos de Imagen
+  const [imagenCanchaFile, setImagenCanchaFile] = useState(null);
+  const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState(null);
+
   // Métricas
   const [metricas, setMetricas] = useState({ 
     ingresosDia: 0, 
@@ -56,7 +60,8 @@ const DashboardAdmin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
-      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
+      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_id', user.id).single();
+      // Si por alguna razón tu base sigue usando admin_email en vez de admin_id, cambialo arriba.
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
 
@@ -155,20 +160,50 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  // Funciones de Canchas
+  // --- LOGICA DE CREAR Y EDITAR CANCHAS CON FOTOS --- //
+
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
+      let logoUrl = formCancha.imagen_url;
+
+      // Magia de subida de imagen
+      if (imagenCanchaFile) {
+        const fileExt = imagenCanchaFile.name.split('.').pop();
+        const fileName = `canchas/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('imagenes')
+          .upload(fileName, imagenCanchaFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('imagenes')
+          .getPublicUrl(fileName);
+
+        logoUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from('canchas').insert([{ 
-        club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
-        precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre, imagen_url: formCancha.imagen_url
+        club_id: miClub.id, 
+        nombre: formCancha.nombre, 
+        deporte: formCancha.deporte,
+        precio_hora: Number(formCancha.precio_hora), 
+        hora_apertura: formCancha.hora_apertura,
+        hora_cierre: formCancha.hora_cierre, 
+        imagen_url: logoUrl
       }]);
+
       if (error) { alert("Error: " + error.message); return; }
+      
       setMostrarModalCancha(false);
       setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
+      setImagenCanchaFile(null); // Reseteamos la foto
       await cargarDatos(); 
-    } catch (err) { alert("Error inesperado al guardar."); }
+    } catch (err) { 
+      alert("Error inesperado al guardar: " + err.message); 
+    }
   };
 
   const abrirModalEditar = (cancha) => {
@@ -176,23 +211,55 @@ const DashboardAdmin = () => {
       id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
       hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || ''
     });
+    setImagenCanchaEditFile(null); // Limpiamos si había alguna foto vieja seleccionada
     setMostrarModalEditar(true);
   };
 
   const guardarEdicionCancha = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from('canchas').update({
-      nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
-      hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: canchaEditando.imagen_url
-    }).eq('id', canchaEditando.id);
-    if (error) { alert("Error al guardar: " + error.message); return; }
-    setMostrarModalEditar(false);
-    await cargarDatos();
+    try {
+      let logoUrl = canchaEditando.imagen_url;
+
+      // Magia de subida de imagen para EDICIÓN
+      if (imagenCanchaEditFile) {
+        const fileExt = imagenCanchaEditFile.name.split('.').pop();
+        const fileName = `canchas/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('imagenes')
+          .upload(fileName, imagenCanchaEditFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('imagenes')
+          .getPublicUrl(fileName);
+
+        logoUrl = urlData.publicUrl;
+      }
+
+      const { error } = await supabase.from('canchas').update({
+        nombre: canchaEditando.nombre, 
+        deporte: canchaEditando.deporte, 
+        precio_hora: Number(canchaEditando.precio_hora),
+        hora_apertura: canchaEditando.hora_apertura, 
+        hora_cierre: canchaEditando.hora_cierre, 
+        imagen_url: logoUrl
+      }).eq('id', canchaEditando.id);
+      
+      if (error) { alert("Error al guardar: " + error.message); return; }
+      
+      setMostrarModalEditar(false);
+      setImagenCanchaEditFile(null);
+      await cargarDatos();
+    } catch (err) {
+      alert("Error inesperado al editar: " + err.message);
+    }
   };
+
 
   // --- COMPONENTES DE PANTALLA ---
 
-  // NUEVA PANTALLA: Perfil del Club
   const PantallaPerfil = () => {
     const [formPerfil, setFormPerfil] = useState({
       nombre: miClub?.nombre || '',
@@ -202,7 +269,6 @@ const DashboardAdmin = () => {
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
     
-    // Lista de provincias
     const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán", "Salta", "Neuquén", "Río Negro"];
 
     const guardarPerfil = async (e) => {
@@ -219,7 +285,6 @@ const DashboardAdmin = () => {
 
         if (error) throw error;
 
-        // Actualizamos el estado global para que cambie el nombre en el menú lateral
         setMiClub({ ...miClub, ...formPerfil });
         setMensaje({ texto: '¡Datos actualizados correctamente!', tipo: 'exito' });
         setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
@@ -407,8 +472,6 @@ const DashboardAdmin = () => {
           <button className={`nav-item ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}><BarChart3 size={20} /> Métricas</button>
           <button className={`nav-item ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}><Users size={20} /> Clientes</button>
           <button className={`nav-item ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}><Settings size={20} /> Canchas</button>
-          
-          {/* NUEVO BOTÓN: MI CLUB */}
           <button className={`nav-item ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => setVistaActual('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
         <button className="btn-salir" onClick={cerrarSesion}><LogOut size={20} /> Salir</button>
@@ -419,8 +482,6 @@ const DashboardAdmin = () => {
         {vistaActual === 'metricas' && <PantallaMetricas />}
         {vistaActual === 'clientes' && <PantallaClientes />}
         {vistaActual === 'ajustes' && <PantallaAjustes />}
-        
-        {/* NUEVA PANTALLA RENDERIZADA */}
         {vistaActual === 'perfil' && <PantallaPerfil />}
       </main>
 
@@ -474,40 +535,51 @@ const DashboardAdmin = () => {
 
       {/* 3. Modal CREAR Cancha */}
       {mostrarModalCancha && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 5px 0', color: '#1e293b' }}>Crear Nueva Cancha</h3>
             
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Nombre</label>
-                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Deporte</label>
-                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
             </div>
 
             <div>
               <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Precio por Hora ($)</label>
-              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} style={{ width: '94%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
             </div>
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Apertura</label>
-                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Cierre</label>
-                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Link de la Imagen (Opcional)</label>
-              <input type="url" placeholder="https://ejemplo.com/foto.jpg" value={formCancha.imagen_url} onChange={(e) => setFormCancha({...formCancha, imagen_url: e.target.value})} style={{ width: '94%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
+              <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>
+                Foto de la Cancha (Opcional)
+              </label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setImagenCanchaFile(e.target.files[0]);
+                  }
+                }} 
+                style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '8px' }} 
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -520,40 +592,53 @@ const DashboardAdmin = () => {
 
       {/* 4. Modal EDITAR Cancha */}
       {mostrarModalEditar && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <form onSubmit={guardarEdicionCancha} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 5px 0', color: '#1e293b' }}>Editar Cancha</h3>
             
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Nombre</label>
-                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Deporte</label>
-                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
             </div>
 
             <div>
               <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Precio por Hora ($)</label>
-              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} style={{ width: '94%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
             </div>
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Apertura</label>
-                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Cierre</label>
-                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} style={{ width: '85%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Link de la Imagen (Opcional)</label>
-              <input type="url" placeholder="https://ejemplo.com/foto.jpg" value={canchaEditando.imagen_url} onChange={(e) => setCanchaEditando({...canchaEditando, imagen_url: e.target.value})} style={{ width: '94%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px' }}/>
+            {/* NUEVO INPUT DE IMAGEN PARA EDICIÓN */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
+              <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>Cambiar Foto (Opcional)</label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setImagenCanchaEditFile(e.target.files[0]);
+                  }
+                }} 
+                style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '8px' }} 
+              />
+              {canchaEditando.imagen_url && !imagenCanchaEditFile && (
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Ya tiene una imagen cargada</p>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

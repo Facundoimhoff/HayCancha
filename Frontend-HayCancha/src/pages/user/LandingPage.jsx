@@ -25,7 +25,7 @@ const LandingPage = () => {
 
       if (errorAuth) throw errorAuth;
 
-      navigate('/panel');
+      navigate('/panel'); // Redirigimos al panel del administrador después de iniciar sesión
     } catch (error) {
       console.error("Error al iniciar sesión:", error.message);
       setError('Correo o contraseña incorrectos. Probá de nuevo.');
