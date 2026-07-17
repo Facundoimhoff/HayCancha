@@ -6,7 +6,7 @@ import LandingPage from './pages/user/LandingPage';
 import DashboardAdmin from './pages/user/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
-import Onboarding from './pages/user/OnBoarding';
+import OnBoarding from './pages/user/OnBoarding';
 import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';

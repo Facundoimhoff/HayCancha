@@ -5,7 +5,7 @@ import { Building2, Mail, Lock, CheckCircle2 } from 'lucide-react';
 // IMPORTANTE: Importar CSS
 import './OnBoarding.css';
 
-const Onboarding = () => {
+const OnBoarding = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
