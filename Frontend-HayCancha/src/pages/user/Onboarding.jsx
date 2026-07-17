@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { Building2, Mail, Lock, CheckCircle2 } from 'lucide-react';
 // IMPORTANTE: Importar CSS
-import './Onboarding.css';
+import './OnBoarding.css';
 
 const Onboarding = () => {
   const navigate = useNavigate();
