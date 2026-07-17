@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../../index.css';
+// IMPORTANTE: Importar CSS
+import './DashboardAdmin.css';
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -15,7 +17,6 @@ const DashboardAdmin = () => {
   const [vistaActual, setVistaActual] = useState('general');
   const [errorAcceso, setErrorAcceso] = useState(false);
 
-  // Estados Globales
   const [miClub, setMiClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -24,11 +25,9 @@ const DashboardAdmin = () => {
   const [datosGrafico, setDatosGrafico] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
-  // Archivos de Imagen
   const [imagenCanchaFile, setImagenCanchaFile] = useState(null);
   const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState(null);
 
-  // Métricas
   const [metricas, setMetricas] = useState({ 
     ingresosDia: 0, 
     ingresosSemana: 0, 
@@ -36,27 +35,22 @@ const DashboardAdmin = () => {
     turnosMes: 0 
   });
 
-  // Modal Turno Manual
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
   
-  // Modal Bloquear Horario
   const [mostrarModalBloqueo, setMostrarModalBloqueo] = useState(false);
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
-  // Modal Nueva Cancha
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ 
     nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
 
-  // Modal Editar Cancha
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [canchaEditando, setCanchaEditando] = useState({ 
     id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
 
-  // Fecha y Mes en Español para los títulos dinámicos
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const now = new Date();
   const mesActualNombre = `${meses[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
@@ -153,7 +147,6 @@ const DashboardAdmin = () => {
         cancha_id: formBloqueo.cancha_id,
         fecha: formBloqueo.fecha,
         hora_inicio: formBloqueo.hora_inicio,
-        // <-- ACÁ CAMBIAMOS PARA QUE SÓLO GUARDE "Bloqueo por: [motivo]"
         nombre_cliente: formBloqueo.motivo ? `Bloqueo por: ${formBloqueo.motivo}` : 'Bloqueo por: Mantenimiento',
         telefono_cliente: 'BLOQUEO' 
       }]);
@@ -243,30 +236,47 @@ const DashboardAdmin = () => {
     };
 
     return (
-      <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '12px', border: '1px solid #e5e7eb', maxWidth: '600px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px', borderBottom: '1px solid #e5e7eb', paddingBottom: '15px' }}>
+      <div className="perfil-wrapper">
+        <div className="perfil-header">
           <Building size={24} color="#2563eb" />
-          <h2 style={{ margin: 0, color: '#111827' }}>Perfil de tu Club</h2>
+          <h2>Perfil de tu Club</h2>
         </div>
+        
         {mensaje.texto && (
-          <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: mensaje.tipo === 'exito' ? '#dcfce7' : '#fee2e2', color: mensaje.tipo === 'exito' ? '#166534' : '#ef4444' }}>
-            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}<strong>{mensaje.texto}</strong>
+          <div className={`perfil-alerta ${mensaje.tipo}`}>
+            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
+            <strong>{mensaje.texto}</strong>
           </div>
         )}
-        <form onSubmit={guardarPerfil} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+        <form onSubmit={guardarPerfil} className="perfil-form">
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Nombre del Club</label>
-            <div style={{ position: 'relative' }}><Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} /></div>
+            <label className="form-label">Nombre del Club</label>
+            <div className="input-icon-wrapper">
+              <Building size={18} className="input-icon" />
+              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+            </div>
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Provincia</label>
-            <div style={{ position: 'relative' }}><Map size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', backgroundColor: 'white' }}><option value="">Seleccioná tu provincia</option>{provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}</select></div>
+            <label className="form-label">Provincia</label>
+            <div className="input-icon-wrapper">
+              <Map size={18} className="input-icon" />
+              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
+                <option value="">Seleccioná tu provincia</option>
+                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+              </select>
+            </div>
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>Ciudad</label>
-            <div style={{ position: 'relative' }}><MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} /><input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} /></div>
+            <label className="form-label">Ciudad</label>
+            <div className="input-icon-wrapper">
+              <MapPin size={18} className="input-icon" />
+              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
+            </div>
           </div>
-          <button type="submit" disabled={guardando} style={{ marginTop: '10px', backgroundColor: '#2563eb', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: guardando ? 'not-allowed' : 'pointer', opacity: guardando ? 0.7 : 1 }}>{guardando ? 'Guardando...' : 'Guardar Cambios'}</button>
+          <button type="submit" disabled={guardando} className="btn-guardar">
+            {guardando ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
         </form>
       </div>
     );
@@ -274,53 +284,57 @@ const DashboardAdmin = () => {
 
   const PantallaGeneral = () => (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: '#111827' }}>Vista General</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => setMostrarModalBloqueo(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}><Ban size={18} /> Bloquear</button>
-          <button onClick={() => setMostrarModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}><Plus size={18} /> Nuevo Turno</button>
+      <div className="general-header">
+        <h2>Vista General</h2>
+        <div className="acciones-header">
+          <button onClick={() => setMostrarModalBloqueo(true)} className="btn-accion bloqueo">
+            <Ban size={18} /> Bloquear
+          </button>
+          <button onClick={() => setMostrarModal(true)} className="btn-accion nuevo">
+            <Plus size={18} /> Nuevo Turno
+          </button>
         </div>
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb' }}>
-          <div style={{ backgroundColor: '#dcfce7', padding: '15px', borderRadius: '10px' }}><DollarSign size={24} color="#16a34a" /></div>
-          <div><p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem', fontWeight: 'bold' }}>Caja Acumulada</p><h3 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>${metricas.ingresosMes}</h3></div>
+      <div className="metricas-grid">
+        <div className="metrica-card">
+          <div className="icono-box verde"><DollarSign size={24} color="#16a34a" /></div>
+          <div className="metrica-info">
+            <p>Caja Acumulada</p>
+            <h3>${metricas.ingresosMes}</h3>
+          </div>
         </div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb' }}>
-          <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '10px' }}><CalendarIcon size={24} color="#2563eb" /></div>
-          <div><p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem', fontWeight: 'bold' }}>Turnos del Mes</p><h3 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>{metricas.turnosMes}</h3></div>
+        <div className="metrica-card">
+          <div className="icono-box azul"><CalendarIcon size={24} color="#2563eb" /></div>
+          <div className="metrica-info">
+            <p>Turnos del Mes</p>
+            <h3>{metricas.turnosMes}</h3>
+          </div>
         </div>
       </div>
 
-      {/* --- SECCIÓN 1: TURNOS PRÓXIMOS CON TÍTULO DINÁMICO --- */}
-      <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', textTransform: 'uppercase' }}>
+      {/* --- SECCIÓN 1: TURNOS PRÓXIMOS --- */}
+      <div className="seccion-turnos">
+        <h3 className="titulo-seccion azul">
           <Clock size={20} /> Turnos Próximos de {mesActualNombre}
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {proximosTurnos.length === 0 ? <p style={{ color: '#6b7280' }}>No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
-            <div key={t.id} style={{ 
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', 
-              backgroundColor: t.esBloqueo ? '#fef3c7' : '#f9fafb', 
-              borderLeft: t.esBloqueo ? '4px solid #f59e0b' : '4px solid #3b82f6', 
-              borderRadius: '8px', borderRight: '1px solid #e5e7eb', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb'
-            }}>
+        <div className="turnos-lista">
+          {proximosTurnos.length === 0 ? <p className="texto-ayuda">No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
+            <div key={t.id} className={`turno-item ${t.esBloqueo ? 'bloqueo' : 'normal'}`}>
               <div>
-                <p style={{ margin: 0, fontWeight: 'bold', color: t.esBloqueo ? '#b45309' : '#111827' }}>
-                  {/* Para arreglar los bloqueos viejos usamos un .replace, así quedan limpitos */}
+                <p className="turno-nombre">
                   {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
                 </p>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
+                <p className="turno-detalle">
                   {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} style={{ backgroundColor: t.esBloqueo ? '#fff' : '#ef4444', color: t.esBloqueo ? '#b45309' : '#fff', padding: '8px', border: t.esBloqueo ? '1px solid #b45309' : 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+              <div className="turno-acciones">
+                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} className={`btn-turno-accion ${t.esBloqueo ? 'liberar' : 'cancelar'}`}>
                   {t.esBloqueo ? 'Liberar' : 'Cancelar'}
                 </button>
                 {!t.esBloqueo && (
-                  <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25D366', color: '#fff', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>WhatsApp</a>
+                  <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" className="btn-turno-accion whatsapp">WhatsApp</a>
                 )}
               </div>
             </div>
@@ -328,30 +342,27 @@ const DashboardAdmin = () => {
         </div>
       </div>
 
-      {/* --- SECCIÓN 2: TURNOS JUGADOS CON TÍTULO DINÁMICO --- */}
-      <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '20px', marginTop: '20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', textTransform: 'uppercase' }}>
+      {/* --- SECCIÓN 2: TURNOS JUGADOS --- */}
+      <div className="seccion-turnos">
+        <h3 className="titulo-seccion verde">
           <CheckCircle size={20} /> Turnos Jugados de {mesActualNombre}
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="turnos-lista">
           {turnosPasados.length === 0 ? (
-            <p style={{ color: '#6b7280' }}>Todavía no hay turnos completados en este mes.</p>
+            <p className="texto-ayuda">Todavía no hay turnos completados en este mes.</p>
           ) : (
             turnosPasados.map(t => (
-              <div key={t.id} style={{ 
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', 
-                backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' 
-              }}>
+              <div key={t.id} className="turno-item pasado">
                 <div>
-                  <p style={{ margin: 0, fontWeight: 'bold', color: t.esBloqueo ? '#b45309' : '#475569' }}>
+                  <p className="turno-nombre">
                     {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
                   </p>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
+                  <p className="turno-detalle">
                     {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
                   </p>
                 </div>
                 {!t.esBloqueo && (
-                  <div style={{ fontWeight: 'bold', color: '#16a34a', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '20px' }}>
+                  <div className="badge-ingreso">
                     + ${t.precio}
                   </div>
                 )}
@@ -367,16 +378,24 @@ const DashboardAdmin = () => {
     const v = filtroTiempo === 'dia' ? metricas.ingresosDia : filtroTiempo === 'semana' ? metricas.ingresosSemana : metricas.ingresosMes;
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0 }}>Análisis de Ingresos</h2>
-          <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}>
-            <option value="dia">Hoy</option><option value="semana">Esta Semana</option><option value="mes">Este Mes</option>
+        <div className="metricas-header">
+          <h2>Análisis de Ingresos</h2>
+          <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="select-filtro">
+            <option value="dia">Hoy</option>
+            <option value="semana">Esta Semana</option>
+            <option value="mes">Este Mes</option>
           </select>
         </div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', height: '350px' }}>
-          <h3 style={{ color: '#16a34a' }}>${v} Recaudado</h3>
+        <div className="grafico-container">
+          <h3 className="grafico-titulo">${v} Recaudado</h3>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={datosGrafico}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="nombre"/><YAxis/><Tooltip/><Bar dataKey="ganancias" fill="#3b82f6"/></BarChart>
+            <BarChart data={datosGrafico}>
+              <CartesianGrid strokeDasharray="3 3"/>
+              <XAxis dataKey="nombre"/>
+              <YAxis/>
+              <Tooltip/>
+              <Bar dataKey="ganancias" fill="#3b82f6"/>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -384,13 +403,23 @@ const DashboardAdmin = () => {
   };
 
   const PantallaClientes = () => ( 
-    <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-      <h2 style={{ margin: '0 0 20px 0' }}>Clientes Frecuentes</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-        <thead><tr style={{ backgroundColor: '#f1f5f9' }}><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Nombre</th><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Teléfono</th><th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Total Turnos</th></tr></thead>
+    <div className="clientes-wrapper">
+      <h2>Clientes Frecuentes</h2>
+      <table className="tabla-clientes">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Total Turnos</th>
+          </tr>
+        </thead>
         <tbody>
           {clientes.map((c, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}><td style={{ padding: '12px' }}>{c.nombre}</td><td style={{ padding: '12px' }}>{c.telefono}</td><td style={{ padding: '12px' }}><span style={{ backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.cant} turnos</span></td></tr>
+            <tr key={i}>
+              <td>{c.nombre}</td>
+              <td>{c.telefono}</td>
+              <td><span className="badge-turnos">{c.cant} turnos</span></td>
+            </tr>
           ))}
         </tbody>
       </table>
@@ -399,26 +428,34 @@ const DashboardAdmin = () => {
 
   const PantallaAjustes = () => ( 
     <div>
-      <header className="content-header"><h1 style={{ margin: 0 }}>Mis Canchas</h1><button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}><Plus size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }}/> Agregar Cancha</button></header>
+      <header className="content-header">
+        <h1>Mis Canchas</h1>
+        <button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}>
+          <Plus size={18} /> Agregar Cancha
+        </button>
+      </header>
+      
       <div className="canchas-list">
         {canchas.map(c => (
           <div key={c.id} className="cancha-card">
-            <div className="cancha-imagen-placeholder" style={c.imagen_url ? { padding: 0, overflow: 'hidden', border: 'none' } : {}}>
+            <div className={`cancha-imagen-placeholder ${c.imagen_url ? 'con-imagen' : ''}`}>
               {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImageIcon color="#9ca3af" size={32} />}
             </div>
             <div className="cancha-info">
-              <h3>{c.nombre} <span style={{ fontSize: '0.8rem', backgroundColor: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', marginLeft: '8px', color: '#475569' }}>{c.deporte}</span></h3>
-              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>${c.precio_hora} / hora • ⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
+              <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
+              <p>${c.precio_hora} / hora • ⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
             </div>
-            <button className="btn-editar" onClick={() => abrirModalEditar(c)} title="Editar información"><Edit size={20} /></button>
+            <button className="btn-editar" onClick={() => abrirModalEditar(c)} title="Editar información">
+              <Edit size={20} />
+            </button>
           </div>
         ))}
       </div>
     </div>
   );
 
-  if (cargando) return <div style={{ padding: '40px', textAlign: 'center', fontSize: '1.2rem' }}>Cargando panel...</div>;
-  if (errorAcceso) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>Acceso Denegado. Solo administradores.</div>;
+  if (cargando) return <div className="dashboard-mensaje">Cargando panel...</div>;
+  if (errorAcceso) return <div className="dashboard-error">Acceso Denegado. Solo administradores.</div>;
 
   return (
     <div className="dashboard-container">
@@ -448,85 +485,83 @@ const DashboardAdmin = () => {
       {/* --- MODALES --- */}
 
       {mostrarModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <form onSubmit={crearTurnoManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
-            <h3 style={{ margin: 0 }}>Nuevo Turno Manual</h3>
-            <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <input type="text" placeholder="Nombre Cliente" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <input type="text" placeholder="Teléfono" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+        <div className="modal-overlay">
+          <form onSubmit={crearTurnoManual} className="modal-content">
+            <h3>Nuevo Turno Manual</h3>
+            <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} className="modal-input solo" />
+            <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} className="modal-input solo" />
+            <input type="text" placeholder="Nombre Cliente" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} className="modal-input solo" />
+            <input type="text" placeholder="Teléfono" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} className="modal-input solo" />
+            <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})} className="modal-input solo">
               <option value="">Seleccionar cancha...</option>
               {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Guardar</button>
-              <button type="button" onClick={() => setMostrarModal(false)} style={{ background: '#e5e7eb', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            <div className="modal-acciones">
+              <button type="submit" className="btn-modal primario">Guardar</button>
+              <button type="button" onClick={() => setMostrarModal(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
         </div>
       )}
 
       {mostrarModalBloqueo && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <form onSubmit={crearBloqueo} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '300px' }}>
-            <h3 style={{ margin: 0, color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px' }}><Ban size={20}/> Bloquear Horario</h3>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Usá esto para bloquear la cancha por mantenimiento o limpieza. Los clientes no podrán reservarla.</p>
+        <div className="modal-overlay">
+          <form onSubmit={crearBloqueo} className="modal-content">
+            <h3 className="modal-header-bloqueo"><Ban size={20}/> Bloquear Horario</h3>
+            <p className="modal-desc">Usá esto para bloquear la cancha por mantenimiento o limpieza. Los clientes no podrán reservarla.</p>
             
-            <input type="date" required onChange={(e) => setFormBloqueo({...formBloqueo, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <input type="time" required onChange={(e) => setFormBloqueo({...formBloqueo, hora_inicio: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="date" required onChange={(e) => setFormBloqueo({...formBloqueo, fecha: e.target.value})} className="modal-input solo" />
+            <input type="time" required onChange={(e) => setFormBloqueo({...formBloqueo, hora_inicio: e.target.value})} className="modal-input solo" />
             
-            <select required onChange={(e) => setFormBloqueo({...formBloqueo, cancha_id: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+            <select required onChange={(e) => setFormBloqueo({...formBloqueo, cancha_id: e.target.value})} className="modal-input solo">
               <option value="">Seleccionar cancha...</option>
               {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
 
-            <input type="text" placeholder="Motivo (Ej: Mantenimiento)" onChange={(e) => setFormBloqueo({...formBloqueo, motivo: e.target.value})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input type="text" placeholder="Motivo (Ej: Mantenimiento)" onChange={(e) => setFormBloqueo({...formBloqueo, motivo: e.target.value})} className="modal-input solo" />
             
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              <button type="submit" style={{ background: '#f59e0b', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Bloquear</button>
-              <button type="button" onClick={() => setMostrarModalBloqueo(false)} style={{ background: '#e5e7eb', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            <div className="modal-acciones">
+              <button type="submit" className="btn-modal advertencia">Bloquear</button>
+              <button type="button" onClick={() => setMostrarModalBloqueo(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
         </div>
       )}
 
       {mostrarModalCancha && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <form onSubmit={crearCanchaManual} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 5px 0', color: '#1e293b' }}>Crear Nueva Cancha</h3>
+        <div className="modal-overlay">
+          <form onSubmit={crearCanchaManual} className="modal-content">
+            <h3>Crear Nueva Cancha</h3>
             
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Nombre</label>
-                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Nombre</label>
+                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} className="modal-input"/>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Deporte</label>
-                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <div className="modal-col">
+                <label className="modal-label">Deporte</label>
+                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input"/>
               </div>
             </div>
 
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Precio por Hora ($)</label>
-              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <label className="modal-label">Precio por Hora ($)</label>
+              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input"/>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Apertura</label>
-                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Apertura</label>
+                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} className="modal-input"/>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Cierre</label>
-                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <div className="modal-col">
+                <label className="modal-label">Cierre</label>
+                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} className="modal-input"/>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
-              <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>
-                Foto de la Cancha (Opcional)
-              </label>
+            <div className="modal-col" style={{ marginBottom: '15px' }}>
+              <label className="modal-label" style={{ marginBottom: '4px' }}>Foto de la Cancha (Opcional)</label>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -535,52 +570,53 @@ const DashboardAdmin = () => {
                     setImagenCanchaFile(e.target.files[0]);
                   }
                 }} 
-                style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '8px' }} 
+                className="modal-input solo"
+                style={{ padding: '8px' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Crear Cancha</button>
-              <button type="button" onClick={() => setMostrarModalCancha(false)} style={{ background: '#f1f5f9', color: '#475569', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            <div className="modal-acciones">
+              <button type="submit" className="btn-modal primario">Crear Cancha</button>
+              <button type="button" onClick={() => setMostrarModalCancha(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
         </div>
       )}
 
       {mostrarModalEditar && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <form onSubmit={guardarEdicionCancha} style={{ background: '#fff', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px', width: '380px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 5px 0', color: '#1e293b' }}>Editar Cancha</h3>
+        <div className="modal-overlay">
+          <form onSubmit={guardarEdicionCancha} className="modal-content">
+            <h3>Editar Cancha</h3>
             
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Nombre</label>
-                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Nombre</label>
+                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} className="modal-input"/>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Deporte</label>
-                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <div className="modal-col">
+                <label className="modal-label">Deporte</label>
+                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input"/>
               </div>
             </div>
 
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Precio por Hora ($)</label>
-              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <label className="modal-label">Precio por Hora ($)</label>
+              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} className="modal-input"/>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Apertura</label>
-                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Apertura</label>
+                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} className="modal-input"/>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>Cierre</label>
-                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box' }}/>
+              <div className="modal-col">
+                <label className="modal-label">Cierre</label>
+                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} className="modal-input"/>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
-              <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>Cambiar Foto (Opcional)</label>
+            <div className="modal-col" style={{ marginBottom: '15px' }}>
+              <label className="modal-label" style={{ marginBottom: '4px' }}>Cambiar Foto (Opcional)</label>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -589,16 +625,17 @@ const DashboardAdmin = () => {
                     setImagenCanchaEditFile(e.target.files[0]);
                   }
                 }} 
-                style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '8px' }} 
+                className="modal-input solo"
+                style={{ padding: '8px' }}
               />
               {canchaEditando.imagen_url && !imagenCanchaEditFile && (
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Ya tiene una imagen cargada</p>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              <button type="submit" style={{ background: '#2563eb', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Guardar Cambios</button>
-              <button type="button" onClick={() => setMostrarModalEditar(false)} style={{ background: '#f1f5f9', color: '#475569', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer', flex: 1, fontWeight: 'bold' }}>Cancelar</button>
+            <div className="modal-acciones">
+              <button type="submit" className="btn-modal primario">Guardar Cambios</button>
+              <button type="button" onClick={() => setMostrarModalEditar(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
         </div>

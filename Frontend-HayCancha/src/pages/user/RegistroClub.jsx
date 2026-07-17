@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+// IMPORTANTE: Importamos nuestro CSS
+import './RegistroClub.css';
 
 const RegistroClub = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
-  const [imagenFile, setImagenFile] = useState(null); // <-- NUEVO: Guardamos el archivo físico acá
+  const [imagenFile, setImagenFile] = useState(null); 
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -26,7 +28,6 @@ const RegistroClub = () => {
     }));
   };
 
-  // <-- NUEVO: Función especial para atrapar la imagen cuando el usuario la selecciona
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setImagenFile(e.target.files[0]);
@@ -47,22 +48,19 @@ const RegistroClub = () => {
       if (authError) throw authError;
 
       // 2. LÓGICA DE SUBIDA DE IMAGEN
-      let logoUrl = ''; // Variable vacía por si no suben nada
+      let logoUrl = ''; 
       
       if (imagenFile) {
-        // Le inventamos un nombre único usando la fecha y hora para que no se pisen
         const fileExt = imagenFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `logos/${fileName}`; // Se va a crear una carpetita "logos" adentro de tu bucket
+        const filePath = `logos/${fileName}`; 
 
-        // Subimos el archivo a Supabase
         const { error: uploadError } = await supabase.storage
           .from('imagenes')
           .upload(filePath, imagenFile);
 
         if (uploadError) throw uploadError;
 
-        // Pedimos el link público para guardarlo en la base de datos
         const { data: urlData } = supabase.storage
           .from('imagenes')
           .getPublicUrl(filePath);
@@ -70,7 +68,7 @@ const RegistroClub = () => {
         logoUrl = urlData.publicUrl;
       }
 
-      // 3. Guardamos todo en la base de datos (con el link de la foto ya listo)
+      // 3. Guardamos todo en la base de datos
       const { error: clubError } = await supabase
         .from('clubes')
         .insert([
@@ -81,7 +79,7 @@ const RegistroClub = () => {
             ciudad: formData.ciudad,
             direccion: formData.direccion,
             estacionamiento: formData.estacionamiento,
-            imagen_url: logoUrl, // <-- Guardamos el link real que nos dio Supabase
+            imagen_url: logoUrl, 
             admin_id: authData.user.id
           }
         ]);
@@ -100,63 +98,62 @@ const RegistroClub = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '40px 20px', fontFamily: 'system-ui' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: 'white', padding: '40px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+    <div className="registro-club-container">
+      <div className="registro-club-card">
         
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ color: '#0f172a', margin: '0 0 10px 0' }}>¡Pago exitoso! 🎉</h1>
-          <p style={{ color: '#64748b', margin: 0 }}>Completá los datos de tu club para empezar a recibir reservas.</p>
+        <div className="registro-header">
+          <h1 className="registro-titulo">¡Pago exitoso! 🎉</h1>
+          <p className="registro-subtitulo">Completá los datos de tu club para empezar a recibir reservas.</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} className="registro-form">
           
           <div>
-            <h3 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '15px' }}>1. Datos del Club</h3>
+            <h3 className="seccion-titulo">1. Datos del Club</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <input type="text" name="nombre" placeholder="Nombre del Club" required onChange={handleChange} style={inputStyle} />
-              <textarea name="descripcion" placeholder="Descripción breve (Opcional)" onChange={handleChange} style={{...inputStyle, minHeight: '80px'}} />
+            <div className="flex-col">
+              <input type="text" name="nombre" placeholder="Nombre del Club" required onChange={handleChange} className="form-input" />
+              <textarea name="descripcion" placeholder="Descripción breve (Opcional)" onChange={handleChange} className="form-input form-textarea" />
               
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input type="text" name="provincia" placeholder="Provincia" required onChange={handleChange} style={{...inputStyle, flex: 1}} />
-                <input type="text" name="ciudad" placeholder="Ciudad" required onChange={handleChange} style={{...inputStyle, flex: 1}} />
+              <div className="flex-row">
+                <input type="text" name="provincia" placeholder="Provincia" required onChange={handleChange} className="form-input half" />
+                <input type="text" name="ciudad" placeholder="Ciudad" required onChange={handleChange} className="form-input half" />
               </div>
               
-              <input type="text" name="direccion" placeholder="Dirección exacta" required onChange={handleChange} style={inputStyle} />
+              <input type="text" name="direccion" placeholder="Dirección exacta" required onChange={handleChange} className="form-input" />
               
-              {/* <-- NUEVO INPUT DE TIPO FILE --> */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <label style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 'bold' }}>Logo del Club (Imagen)</label>
+              <div className="file-container">
+                <label className="file-label">Logo del Club (Imagen)</label>
                 <input 
                   type="file" 
                   accept="image/*" 
                   onChange={handleImageChange} 
                   required 
-                  style={{...inputStyle, padding: '8px', cursor: 'pointer'}} 
+                  className="form-input form-input-file" 
                 />
               </div>
               
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#475569' }}>
-                <input type="checkbox" name="estacionamiento" onChange={handleChange} style={{ width: '18px', height: '18px' }} />
+              <label className="checkbox-container">
+                <input type="checkbox" name="estacionamiento" onChange={handleChange} className="checkbox-input" />
                 El club cuenta con estacionamiento privado
               </label>
             </div>
           </div>
 
           <div style={{ marginTop: '10px' }}>
-            <h3 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '15px' }}>2. Tu Cuenta de Administrador</h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Con estos datos vas a entrar a tu panel para gestionar las canchas.</p>
+            <h3 className="seccion-titulo">2. Tu Cuenta de Administrador</h3>
+            <p className="seccion-descripcion">Con estos datos vas a entrar a tu panel para gestionar las canchas.</p>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <input type="email" name="email" placeholder="Correo electrónico" required onChange={handleChange} style={inputStyle} />
-              <input type="password" name="password" placeholder="Contraseña (mínimo 6 caracteres)" required minLength={6} onChange={handleChange} style={inputStyle} />
+            <div className="flex-col">
+              <input type="email" name="email" placeholder="Correo electrónico" required onChange={handleChange} className="form-input" />
+              <input type="password" name="password" placeholder="Contraseña (mínimo 6 caracteres)" required minLength={6} onChange={handleChange} className="form-input" />
             </div>
           </div>
 
           <button 
             type="submit" 
             disabled={cargando}
-            style={{ marginTop: '20px', width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '16px', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', border: 'none', cursor: cargando ? 'not-allowed' : 'pointer', opacity: cargando ? 0.7 : 1 }}
+            className={`btn-submit ${cargando ? 'cargando' : 'activo'}`}
           >
             {cargando ? 'Subiendo imagen y creando...' : 'Finalizar Configuración'}
           </button>
@@ -165,10 +162,6 @@ const RegistroClub = () => {
       </div>
     </div>
   );
-};
-
-const inputStyle = {
-  width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', boxSizing: 'border-box'
 };
 
 export default RegistroClub;

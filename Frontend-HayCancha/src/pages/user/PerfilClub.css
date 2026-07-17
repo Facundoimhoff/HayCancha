@@ -1,0 +1,190 @@
+/* PerfilClub.css */
+
+.perfil-container {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 40px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+/* --- ESTADOS DE CARGA --- */
+.mensaje-vacio {
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* --- BOTÓN VOLVER FLOTANTE --- */
+.btn-flotante-volver {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #1e293b;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.btn-flotante-volver:hover {
+  background-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* --- BANNER Y FOTO --- */
+.banner-club {
+  width: 100%;
+  background-color: #e2e8f0;
+}
+
+.banner-imagen {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- INFO DEL CLUB --- */
+.info-club-tarjeta {
+  background-color: #ffffff;
+  padding: 25px 20px;
+  border-radius: 24px 24px 0 0;
+  margin-top: -30px; /* Esto hace el efecto de superposición sobre la foto */
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+}
+
+.info-club-nombre {
+  margin: 0 0 15px 0;
+  font-size: 2rem;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.info-club-direccion,
+.info-club-telefono,
+.info-club-estacionamiento {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.icono-margen {
+  margin-right: 10px;
+}
+
+.info-club-telefono a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.info-club-telefono a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.texto-estacionamiento {
+  font-weight: 500;
+}
+
+/* --- SECCIÓN CANCHAS --- */
+.canchas-seccion {
+  padding: 20px;
+}
+
+.canchas-titulo {
+  font-size: 1.4rem;
+  color: #1e293b;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.mensaje-sin-canchas {
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.canchas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.cancha-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.cancha-tarjeta {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.cancha-link:hover .cancha-tarjeta {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(37, 99, 235, 0.15);
+  border-color: #93c5fd;
+}
+
+.cancha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.cancha-nombre {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+.cancha-tipo {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.cancha-precio {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.cancha-precio-hora {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}

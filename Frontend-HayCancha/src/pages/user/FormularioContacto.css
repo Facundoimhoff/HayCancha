@@ -1,0 +1,157 @@
+/* FormularioContacto.css */
+
+.contacto-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 40px 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.contacto-header-wrapper {
+  max-width: 500px;
+  margin: 0 auto 20px auto;
+}
+
+.btn-volver-contacto {
+  background: none;
+  border: none;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-volver-contacto:hover {
+  color: #111827;
+  transform: translateX(-3px);
+}
+
+.contacto-card {
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- ENCABEZADO --- */
+.contacto-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.contacto-icono-box {
+  background-color: #eff6ff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 15px auto;
+}
+
+.contacto-titulo {
+  margin: 0;
+  color: #111827;
+  font-size: 1.8rem;
+}
+
+.contacto-subtitulo {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 10px;
+}
+
+/* --- MENSAJE ÉXITO --- */
+.mensaje-exito {
+  text-align: center;
+  padding: 30px 20px;
+  background-color: #dcfce7;
+  border-radius: 8px;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.exito-titulo {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.exito-texto {
+  margin: 10px 0 0 0;
+  font-size: 1rem;
+}
+
+/* --- FORMULARIO --- */
+.contacto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-label-contacto {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-input-contacto {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  box-sizing: border-box;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input-contacto:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-textarea-contacto {
+  resize: vertical;
+}
+
+.btn-enviar-contacto {
+  background-color: #2563eb;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-enviar-contacto:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-enviar-contacto:active {
+  transform: scale(0.98);
+}

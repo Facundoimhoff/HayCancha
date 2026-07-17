@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, ShieldCheck, ArrowRight, Lock, Mail, KeyRound } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+// IMPORTANTE: Importamos el archivo CSS
+import './LandingPage.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -44,7 +46,6 @@ const LandingPage = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // MUY IMPORTANTE: Esta es la ruta a donde volverá el usuario cuando toque el link en su correo
         redirectTo: window.location.origin + '/actualizar-password', 
       });
 
@@ -69,35 +70,33 @@ const LandingPage = () => {
           <>
             <div className="landing-opciones">
               <button onClick={() => navigate('/seleccionar-ubicacion')} className="btn-cliente">
-                <User size={24} style={{ marginRight: '15px' }} />
+                <User size={24} className="btn-icono" />
 
-                <div>
-                  <strong style={{ fontSize: '1.1rem' }}>
+                <div className="btn-text-content">
+                  <strong className="btn-text-title">
                     Entrar como Cliente
                   </strong>
-
-                  <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'normal', marginTop: '2px' }}>
+                  <span className="btn-text-desc">
                     Quiero buscar y reservar canchas
                   </span>
                 </div>
 
-                <ArrowRight size={20} style={{ marginLeft: 'auto' }} />
+                <ArrowRight size={20} className="btn-flecha" />
               </button>
 
               <button onClick={() => setMostrarLogin(true)} className="btn-admin">
-                <ShieldCheck size={24} style={{ marginRight: '15px' }} />
+                <ShieldCheck size={24} className="btn-icono" />
 
-                <div>
-                  <strong style={{ fontSize: '1.1rem' }}>
+                <div className="btn-text-content">
+                  <strong className="btn-text-title">
                     Entrar como Administrador
                   </strong>
-
-                  <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'normal', marginTop: '2px' }}>
+                  <span className="btn-text-desc">
                     Quiero gestionar mi club y turnos
                   </span>
                 </div>
 
-                <ArrowRight size={20} style={{ marginLeft: 'auto' }} />
+                <ArrowRight size={20} className="btn-flecha" />
               </button>
             </div>
 
@@ -106,48 +105,53 @@ const LandingPage = () => {
               <p>
                 Descubrí cómo <strong>Hay Cancha</strong> puede ayudarte a gestionar reservas, clientes y turnos desde una única plataforma.
               </p>
-              <Link to="/contacto" className="btn-contacto-empresa">
-                Ir al formulario
+              <Link to="/planes" className="btn-contacto-empresa">
+                Conocé nuestros planes
               </Link>
             </div>
           </>
         ) : (
           <div className="animacion-acordeon">
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#1e3a8a', display: 'flex', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+            <h2 className="form-header">
               {mostrarRecuperar ? (
-                <><KeyRound size={18} style={{ marginRight: '8px' }} /> Recuperar Contraseña</>
+                <><KeyRound size={18} className="form-header-icon" /> Recuperar Contraseña</>
               ) : (
-                <><Lock size={18} style={{ marginRight: '8px' }} /> Acceso Administrativo</>
+                <><Lock size={18} className="form-header-icon" /> Acceso Administrativo</>
               )}
             </h2>
 
-            {error && (
-              <div style={{ color: '#ef4444', backgroundColor: '#fee2e2', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                {error}
-              </div>
-            )}
+            {error && <div className="alerta-error">{error}</div>}
             
-            {mensajeExito && (
-              <div style={{ color: '#059669', backgroundColor: '#d1fae5', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                {mensajeExito}
-              </div>
-            )}
+            {mensajeExito && <div className="alerta-exito">{mensajeExito}</div>}
 
             {!mostrarRecuperar ? (
               // FORMULARIO DE LOGIN NORMAL
               <form onSubmit={handleLogin}>
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" className="input-login" required />
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    placeholder="tu@correo.com" 
+                    className="input-login" 
+                    required 
+                  />
                 </div>
 
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>Contraseña</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="input-login" required />
+                <div className="form-group">
+                  <label className="form-label">Contraseña</label>
+                  <input 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    placeholder="••••••••" 
+                    className="input-login" 
+                    required 
+                  />
                 </div>
 
-                {/* BOTÓN OLVIDÉ CONTRASEÑA */}
-                <div style={{ marginBottom: '25px', textAlign: 'right' }}>
+                <div className="forgot-password-container">
                   <button 
                     type="button" 
                     onClick={() => {
@@ -155,13 +159,13 @@ const LandingPage = () => {
                       setMensajeExito('');
                       setMostrarRecuperar(true);
                     }} 
-                    style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
+                    className="btn-link-simple"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="btn-group">
                   <button type="button" onClick={() => setMostrarLogin(false)} className="btn-volver-login" disabled={cargando}>
                     Volver
                   </button>
@@ -173,23 +177,30 @@ const LandingPage = () => {
             ) : (
               // FORMULARIO DE RECUPERACIÓN DE CONTRASEÑA
               <form onSubmit={handleRecuperarPassword}>
-                <p style={{ color: '#4b5563', fontSize: '0.95rem', marginBottom: '20px' }}>
+                <p className="texto-ayuda">
                   Ingresá el correo electrónico con el que te registraste y te enviaremos un enlace para que puedas cambiar tu contraseña.
                 </p>
 
-                <div style={{ marginBottom: '25px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>Email de recuperación</label>
-                  <div style={{ position: 'relative' }}>
-                    <Mail size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} />
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" className="input-login" style={{ paddingLeft: '40px' }} required />
+                <div className="form-group">
+                  <label className="form-label">Email de recuperación</label>
+                  <div className="input-con-icono">
+                    <Mail size={18} className="input-icono" />
+                    <input 
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      placeholder="tu@correo.com" 
+                      className="input-login con-padding" 
+                      required 
+                    />
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="btn-group">
                   <button type="button" onClick={() => setMostrarRecuperar(false)} className="btn-volver-login" disabled={cargando}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-entrar-login" style={{ backgroundColor: '#10b981' }} disabled={cargando}>
+                  <button type="submit" className="btn-entrar-login verde" disabled={cargando}>
                     {cargando ? 'Enviando...' : 'Enviar enlace'}
                   </button>
                 </div>
@@ -197,10 +208,10 @@ const LandingPage = () => {
             )}
 
             {!mostrarRecuperar && (
-              <div style={{ marginTop: '25px', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-                <p style={{ margin: 0, color: '#6b7280', fontSize: '0.95rem' }}>
+              <div className="footer-registro">
+                <p className="footer-texto">
                   ¿No tenés una cuenta?{' '}
-                  <Link to="/planes" style={{ color: '#1e3a8a', fontWeight: 'bold', textDecoration: 'none' }}>
+                  <Link to="/planes" className="link-registro">
                     Conocé nuestros planes
                   </Link>
                 </p>

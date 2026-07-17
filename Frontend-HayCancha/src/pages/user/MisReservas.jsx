@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { supabase } from '../../services/supabase';
 import { Search, CalendarX2, Clock, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+// IMPORTANTE: Importar CSS
+import './MisReservas.css';
 
 const MisReservas = () => {
-  const navigate = useNavigate(); // <- FALTABA ESTO PARA QUE FUNCIONE EL BOTÓN
+  const navigate = useNavigate(); 
   const [telefonoBusqueda, setTelefonoBusqueda] = useState('');
   const [misTurnos, setMisTurnos] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
 
-  // Buscar los turnos asociados al teléfono
   const buscarMisTurnos = async (e) => {
     e.preventDefault();
     if (!telefonoBusqueda.trim()) return;
@@ -21,7 +22,6 @@ const MisReservas = () => {
     try {
       const hoy = new Date().toISOString().split('T')[0];
 
-      // 1. Buscamos los turnos del cliente de hoy en adelante
       const { data: turnos, error: errorTurnos } = await supabase
         .from('turnos')
         .select('*')
@@ -31,7 +31,6 @@ const MisReservas = () => {
 
       if (errorTurnos) throw errorTurnos;
 
-      // 2. Buscamos los nombres de las canchas para que se vea lindo
       const { data: canchas } = await supabase.from('canchas').select('id, nombre');
       
       const turnosCompletos = turnos.map(turno => {
@@ -48,7 +47,6 @@ const MisReservas = () => {
     }
   };
 
-  // Función del cliente para cancelar SU turno
   const cancelarMiTurno = async (idTurno) => {
     const confirmar = window.confirm("¿Estás seguro de que querés cancelar esta reserva? Esta acción no se puede deshacer.");
     if (!confirmar) return;
@@ -66,35 +64,36 @@ const MisReservas = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '40px 20px', fontFamily: 'system-ui' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <div className="mis-reservas-container">
+      <div className="mis-reservas-wrapper">
         
-        {/* ENCABEZADO CON BOTÓN VOLVER ARREGLADO */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h1 style={{ margin: 0, color: '#111827' }}>Mis Reservas</h1>
-          <button 
-            onClick={() => navigate(-1)}
-            style={{ background: '#e2e8f0', border: 'none', padding: '8px 16px', borderRadius: '20px', color: '#334155', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-          >
+        {/* ENCABEZADO */}
+        <div className="mis-reservas-header">
+          <h1 className="mis-reservas-titulo">Mis Reservas</h1>
+          <button onClick={() => navigate(-1)} className="btn-volver-app">
             <ArrowLeft size={16} /> Volver
           </button>
         </div>
 
         {/* Buscador por Teléfono */}
-        <form onSubmit={buscarMisTurnos} style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-          <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#4b5563' }}>
+        <form onSubmit={buscarMisTurnos} className="buscador-form">
+          <label className="buscador-label">
             Ingresá el número de teléfono con el que reservaste:
           </label>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="buscador-input-group">
             <input 
               type="text" 
               placeholder="Ej: 3415123456" 
               value={telefonoBusqueda}
               onChange={(e) => setTelefonoBusqueda(e.target.value)}
-              style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '1rem' }}
+              className="buscador-input"
               required
             />
-            <button type="submit" disabled={buscando} style={{ backgroundColor: '#111827', color: '#fff', padding: '0 20px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              type="submit" 
+              disabled={buscando} 
+              className={`btn-buscar ${buscando ? 'cargando' : 'activo'}`}
+            >
               <Search size={18} /> {buscando ? 'Buscando...' : 'Buscar'}
             </button>
           </div>
@@ -102,29 +101,31 @@ const MisReservas = () => {
 
         {/* Resultados de la Búsqueda */}
         {busquedaRealizada && !buscando && (
-          <div>
+          <div className="resultados-container">
             {misTurnos.length === 0 ? (
-              <div style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '12px', textAlign: 'center', color: '#6b7280' }}>
-                <CalendarX2 size={48} style={{ margin: '0 auto 15px auto', opacity: 0.5 }} />
+              <div className="estado-vacio">
+                <CalendarX2 size={48} className="estado-vacio-icono" />
                 <h3>No encontramos reservas activas</h3>
                 <p>No hay turnos próximos asociados a este número.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="lista-turnos">
                 {misTurnos.map(turno => (
-                  <div key={turno.id} style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                      <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '8px', color: '#2563eb' }}>
+                  <div key={turno.id} className="turno-card">
+                    <div className="turno-info-wrapper">
+                      <div className="turno-icono-box">
                         <Clock size={24} />
                       </div>
                       <div>
-                        <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>{turno.fecha.split('-').reverse().join('/')} a las {turno.hora_inicio}hs</h3>
-                        <p style={{ margin: 0, color: '#6b7280' }}>{turno.nombre_cancha}</p>
+                        <h3 className="turno-fecha">
+                          {turno.fecha.split('-').reverse().join('/')} a las {turno.hora_inicio}hs
+                        </h3>
+                        <p className="turno-cancha">{turno.nombre_cancha}</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => cancelarMiTurno(turno.id)}
-                      style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '10px 15px', borderRadius: '8px', border: '1px solid #f87171', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                      className="btn-cancelar"
                     >
                       Cancelar Reserva
                     </button>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+// IMPORTANTE: Importamos el archivo CSS
+import './Planes.css';
 
 const Planes = () => {
   const navigate = useNavigate();
@@ -27,51 +29,51 @@ const Planes = () => {
     } catch (error) {
       console.error("Error al iniciar el pago:", error);
       alert("Hubo un error al conectar con Mercado Pago.");
-      setCargando(false); // Solo lo apagamos si falla, si hay éxito ya se fue de la página
+      setCargando(false); 
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '40px 20px', fontFamily: 'system-ui' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="planes-container">
+      <div className="planes-wrapper">
         
-        <button 
-          onClick={() => navigate(-1)}
-          style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#64748b', marginBottom: '30px', padding: 0, fontWeight: 'bold' }}
-        >
+        <button onClick={() => navigate(-1)} className="btn-volver-planes">
           <ArrowLeft size={20} /> Volver
         </button>
 
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '2.5rem', color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-1px' }}>
-            Gestioná tu club como un profesional
-          </h1>
-          <p style={{ fontSize: '1.1rem', color: '#64748b', margin: 0 }}>
+        <div className="planes-header">
+          <h1 className="planes-titulo">Gestioná tu club como un profesional</h1>
+          <p className="planes-subtitulo">
             Un único plan con todo lo que necesitás para digitalizar tus canchas.
           </p>
         </div>
 
         {/* TARJETA ÚNICA DE PLAN */}
-        <div style={{ maxWidth: '400px', margin: '0 auto', backgroundColor: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', border: '2px solid #2563eb', position: 'relative' }}>
+        <div className="plan-card">
           
-          <div style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#2563eb', color: 'white', padding: '6px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className="plan-badge">
             <Zap size={16} /> PLAN FULL
           </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '1.5rem', color: '#1e293b', margin: '0 0 15px 0' }}>Suscripción Mensual</h2>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '4px' }}>
-              <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0f172a' }}>$</span>
-              <span style={{ fontSize: '3.5rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-2px' }}>15</span>
-              <span style={{ color: '#64748b', fontWeight: '500' }}>/mes</span>
+          <div className="plan-precio-header">
+            <h2 className="plan-nombre">Suscripción Mensual</h2>
+            <div className="plan-precio-wrapper">
+              <span className="plan-moneda">$</span>
+              <span className="plan-monto">15</span>
+              <span className="plan-periodo">/mes</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '35px' }}>
-            {['Reservas ilimitadas', 'Panel de métricas y finanzas', 'Bloqueo de horarios (Mantenimiento)', 'Soporte prioritario 24/7'].map((beneficio, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="plan-beneficios">
+            {[
+              'Reservas ilimitadas', 
+              'Panel de métricas y finanzas', 
+              'Bloqueo de horarios (Mantenimiento)', 
+              'Soporte prioritario 24/7'
+            ].map((beneficio, index) => (
+              <div key={index} className="plan-beneficio-item">
                 <CheckCircle size={20} color="#16a34a" />
-                <span style={{ color: '#475569', fontWeight: '500' }}>{beneficio}</span>
+                <span className="plan-beneficio-texto">{beneficio}</span>
               </div>
             ))}
           </div>
@@ -79,7 +81,7 @@ const Planes = () => {
           <button 
             onClick={iniciarPago}
             disabled={cargando}
-            style={{ width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', border: 'none', cursor: cargando ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s', opacity: cargando ? 0.8 : 1 }}
+            className={`btn-comprar ${cargando ? 'cargando' : 'activo'}`}
           >
             {cargando ? 'Conectando seguro...' : 'Comenzar ahora'}
           </button>

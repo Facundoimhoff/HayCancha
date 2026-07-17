@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone } from 'lucide-react';
 import { supabase } from '../../services/supabase'; 
+// IMPORTANTE: Importamos nuestro CSS
+import './PerfilClub.css';
 
 const PerfilClub = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // <- FALTABA ESTO ACÁ TAMBIÉN
+  const navigate = useNavigate(); 
   const [club, setClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -48,13 +50,10 @@ const PerfilClub = () => {
   if (!club) return <div className="mensaje-vacio">Club no encontrado</div>;
 
   return (
-    <div className="perfil-container" style={{ position: 'relative' }}>
+    <div className="perfil-container">
       
-      {/* BOTÓN VOLVER FLOTANTE (ESTILO APP NATIVA) */}
-      <button 
-        onClick={() => navigate(-1)}
-        style={{ position: 'absolute', top: '20px', left: '20px', backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', padding: '10px 15px', borderRadius: '25px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontWeight: 'bold', color: '#1e293b', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 10 }}
-      >
+      {/* BOTÓN VOLVER FLOTANTE */}
+      <button onClick={() => navigate(-1)} className="btn-flotante-volver">
         <ArrowLeft size={18} /> Volver
       </button>
 
@@ -64,7 +63,6 @@ const PerfilClub = () => {
           src={club.imagen_url || "https://images.unsplash.com/photo-1574629810360-7efbb1925536?q=80&w=1000&auto=format&fit=crop"} 
           alt={`Foto de ${club.nombre}`} 
           className="banner-imagen" 
-          style={{ width: '100%', height: '250px', objectFit: 'cover' }}
         />
       </div>
 
@@ -101,7 +99,7 @@ const PerfilClub = () => {
         <h2 className="canchas-titulo">Canchas Disponibles</h2>
         
         {canchas.length === 0 ? (
-          <p style={{ color: '#6b7280' }}>Este club aún no tiene canchas registradas.</p>
+          <p className="mensaje-sin-canchas">Este club aún no tiene canchas registradas.</p>
         ) : (
           <div className="canchas-grid">
             {canchas.map((cancha) => (

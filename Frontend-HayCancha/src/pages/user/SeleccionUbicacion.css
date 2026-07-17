@@ -1,0 +1,128 @@
+/* SeleccionUbicacion.css */
+
+.seleccion-ubicacion-container {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 20px;
+}
+
+.seleccion-ubicacion-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.btn-volver {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #4b5563;
+  margin-bottom: 25px;
+  padding: 0;
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+.btn-volver:hover {
+  color: #111827;
+}
+
+.seccion-titulo {
+  color: #111827;
+  margin: 0 0 5px 0;
+  font-size: 1.5rem;
+}
+
+.provincias-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  margin-top: 15px;
+  padding-bottom: 10px;
+}
+
+/* Estilo para que la barra de scroll de provincias se vea moderna */
+.provincias-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.provincias-scroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.btn-provincia {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 10px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #374151;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.btn-provincia:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Esta clase se aplica automáticamente cuando la provincia está seleccionada */
+.btn-provincia.activa {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.seccion-ciudades {
+  margin-top: 25px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 25px;
+}
+
+.texto-buscando {
+  color: #6b7280;
+  margin-top: 10px;
+}
+
+.ciudades-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-ciudad {
+  padding: 8px 16px;
+  border: 1px solid #93c5fd;
+  border-radius: 20px;
+  background-color: white;
+  color: #1e40af;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-ciudad:hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+.texto-alerta {
+  color: #ef4444;
+  margin-top: 10px;
+  background-color: #fee2e2;
+  padding: 10px;
+  border-radius: 8px;
+}

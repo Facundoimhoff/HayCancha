@@ -1,0 +1,199 @@
+/* MisReservas.css */
+
+.mis-reservas-container {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 40px 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.mis-reservas-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* --- HEADER --- */
+.mis-reservas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.mis-reservas-titulo {
+  margin: 0;
+  color: #111827;
+}
+
+.btn-volver-app {
+  background: #e2e8f0;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: #334155;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-volver-app:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+/* --- BUSCADOR --- */
+.buscador-form {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+}
+
+.buscador-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #4b5563;
+}
+
+.buscador-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.buscador-input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.buscador-input:focus {
+  outline: none;
+  border-color: #111827;
+}
+
+.btn-buscar {
+  background-color: #111827;
+  color: #fff;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-buscar.activo {
+  cursor: pointer;
+}
+
+.btn-buscar.activo:hover {
+  background-color: #374151;
+}
+
+.btn-buscar.cargando {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+/* --- ESTADOS Y RESULTADOS --- */
+.resultados-container {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.estado-vacio {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.estado-vacio-icono {
+  margin: 0 auto 15px auto;
+  opacity: 0.5;
+  display: block;
+}
+
+.estado-vacio h3 {
+  color: #374151;
+  margin-top: 0;
+}
+
+.lista-turnos {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.turno-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.turno-card:hover {
+  transform: scale(1.01);
+}
+
+.turno-info-wrapper {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.turno-icono-box {
+  background-color: #eff6ff;
+  padding: 12px;
+  border-radius: 8px;
+  color: #2563eb;
+}
+
+.turno-fecha {
+  margin: 0 0 5px 0;
+  color: #111827;
+  font-size: 1.1rem;
+}
+
+.turno-cancha {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.btn-cancelar {
+  background-color: #fee2e2;
+  color: #ef4444;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #fca5a5;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancelar:hover {
+  background-color: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}

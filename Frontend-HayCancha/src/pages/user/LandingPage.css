@@ -1,0 +1,338 @@
+/* LandingPage.css */
+
+.landing-container {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.landing-card {
+  max-width: 500px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* --- TEXTOS PRINCIPALES --- */
+.landing-titulo {
+  text-align: center;
+  font-size: 2rem;
+  color: #111827;
+  margin: 0 0 10px 0;
+}
+
+.landing-subtitulo {
+  text-align: center;
+  color: #6b7280;
+  margin: 0 0 30px 0;
+  font-size: 1.05rem;
+}
+
+/* --- BOTONES DE ACCESO (CLIENTE / ADMIN) --- */
+.landing-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.btn-cliente, .btn-admin {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  color: #1f2937;
+}
+
+.btn-cliente:hover, .btn-admin:hover {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+}
+
+.btn-icono {
+  margin-right: 15px;
+  color: #4b5563;
+  transition: color 0.2s ease;
+}
+
+.btn-cliente:hover .btn-icono, .btn-admin:hover .btn-icono {
+  color: #2563eb;
+}
+
+.btn-text-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-text-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.btn-text-desc {
+  font-size: 0.85rem;
+  font-weight: normal;
+  margin-top: 2px;
+  color: #6b7280;
+}
+
+.btn-flecha {
+  margin-left: auto;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.btn-cliente:hover .btn-flecha, .btn-admin:hover .btn-flecha {
+  color: #2563eb;
+}
+
+/* --- BLOQUE EMPRESA --- */
+.bloque-empresa {
+  background-color: #f8fafc;
+  padding: 25px 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.bloque-empresa h3 {
+  margin: 0 0 10px 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+
+.bloque-empresa p {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.btn-contacto-empresa {
+  display: inline-block;
+  background-color: #f1f5f9;
+  color: #334155;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  border: 1px solid #cbd5e1;
+}
+
+.btn-contacto-empresa:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* --- FORMULARIOS (LOGIN Y RECUPERACIÓN) --- */
+.animacion-acordeon {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-header {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.form-header-icon {
+  margin-right: 8px;
+}
+
+.alerta-error {
+  color: #ef4444;
+  background-color: #fee2e2;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.alerta-exito {
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.input-login {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-login:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-con-icono {
+  position: relative;
+}
+
+.input-icono {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.input-login.con-padding {
+  padding-left: 40px;
+}
+
+.texto-ayuda {
+  color: #4b5563;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* --- BOTONES DEL FORMULARIO --- */
+.forgot-password-container {
+  margin-bottom: 25px;
+  text-align: right;
+}
+
+.btn-link-simple {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.btn-link-simple:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-volver-login {
+  flex: 1;
+  padding: 14px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-volver-login:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-entrar-login {
+  flex: 2;
+  padding: 14px;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-entrar-login:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.btn-entrar-login.verde {
+  background-color: #10b981;
+}
+
+.btn-entrar-login.verde:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.btn-volver-login:disabled, .btn-entrar-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* --- FOOTER REGISTRO --- */
+.footer-registro {
+  margin-top: 25px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+}
+
+.footer-texto {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.link-registro {
+  color: #1e3a8a;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-registro:hover {
+  color: #1e40af;
+  text-decoration: underline;
+}
