@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { Building2, Mail, Lock, CheckCircle2 } from 'lucide-react';
 // IMPORTANTE: Importar CSS
-import './OnBoarding.css';
+import './OnboardingClub.css';
 
-const OnBoarding = () => {
+const OnboardingClub = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
