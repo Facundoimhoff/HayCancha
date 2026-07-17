@@ -113,4 +113,4 @@ const OnboardingClub = () => {
   );
 };
 
-export default Onboarding;
+export default OnboardingClub;
