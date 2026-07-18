@@ -703,3 +703,32 @@
 .btn-modal.primario { background: #2563eb; color: white; }
 .btn-modal.secundario { background: #f1f5f9; color: #475569; }
 .btn-modal.advertencia { background: #f59e0b; color: white; }
+
+/* Agregá esto a DashboardAdmin.css */
+
+.turno-acciones-triple {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-accion-mini {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-accion-mini:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* Colores específicos según acción */
+.btn-recordatorio { color: #2563eb; }
+.btn-eliminar { color: #ef4444; }
+.btn-detalles { color: #4b5563; }

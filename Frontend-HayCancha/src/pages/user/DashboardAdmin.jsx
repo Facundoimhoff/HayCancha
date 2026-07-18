@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { 
@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../../index.css';
-// IMPORTANTE: Importar CSS
 import './DashboardAdmin.css';
 
 const DashboardAdmin = () => {
@@ -20,9 +19,9 @@ const DashboardAdmin = () => {
   const [miClub, setMiClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [turnosTotales, setTurnosTotales] = useState([]); // <-- NUEVO: Guardamos TODOS los turnos para el gráfico
   const [proximosTurnos, setProximosTurnos] = useState([]);
   const [turnosPasados, setTurnosPasados] = useState([]);
-  const [datosGrafico, setDatosGrafico] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
   const [imagenCanchaFile, setImagenCanchaFile] = useState(null);
@@ -50,6 +49,10 @@ const DashboardAdmin = () => {
   const [canchaEditando, setCanchaEditando] = useState({ 
     id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
   });
+
+  // <-- NUEVO: Estado para el modal de Detalles
+  const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
 
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const now = new Date();
@@ -79,13 +82,12 @@ const DashboardAdmin = () => {
 
       const { data: turnosData } = await supabase.from('turnos').select('*').in('cancha_id', canchasData.map(c => c.id)).order('fecha', { ascending: true }).order('hora_inicio', { ascending: true });
 
+      setTurnosTotales(turnosData || []); // Guardamos TODOS para usarlos en el gráfico luego
+
       let iMes = 0, iSem = 0, iDia = 0, tMes = 0;
-      const ganCancha = {};
       const mapaClientes = {};
       const prox = [];
       const pasados = []; 
-
-      canchasData.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
 
       turnosData?.forEach(t => {
         const c = canchasData.find(x => x.id === t.cancha_id);
@@ -96,7 +98,6 @@ const DashboardAdmin = () => {
           if (t.fecha.startsWith(mesActualStr)) {
             iMes += precio;
             tMes += 1;
-            if (c) ganCancha[t.cancha_id].ganancias += precio;
           }
           if (t.fecha >= semanaStr) iSem += precio;
           if (t.fecha === hoyStr) iDia += precio;
@@ -116,7 +117,6 @@ const DashboardAdmin = () => {
 
       setMetricas({ ingresosDia: iDia, ingresosSemana: iSem, ingresosMes: iMes, turnosMes: tMes });
       setClientes(Object.values(mapaClientes).sort((a, b) => b.cant - a.cant));
-      setDatosGrafico(Object.values(ganCancha));
       setProximosTurnos(prox);
       setTurnosPasados(pasados.reverse()); 
 
@@ -130,6 +130,7 @@ const DashboardAdmin = () => {
     if(window.confirm(mensaje)) { 
       await supabase.from('turnos').delete().eq('id', id); 
       cargarDatos(); 
+      setMostrarModalDetalles(false); // Cierra el modal por si cancela desde adentro
     } 
   };
   
@@ -241,14 +242,12 @@ const DashboardAdmin = () => {
           <Building size={24} color="#2563eb" />
           <h2>Perfil de tu Club</h2>
         </div>
-        
         {mensaje.texto && (
           <div className={`perfil-alerta ${mensaje.tipo}`}>
             {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
             <strong>{mensaje.texto}</strong>
           </div>
         )}
-
         <form onSubmit={guardarPerfil} className="perfil-form">
           <div>
             <label className="form-label">Nombre del Club</label>
@@ -274,9 +273,7 @@ const DashboardAdmin = () => {
               <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
             </div>
           </div>
-          <button type="submit" disabled={guardando} className="btn-guardar">
-            {guardando ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
+          <button type="submit" disabled={guardando} className="btn-guardar">{guardando ? 'Guardando...' : 'Guardar Cambios'}</button>
         </form>
       </div>
     );
@@ -329,13 +326,39 @@ const DashboardAdmin = () => {
                   {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
                 </p>
               </div>
-              <div className="turno-acciones">
-                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} className={`btn-turno-accion ${t.esBloqueo ? 'liberar' : 'cancelar'}`}>
-                  {t.esBloqueo ? 'Liberar' : 'Cancelar'}
-                </button>
+              
+              {/* BOTONERA TRIPLE */}
+              <div className="turno-acciones-triple">
                 {!t.esBloqueo && (
-                  <a href={`https://wa.me/${t.telefono_cliente}`} target="_blank" rel="noopener noreferrer" className="btn-turno-accion whatsapp">WhatsApp</a>
+                  <a 
+                    href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-accion-mini btn-recordatorio"
+                    title="Enviar recordatorio"
+                  >
+                    <CheckCircle size={16} />
+                  </a>
                 )}
+                
+                <button 
+                  onClick={() => {
+                    setTurnoSeleccionado(t);
+                    setMostrarModalDetalles(true);
+                  }}
+                  className="btn-accion-mini btn-detalles"
+                  title="Ver detalles"
+                >
+                  <Users size={16} />
+                </button>
+                
+                <button 
+                  onClick={() => cancelarTurno(t.id, t.esBloqueo)}
+                  className="btn-accion-mini btn-eliminar"
+                  title={t.esBloqueo ? 'Liberar bloqueo' : 'Eliminar turno'}
+                >
+                  <Ban size={16} />
+                </button>
               </div>
             </div>
           ))}
@@ -375,7 +398,39 @@ const DashboardAdmin = () => {
   );
 
   const PantallaMetricas = () => { 
-    const v = filtroTiempo === 'dia' ? metricas.ingresosDia : filtroTiempo === 'semana' ? metricas.ingresosSemana : metricas.ingresosMes;
+    // <-- NUEVO: Cálculo dinámico de datos del gráfico con useMemo
+    const datosFiltrados = useMemo(() => {
+      const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const day = now.getDay() || 7; 
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - day + 1);
+      const semanaStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+
+      // Reiniciamos las ganancias de todas las canchas a 0
+      const ganCancha = {};
+      canchas.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
+
+      // Filtramos sobre TODOS los turnos cargados
+      turnosTotales.forEach(t => {
+        if (t.telefono_cliente === 'BLOQUEO') return; // No sumamos mantenimientos
+        
+        let cumpleFiltro = false;
+        if (filtroTiempo === 'dia' && t.fecha === hoyStr) cumpleFiltro = true;
+        else if (filtroTiempo === 'semana' && t.fecha >= semanaStr) cumpleFiltro = true;
+        else if (filtroTiempo === 'mes' && t.fecha.startsWith(mesActualStr)) cumpleFiltro = true;
+
+        if (cumpleFiltro && ganCancha[t.cancha_id]) {
+          const c = canchas.find(x => x.id === t.cancha_id);
+          ganCancha[t.cancha_id].ganancias += c ? Number(c.precio_hora) : 0;
+        }
+      });
+
+      return Object.values(ganCancha);
+    }, [filtroTiempo, turnosTotales, canchas]);
+
+    const totalCalculado = datosFiltrados.reduce((acc, curr) => acc + curr.ganancias, 0);
+
     return (
       <div>
         <div className="metricas-header">
@@ -387,9 +442,9 @@ const DashboardAdmin = () => {
           </select>
         </div>
         <div className="grafico-container">
-          <h3 className="grafico-titulo">${v} Recaudado</h3>
+          <h3 className="grafico-titulo">${totalCalculado} Recaudado</h3>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={datosGrafico}>
+            <BarChart data={datosFiltrados}>
               <CartesianGrid strokeDasharray="3 3"/>
               <XAxis dataKey="nombre"/>
               <YAxis/>
@@ -483,6 +538,61 @@ const DashboardAdmin = () => {
       </main>
 
       {/* --- MODALES --- */}
+
+      {mostrarModalDetalles && turnoSeleccionado && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={20} color="#2563eb" /> Detalles del Turno
+            </h3>
+            
+            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
+              <div className="detalle-item">
+                <span className="detalle-label">Cliente:</span>
+                <span className="detalle-valor">
+                  {turnoSeleccionado.esBloqueo ? turnoSeleccionado.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:') : turnoSeleccionado.nombre_cliente}
+                </span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Teléfono:</span>
+                <span className="detalle-valor">{turnoSeleccionado.telefono_cliente}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Fecha:</span>
+                <span className="detalle-valor">{turnoSeleccionado.fecha.split('-').reverse().join('/')}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Hora:</span>
+                <span className="detalle-valor">{turnoSeleccionado.hora_inicio} hs</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Cancha:</span>
+                <span className="detalle-valor">{turnoSeleccionado.nombre_cancha}</span>
+              </div>
+              {!turnoSeleccionado.esBloqueo && (
+                <div className="detalle-item" style={{ borderTop: '2px solid #e2e8f0', marginTop: '8px', paddingTop: '12px' }}>
+                  <span className="detalle-label" style={{ color: '#16a34a' }}>Precio a cobrar:</span>
+                  <span className="detalle-valor" style={{ color: '#16a34a', fontSize: '1.2rem', fontWeight: 'bold' }}>${turnoSeleccionado.precio}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-acciones" style={{ marginTop: '5px' }}>
+              <button onClick={() => setMostrarModalDetalles(false)} className="btn-modal secundario">
+                Cerrar
+              </button>
+              {!turnoSeleccionado.esBloqueo && (
+                <button 
+                  onClick={() => cancelarTurno(turnoSeleccionado.id, turnoSeleccionado.esBloqueo)} 
+                  className="btn-modal advertencia" style={{ backgroundColor: '#ef4444' }}
+                >
+                  Cancelar Turno
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {mostrarModal && (
         <div className="modal-overlay">
