@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, ShieldCheck, ArrowRight, Lock, Mail, KeyRound } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-// IMPORTANTE: Importamos el archivo CSS
 import './LandingPage.css';
 
 const LandingPage = () => {
@@ -105,8 +104,9 @@ const LandingPage = () => {
               <p>
                 Descubrí cómo <strong>Hay Cancha</strong> puede ayudarte a gestionar reservas, clientes y turnos desde una única plataforma.
               </p>
-              <Link to="/planes" className="btn-contacto-empresa">
-                Conocé nuestros planes
+              {/* ACÁ CORREGIMOS EL LINK Y EL TEXTO */}
+              <Link to="/contacto" className="btn-contacto-empresa">
+                Ir al formulario
               </Link>
             </div>
           </>
@@ -211,8 +211,9 @@ const LandingPage = () => {
               <div className="footer-registro">
                 <p className="footer-texto">
                   ¿No tenés una cuenta?{' '}
-                  <Link to="/planes" className="link-registro">
-                    Conocé nuestros planes
+                  {/* ACÁ TAMBIÉN CORREGIMOS EL LINK Y EL TEXTO */}
+                  <Link to="/contacto" className="link-registro">
+                    Contactanos
                   </Link>
                 </p>
               </div>
