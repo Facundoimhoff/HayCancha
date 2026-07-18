@@ -1,45 +1,13 @@
-/* =========================================================
-   IMPORTACIÓN DE FUENTES DEPORTIVAS (Google Fonts)
-   ========================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,700;0,800;0,900;1,800&display=swap');
-
-/* =========================================================
-   VARIABLES GLOBALES (Modo Oscuro Deportivo)
-   ========================================================= */
-:root {
-  --color-fondo-app: #111827;      /* Gris súper oscuro (Grafito) */
-  --color-tarjetas: #1f2937;       /* Gris un tono más claro para elementos */
-  --color-bordes: #374151;         /* Gris medio para líneas separadoras */
-  
-  --color-primario: #22c55e;       /* Verde Cancha vibrante */
-  --color-primario-hover: #16a34a; /* Verde oscuro para hover */
-  
-  --color-texto-principal: #f9fafb; /* Blanco tiza */
-  --color-texto-secundario: #9ca3af;/* Gris claro para subtítulos */
-
-  --fuente-titulos: 'Montserrat', sans-serif;
-  --fuente-cuerpo: 'Inter', system-ui, sans-serif;
-}
-
-/* Reset básico */
+/* Reset básico para que se vea igual en todos los navegadores */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
-  background-color: var(--color-fondo-app);
-  color: var(--color-texto-principal);
-  font-family: var(--fuente-cuerpo);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Forzamos la fuente deportiva a todos los títulos de la app */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--fuente-titulos);
-  text-transform: uppercase;
-  letter-spacing: -0.5px;
+  background-color: #F8FAFC;
 }
 
 /* --- ESTILOS DEL HOME --- */
@@ -52,10 +20,10 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 0;
   z-index: 50;
-  background-color: rgba(17, 24, 39, 0.85); /* Adaptado al modo oscuro */
+  background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--color-bordes);
+  border-bottom: 1px solid #f1f5f9;
   padding: 16px 20px;
   margin-bottom: 24px;
 }
@@ -71,17 +39,18 @@ h1, h2, h3, h4, h5, h6 {
 .header-titulo {
   font-size: 24px;
   font-weight: 900;
-  color: var(--color-texto-principal);
+  color: #111827;
+  letter-spacing: -0.5px;
 }
 
 .header-titulo span {
-  color: var(--color-primario);
+  color: #2563eb;
 }
 
 .header-subtitulo {
   font-size: 10px;
   font-weight: 700;
-  color: var(--color-texto-secundario);
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-top: 2px;
@@ -90,10 +59,10 @@ h1, h2, h3, h4, h5, h6 {
 .avatar-placeholder {
   width: 40px;
   height: 40px;
-  background-color: var(--color-tarjetas);
+  background-color: #f1f5f9;
   border-radius: 50%;
-  border: 2px solid var(--color-bordes);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  border: 2px solid white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .lista-clubes {
@@ -105,7 +74,7 @@ h1, h2, h3, h4, h5, h6 {
 .mensaje-vacio {
   text-align: center;
   padding: 40px;
-  color: var(--color-texto-secundario);
+  color: #9ca3af;
   font-weight: 500;
 }
 
@@ -118,20 +87,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tarjeta-club {
-  background-color: var(--color-tarjetas);
+  background-color: white;
   border-radius: 24px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  border: 1px solid var(--color-bordes);
+  border: 1px solid #f1f5f9;
   transition: all 0.3s ease;
   position: relative;
   top: 0;
 }
 
 .tarjeta-club:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   top: -4px;
-  border-color: var(--color-primario);
 }
 
 .tarjeta-imagen-contenedor {
@@ -155,23 +123,22 @@ h1, h2, h3, h4, h5, h6 {
 .tarjeta-gradiente {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(17,24,39,1) 0%, rgba(17,24,39,0.4) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
 }
 
 .tarjeta-badge {
   position: absolute;
   top: 16px;
   right: 16px;
-  background-color: var(--color-primario);
+  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   padding: 6px 12px;
   border-radius: 9999px;
   font-size: 10px;
-  font-family: var(--fuente-titulos);
   font-weight: 800;
-  color: #000; /* Texto negro sobre fondo verde */
+  color: #16a34a;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .tarjeta-info-principal {
@@ -179,14 +146,13 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 16px;
   left: 20px;
   right: 20px;
-  color: var(--color-texto-principal);
+  color: white;
 }
 
 .tarjeta-nombre {
   font-size: 24px;
-  font-family: var(--fuente-titulos);
   font-weight: 900;
-  text-transform: uppercase;
+  letter-spacing: -0.5px;
   margin-bottom: 4px;
   line-height: 1;
 }
@@ -194,13 +160,13 @@ h1, h2, h3, h4, h5, h6 {
 .tarjeta-direccion {
   display: flex;
   align-items: center;
-  color: var(--color-texto-secundario);
+  color: #d1d5db;
   font-size: 14px;
   font-weight: 500;
 }
 
 .icono-direccion {
-  color: var(--color-primario);
+  color: #60a5fa;
   margin-right: 6px;
 }
 
@@ -209,28 +175,27 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--color-tarjetas);
-  border-top: 1px solid var(--color-bordes);
+  background-color: white;
 }
 
 .etiqueta-nuevo {
   display: flex;
   align-items: center;
   gap: 6px;
-  background-color: rgba(34, 197, 94, 0.1); /* Verde translúcido */
+  background-color: #f8fafc;
   padding: 6px 12px;
   border-radius: 12px;
-  border: 1px solid var(--color-primario);
+  border: 1px solid #f1f5f9;
 }
 
 .icono-estrella {
-  color: var(--color-primario);
+  color: #facc15;
 }
 
 .texto-nuevo {
   font-size: 10px;
   font-weight: 700;
-  color: var(--color-primario);
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -238,20 +203,13 @@ h1, h2, h3, h4, h5, h6 {
 .accion-ver {
   display: flex;
   align-items: center;
-  color: var(--color-texto-principal);
-  font-family: var(--fuente-titulos);
-  font-weight: 800;
+  color: #2563eb;
+  font-weight: 700;
   font-size: 14px;
-  text-transform: uppercase;
-  transition: color 0.3s ease;
-}
-
-.tarjeta-club:hover .accion-ver {
-  color: var(--color-primario);
 }
 
 .icono-flecha {
-  margin-left: 4px;
+  margin-left: 2px;
   transition: transform 0.3s ease;
 }
 
@@ -262,7 +220,7 @@ h1, h2, h3, h4, h5, h6 {
 /* --- ESTILOS DEL PERFIL DEL CLUB --- */
 .perfil-container {
   min-height: 100vh;
-  background-color: var(--color-fondo-app);
+  background-color: #F8FAFC;
   padding-bottom: 80px;
 }
 
@@ -281,17 +239,17 @@ h1, h2, h3, h4, h5, h6 {
 .banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(17,24,39,0.3) 50%, var(--color-fondo-app) 100%);
+  /* Este gradiente hace que la parte de abajo de la foto se difumine con el color de fondo de la app */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, #F8FAFC 100%);
 }
 
 .btn-volver {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(31, 41, 55, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(4px);
-  color: var(--color-texto-principal);
-  border: 1px solid var(--color-bordes);
+  color: #111827;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -299,16 +257,13 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   z-index: 10;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .btn-volver:hover {
   transform: scale(1.05);
-  background: var(--color-primario);
-  color: #000;
-  border-color: var(--color-primario);
 }
 
 .info-club-contenedor {
@@ -316,30 +271,32 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
-  margin-top: -60px;
+  margin-top: -60px; /* Este margen negativo es el que crea el efecto de superposición sobre el banner */
   z-index: 10;
 }
 
 .info-club-tarjeta {
-  background: var(--color-tarjetas);
+  background: white;
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
   margin-bottom: 32px;
-  border: 1px solid var(--color-bordes);
+  border: 1px solid #f1f5f9;
 }
 
 .info-club-nombre {
   font-size: 28px;
-  color: var(--color-texto-principal);
+  font-weight: 900;
+  color: #111827;
   line-height: 1.1;
   margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
 .info-club-direccion {
   display: flex;
   align-items: center;
-  color: var(--color-texto-secundario);
+  color: #64748b;
   font-size: 14px;
   font-weight: 500;
 }
@@ -352,7 +309,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .titulo-seccion {
   font-size: 18px;
-  color: var(--color-texto-principal);
+  font-weight: 800;
+  color: #111827;
   margin-bottom: 16px;
 }
 
@@ -363,22 +321,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cancha-tarjeta {
-  background: var(--color-tarjetas);
+  background: white;
   border-radius: 20px;
   padding: 20px;
-  border: 1px solid var(--color-bordes);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.3s ease;
   cursor: pointer;
-  color: var(--color-texto-principal);
 }
 
 .cancha-tarjeta:hover {
-  border-color: var(--color-primario);
-  box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1);
+  border-color: #bfdbfe;
+  box-shadow: 0 10px 15px -3px rgba(37,99,235,0.1);
   transform: translateY(-2px);
 }
 
@@ -391,24 +348,25 @@ h1, h2, h3, h4, h5, h6 {
 .badge-deporte {
   align-self: flex-start;
   font-size: 10px;
-  font-family: var(--fuente-titulos);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
   padding: 4px 10px;
   border-radius: 8px;
-  background-color: rgba(34, 197, 94, 0.1);
-  color: var(--color-primario);
+  background-color: #f0fdf4;
+  color: #16a34a; /* Verde para Fútbol por defecto */
 }
 
+/* Regla especial si la cancha es de Pádel, le cambiamos el color de la etiqueta a azul */
 .badge-deporte.padel {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #60a5fa; /* Azul neón para diferenciar pádel */
+  background-color: #eff6ff;
+  color: #2563eb;
 }
 
 .cancha-nombre {
   font-size: 16px;
   font-weight: 700;
+  color: #1f2937;
 }
 
 .cancha-precio-contenedor {
@@ -417,14 +375,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .cancha-precio {
   font-size: 20px;
-  font-family: var(--fuente-titulos);
   font-weight: 900;
-  color: var(--color-primario);
+  color: #111827;
 }
 
 .cancha-precio-hora {
   font-size: 12px;
-  color: var(--color-texto-secundario);
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -437,14 +394,18 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
 }
 
+.info-club-direccion {
+  color: #4b5563;
+}
+
 .info-club-telefono a {
-  color: var(--color-primario);
+  color: #2563eb;
   font-weight: 600;
   text-decoration: none;
 }
 
 .info-club-estacionamiento {
-  color: var(--color-primario);
+  color: #16a34a;
 }
 
 .icono-margen {
@@ -456,17 +417,93 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-/* Animaciones */
+/* --- ESTILOS DE CANCHAS --- */
+.canchas-seccion {
+  padding: 20px;
+}
+
+.canchas-titulo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.canchas-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.cancha-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.cancha-tarjeta {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.cancha-tarjeta:hover {
+  transform: translateY(-3px);
+}
+
+.cancha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cancha-nombre {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.cancha-tipo {
+  background-color: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.cancha-precio {
+  color: #10b981;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.cancha-precio-hora {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+/* Animación para que el contenido baje suavemente */
 .animacion-acordeon {
   animation: deslizarAbajo 0.25s ease-out forwards;
   transform-origin: top;
 }
 
 @keyframes deslizarAbajo {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* Animación para que la flecha gire */
 .flecha-icono {
   transition: transform 0.3s ease;
 }
@@ -481,30 +518,29 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at top right, var(--color-tarjetas) 0%, var(--color-fondo-app) 50%);
+  background-color: #f3f4f6;
   padding: 20px;
 }
 
 .landing-card {
-  background-color: var(--color-tarjetas);
+  background-color: #ffffff;
   padding: 40px;
   border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--color-bordes);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 450px;
 }
 
 .landing-titulo {
-  font-size: 2.2rem;
-  color: var(--color-texto-principal);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111827;
   text-align: center;
   margin-bottom: 10px;
-  transform: skewX(-5deg); /* Toque deportivo agresivo */
 }
 
 .landing-subtitulo {
-  color: var(--color-texto-secundario);
+  color: #6b7280;
   text-align: center;
   margin-bottom: 30px;
 }
@@ -520,41 +556,47 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   padding: 20px;
   border-radius: 12px;
-  border: 2px solid var(--color-bordes);
-  background-color: transparent;
+  border: 2px solid transparent;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s;
-  color: var(--color-texto-principal);
 }
 
-.btn-cliente:hover, .btn-admin:hover {
-  background-color: rgba(34, 197, 94, 0.05);
-  border-color: var(--color-primario);
-  transform: translateX(5px);
+.btn-cliente {
+  background-color: #eff6ff;
+  color: #1e3a8a;
+  border-color: #bfdbfe;
+}
+
+.btn-cliente:hover {
+  background-color: #dbeafe;
+  transform: translateY(-2px);
+}
+
+.btn-admin {
+  background-color: #f9fafb;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+.btn-admin:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
 }
 
 .input-login {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border-radius: 8px;
-  border: 1px solid var(--color-bordes);
-  background-color: var(--color-fondo-app);
-  color: var(--color-texto-principal);
+  border: 1px solid #d1d5db;
   box-sizing: border-box;
-  font-family: inherit;
-}
-
-.input-login:focus {
-  outline: none;
-  border-color: var(--color-primario);
 }
 
 .btn-volver-login {
   padding: 12px;
-  background-color: transparent;
-  color: var(--color-texto-principal);
-  border: 1px solid var(--color-bordes);
+  background-color: #fff;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
@@ -563,12 +605,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-entrar-login {
   padding: 12px;
-  background-color: var(--color-primario);
-  color: #000;
+  background-color: #1e3a8a;
+  color: #fff;
   border: none;
   border-radius: 8px;
-  font-family: var(--fuente-titulos);
-  font-weight: 800;
+  font-weight: bold;
   cursor: pointer;
   flex: 2;
 }
@@ -578,14 +619,14 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--color-fondo-app);
+  background-color: #f9fafb;
 }
 
+/* MENU LATERAL (SIDEBAR) */
 .sidebar {
   width: 250px;
-  background-color: var(--color-tarjetas);
-  border-right: 1px solid var(--color-bordes);
-  color: var(--color-texto-secundario);
+  background-color: #111827; /* Azul muy oscuro/casi negro */
+  color: #cbd5e1;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
@@ -597,7 +638,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-header h2 {
-  color: var(--color-primario);
+  color: white;
   font-size: 1.5rem;
   margin: 0 0 0.25rem 0;
 }
@@ -607,7 +648,7 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
-  color: var(--color-texto-secundario);
+  color: #94a3b8;
   font-weight: 700;
 }
 
@@ -626,7 +667,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.75rem 1rem;
   background: transparent;
   border: none;
-  color: var(--color-texto-secundario);
+  color: #cbd5e1;
   font-size: 1rem;
   text-align: left;
   border-radius: 0.5rem;
@@ -635,15 +676,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-item:hover {
-  background-color: rgba(255,255,255,0.05);
-  color: var(--color-texto-principal);
+  background-color: #1f2937;
+  color: white;
 }
 
 .nav-item.active {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: var(--color-primario);
+  background-color: #1f2937;
+  color: white;
   font-weight: 600;
-  border-left: 4px solid var(--color-primario);
+  border-left: 4px solid #3b82f6; /* Línea azul indicadora */
 }
 
 .btn-salir {
@@ -653,22 +694,21 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.5rem;
   width: 100%;
   padding: 0.75rem;
-  background-color: rgba(239, 68, 68, 0.1); 
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background-color: #b91c1c; /* Rojo oscuro */
+  color: white;
+  border: none;
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 600;
-  margin-top: auto;
-  transition: all 0.2s;
+  font-weight: 500;
+  margin-top: auto; /* Empuja el botón al fondo */
 }
 
 .btn-salir:hover {
-  background-color: #ef4444;
-  color: #fff;
+  background-color: #991b1b;
 }
 
+/* CONTENIDO PRINCIPAL */
 .main-content {
   flex: 1;
   padding: 40px;
@@ -682,22 +722,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-agregar {
-  background-color: var(--color-primario);
-  color: #000;
+  background-color: #3b82f6;
+  color: white;
   border: none;
-  padding: 0.8rem 1.25rem;
+  padding: 0.6rem 1.25rem;
   border-radius: 0.5rem;
-  font-family: var(--fuente-titulos);
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .btn-agregar:hover {
-  background-color: var(--color-primario-hover);
+  background-color: #2563eb;
 }
 
+/* LISTADO CANCHAS CON IMÁGENES */
 .canchas-list {
   display: flex;
   flex-direction: column;
@@ -707,23 +747,27 @@ h1, h2, h3, h4, h5, h6 {
 .cancha-card {
   display: flex;
   align-items: center;
-  background: var(--color-tarjetas);
+  background: white;
   padding: 1rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--color-bordes);
+  border: 1px solid #e5e7eb;
   gap: 1.5rem;
 }
 
 .cancha-imagen-placeholder {
   width: 80px;
   height: 80px;
-  background-color: var(--color-fondo-app);
+  background-color: #f1f5f9;
   border-radius: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed var(--color-bordes);
-  color: var(--color-texto-secundario);
+  border: 2px dashed #cbd5e1;
+}
+
+.cancha-imagen-placeholder svg {
+  width: 32px;
+  height: 32px;
 }
 
 .cancha-info {
@@ -733,43 +777,165 @@ h1, h2, h3, h4, h5, h6 {
 .cancha-info h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--color-texto-principal);
+  color: #1e293b;
+  font-weight: 500;
 }
 
 .btn-editar {
   background: transparent;
   border: none;
-  color: var(--color-texto-secundario);
+  color: #64748b;
   padding: 0.5rem;
   cursor: pointer;
   border-radius: 0.375rem;
-  transition: all 0.2s;
 }
 
 .btn-editar:hover {
-  background-color: rgba(255,255,255,0.05);
-  color: var(--color-primario);
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* =========================================================
+   📱 ADAPTACIÓN PARA CELULARES (DISEÑO RESPONSIVE)
+   ========================================================= */
+
+@media screen and (max-width: 768px) {
+  
+  /* 1. Contenedor principal: pasamos de lado a lado (fila) a arriba y abajo (columna) */
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  /* 2. Menú Lateral (Sidebar): Ahora ocupa todo el ancho arriba */
+  .sidebar {
+    width: 100%;
+    padding: 1.5rem 1rem;
+    box-sizing: border-box;
+    height: auto;
+  }
+
+  .sidebar-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Botones del menú en celular: los ponemos en cuadrícula */
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .nav-item {
+    width: auto;
+    flex: 1 1 45%; /* Hace que queden 2 botones por fila */
+    justify-content: center;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-salir {
+    margin-top: 1.5rem;
+    width: 100%;
+  }
+
+  /* 3. Contenido Principal: Achicamos los márgenes gigantes para que entre en la pantalla */
+  .main-content {
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  /* Los botones de arriba (Agregar / Bloquear) ocupan todo el ancho */
+  .content-header > div {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .content-header button,
+  .btn-agregar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 4. Tarjetas de las Canchas: Todo centrado y apilado */
+  .cancha-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+    gap: 10px;
+  }
+
+  .cancha-imagen-placeholder {
+    width: 100%;
+    height: 150px; /* Imagen más grande en celular */
+  }
+
+  .btn-editar {
+    width: 100%;
+    background-color: #f1f5f9;
+    margin-top: 10px;
+  }
+
+  /* 5. Tabla de Clientes: Le damos scroll horizontal para que no rompa la pantalla */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* 6. Arreglo para los Modales (Formularios de edición/creación) */
+  /* Forzamos a que midan 90% de la pantalla y no se salgan de los bordes */
+  div[style*="position: fixed"] > form {
+    width: 90% !important;
+    max-height: 90vh;
+    overflow-y: auto; /* Scroll interno si el celular es muy bajito */
+    padding: 20px !important;
+    box-sizing: border-box;
+  }
+
+  /* Ponemos los inputs uno abajo del otro en vez de uno al lado del otro */
+  div[style*="position: fixed"] > form > div[style*="display: flex"] {
+    flex-direction: column;
+    gap: 10px !important;
+  }
+
+  div[style*="position: fixed"] > form input,
+  div[style*="position: fixed"] > form select {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
 }
 
 /* ======== BLOQUE EMPRESAS ======== */
+
 .bloque-empresa {
   margin-top: 28px;
   padding: 22px;
   border-radius: 14px;
-  background: rgba(0,0,0,0.2);
-  border: 1px dashed var(--color-bordes);
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .bloque-empresa h3 {
   margin: 0;
-  color: var(--color-primario);
+  color: #1f2937;
   font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .bloque-empresa p {
   margin: 12px 0 22px;
-  color: var(--color-texto-secundario);
+  color: #6b7280;
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -778,116 +944,22 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primario);
-  color: #000;
+  background: #374151;
+  color: #fff;
   text-decoration: none;
   padding: 11px 24px;
   border-radius: 8px;
-  font-family: var(--fuente-titulos);
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 600;
   transition: all .25s ease;
 }
 
 .btn-contacto-empresa:hover {
-  background: var(--color-primario-hover);
-  transform: scale(1.02);
+  background: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
 }
 
-/* =========================================================
-   📱 ADAPTACIÓN PARA CELULARES (DISEÑO RESPONSIVE)
-   ========================================================= */
-@media screen and (max-width: 768px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    padding: 1.5rem 1rem;
-    box-sizing: border-box;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--color-bordes);
-  }
-  .sidebar-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  .nav-item {
-    width: auto;
-    flex: 1 1 45%; 
-    justify-content: center;
-    padding: 0.75rem;
-    font-size: 0.9rem;
-  }
-  .btn-salir {
-    margin-top: 1.5rem;
-    width: 100%;
-  }
-  .main-content {
-    padding: 15px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .content-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  .content-header > div {
-    width: 100%;
-    flex-direction: column;
-  }
-  .content-header button,
-  .btn-agregar {
-    width: 100%;
-    justify-content: center;
-  }
-  .cancha-card {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
-    gap: 10px;
-  }
-  .cancha-imagen-placeholder {
-    width: 100%;
-    height: 150px; 
-  }
-  .btn-editar {
-    width: 100%;
-    background-color: rgba(255,255,255,0.05);
-    margin-top: 10px;
-  }
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  div[style*="position: fixed"] > form {
-    width: 90% !important;
-    max-height: 90vh;
-    overflow-y: auto; 
-    padding: 20px !important;
-    box-sizing: border-box;
-    background-color: var(--color-tarjetas) !important;
-    color: var(--color-texto-principal);
-  }
-  div[style*="position: fixed"] > form > div[style*="display: flex"] {
-    flex-direction: column;
-    gap: 10px !important;
-  }
-  div[style*="position: fixed"] > form input,
-  div[style*="position: fixed"] > form select {
-    width: 100% !important;
-    box-sizing: border-box;
-    background-color: var(--color-fondo-app) !important;
-    color: var(--color-texto-principal) !important;
-    border-color: var(--color-bordes) !important;
-  }
+.btn-contacto-empresa:active {
+  transform: translateY(0);
 }
