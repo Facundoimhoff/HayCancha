@@ -796,204 +796,76 @@ body {
 }
 
 /* =========================================================
-   📱 ADAPTACIÓN PARA CELULARES (VERSIÓN APP NATIVA)
+   📱 ADAPTACIÓN PARA CELULARES (DISEÑO RESPONSIVE)
    ========================================================= */
+
 @media screen and (max-width: 768px) {
   
+  /* 1. Contenedor principal: pasamos de lado a lado (fila) a arriba y abajo (columna) */
   .dashboard-container {
     flex-direction: column;
-    padding-bottom: 80px; /* Deja espacio para que el contenido no quede oculto por el menú inferior */
   }
 
-  /* --- 1. TOP BAR (Barra superior estilo App) --- */
-  .sidebar-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(17, 24, 39, 0.85); /* Gris oscuro translúcido */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--color-bordes);
-    padding: 15px 20px;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0;
-    box-sizing: border-box;
-  }
-
-  .sidebar-header h2 {
-    font-size: 1.2rem;
-    margin: 0;
-  }
-
-  .club-name {
-    margin: 0;
-    font-size: 0.8rem;
-    color: var(--color-primario);
-  }
-
-  /* --- 2. MENÚ INFERIOR (Bottom Navigation) --- */
+  /* 2. Menú Lateral (Sidebar): Ahora ocupa todo el ancho arriba */
   .sidebar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
     width: 100%;
+    padding: 1.5rem 1rem;
+    box-sizing: border-box;
     height: auto;
-    background-color: var(--color-tarjetas);
-    border-top: 1px solid var(--color-bordes);
-    border-right: none;
-    padding: 0;
-    z-index: 1000;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
   }
 
+  .sidebar-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Botones del menú en celular: los ponemos en cuadrícula */
   .sidebar-nav {
     flex-direction: row;
-    width: 100%;
-    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
   .nav-item {
-    flex: 1;
-    flex-direction: column; /* Icono arriba, texto abajo */
-    padding: 10px 0 8px 0;
-    font-size: 0.65rem; /* Texto chiquito estilo app */
-    gap: 4px;
-    border-radius: 0;
+    width: auto;
+    flex: 1 1 45%; /* Hace que queden 2 botones por fila */
     justify-content: center;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
 
-  .nav-item svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  /* Indicador de pestaña activa */
-  .nav-item.active {
-    border-left: none;
-    border-top: 3px solid var(--color-primario); /* Línea verde indicadora arriba */
-    background-color: transparent;
-    color: var(--color-primario);
-  }
-
-  /* Botón de salir adaptado al menú inferior */
   .btn-salir {
-    flex: 0.8;
-    margin: 0;
-    background-color: transparent;
-    border: none;
-    border-left: 1px solid var(--color-bordes);
-    border-radius: 0;
-    font-size: 0; /* Ocultamos el texto original */
-    flex-direction: column;
-    color: #ef4444;
+    margin-top: 1.5rem;
+    width: 100%;
   }
 
-  .btn-salir::after {
-    content: 'Salir';
-    font-size: 0.65rem;
-    margin-top: 4px;
-  }
-
-  /* --- 3. CONTENIDO PRINCIPAL --- */
+  /* 3. Contenido Principal: Achicamos los márgenes gigantes para que entre en la pantalla */
   .main-content {
-    padding: 85px 15px 90px 15px; /* Espacio exacto para el Top Bar y el Bottom Nav */
+    padding: 15px;
     width: 100%;
     box-sizing: border-box;
   }
 
-  .general-header h2,
-  .content-header h1 {
-    display: none; /* Ocultamos los títulos redundantes que ya están en el Top Bar */
-  }
-
-  /* --- 4. BOTONES FLOTANTES (FAB) --- */
-  .acciones-header {
-    position: fixed;
-    bottom: 85px; /* Justo arriba del menú inferior */
-    right: 15px;
-    z-index: 900;
-    display: flex;
-    flex-direction: column-reverse; /* El botón principal de turno queda abajo, el de bloquear arriba */
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 15px;
-    width: auto;
   }
 
-  .acciones-header button,
-  .btn-agregar {
-    width: 60px !important;
-    height: 60px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 0 !important; /* Ocultamos los textos en celular */
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Botones Verdes Principales (Nuevo Turno y Agregar Cancha) */
-  .btn-accion.nuevo,
-  .btn-agregar {
-    background-color: var(--color-primario) !important;
-    color: #000 !important;
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4) !important;
-  }
-
-  /* Botón agregar cancha (necesita posición independiente) */
-  .btn-agregar {
-    position: fixed !important;
-    bottom: 85px !important;
-    right: 15px !important;
-    z-index: 900 !important;
-  }
-
-  .btn-accion.nuevo svg,
-  .btn-agregar svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  /* Botón secundario (Bloquear) */
-  .btn-accion.bloqueo {
-    width: 45px !important;
-    height: 45px !important;
-    background-color: var(--color-tarjetas) !important;
-    color: #ef4444 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-    border: 1px solid var(--color-bordes) !important;
-    margin-right: 7px !important; /* Lo centramos un poquito sobre el botón principal */
-  }
-
-  /* --- 5. MODALES ESTILO "BOTTOM SHEET" --- */
-  /* Hace que las ventanas emerjan desde abajo y no floten en el medio */
-  .modal-overlay {
-    align-items: flex-end; /* Alinea el contenido abajo de todo */
-  }
-
-  .modal-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 24px 24px 0 0 !important; /* Bordes redondeados solo arriba */
-    margin: 0;
-    max-height: 85vh;
-    overflow-y: auto; 
-    padding: 30px 20px 40px 20px !important;
-    box-sizing: border-box;
-    animation: subirDesdeAbajo 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* Los botones de arriba (Agregar / Bloquear) ocupan todo el ancho */
+  .content-header > div {
+    width: 100%;
+    flex-direction: column;
   }
   
-  @keyframes subirDesdeAbajo {
-    from { transform: translateY(100%); opacity: 0.5; }
-    to { transform: translateY(0); opacity: 1; }
+  .content-header button,
+  .btn-agregar {
+    width: 100%;
+    justify-content: center;
   }
 
-  /* Ajustes generales de tarjetas y tablas para móvil */
+  /* 4. Tarjetas de las Canchas: Todo centrado y apilado */
   .cancha-card {
     flex-direction: column;
     text-align: center;
@@ -1003,19 +875,42 @@ body {
 
   .cancha-imagen-placeholder {
     width: 100%;
-    height: 150px; 
+    height: 150px; /* Imagen más grande en celular */
   }
 
   .btn-editar {
     width: 100%;
-    background-color: rgba(255,255,255,0.05);
+    background-color: #f1f5f9;
     margin-top: 10px;
   }
 
+  /* 5. Tabla de Clientes: Le damos scroll horizontal para que no rompa la pantalla */
   table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  /* 6. Arreglo para los Modales (Formularios de edición/creación) */
+  /* Forzamos a que midan 90% de la pantalla y no se salgan de los bordes */
+  div[style*="position: fixed"] > form {
+    width: 90% !important;
+    max-height: 90vh;
+    overflow-y: auto; /* Scroll interno si el celular es muy bajito */
+    padding: 20px !important;
+    box-sizing: border-box;
+  }
+
+  /* Ponemos los inputs uno abajo del otro en vez de uno al lado del otro */
+  div[style*="position: fixed"] > form > div[style*="display: flex"] {
+    flex-direction: column;
+    gap: 10px !important;
+  }
+
+  div[style*="position: fixed"] > form input,
+  div[style*="position: fixed"] > form select {
+    width: 100% !important;
+    box-sizing: border-box;
   }
 }
 
