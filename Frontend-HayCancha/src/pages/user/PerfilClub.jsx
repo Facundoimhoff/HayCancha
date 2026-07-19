@@ -89,12 +89,13 @@ const PerfilClub = () => {
 
         {club?.estacionamiento === true && (
           <div className="info-club-estacionamiento">
+            {/* Reemplazamos el emoji 🚗 por el icono de Lucide */}
             <CarFront size={20} className="icono-margen" />
             <span className="texto-estacionamiento">Estacionamiento disponible</span>
           </div>
         )}
       </div>
-
+      
       {/* --- LISTA DE CANCHAS --- */}
       <div className="canchas-seccion">
         <h2 className="canchas-titulo">Canchas Disponibles</h2>
