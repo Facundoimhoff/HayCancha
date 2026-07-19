@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, Phone, CarFront } from 'lucide-react';
+import { MapPin, Phone, CarFront } from 'lucide-react';
 import { supabase } from '../../services/supabase'; 
 import './PerfilClub.css';
 
