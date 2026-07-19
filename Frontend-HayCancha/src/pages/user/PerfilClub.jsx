@@ -66,17 +66,18 @@ const PerfilClub = () => {
         />
       </div>
 
-      {/* --- INFO DEL CLUB --- */}
+    {/* --- INFO DEL CLUB --- */}
       <div className="info-club-tarjeta">
         <h1 className="info-club-nombre">{club.nombre}</h1>
         
         <div className="info-club-direccion">
-          <MapPin size={16} className="icono-margen" />
+          <MapPin size={20} className="icono-margen" />
           <span>{club.direccion || club.ciudad}</span>
         </div>
 
         <div className="info-club-telefono">
-          <Phone size={16} className="icono-margen" color="#2563eb" />
+          {/* Le sacamos el color hardcodeado para que lo maneje el CSS (.icono-margen) */}
+          <Phone size={20} className="icono-margen" />
           <a 
             href={`https://wa.me/${club.telefono_contacto}`} 
             target="_blank" 
@@ -88,7 +89,7 @@ const PerfilClub = () => {
 
         {club?.estacionamiento === true && (
           <div className="info-club-estacionamiento">
-            <span className="icono-margen">🚗</span>
+            <CarFront size={20} className="icono-margen" />
             <span className="texto-estacionamiento">Estacionamiento disponible</span>
           </div>
         )}

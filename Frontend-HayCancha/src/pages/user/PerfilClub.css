@@ -1,13 +1,15 @@
-/* PerfilClub.css */
+/* =========================================================
+   PerfilClub.css (Estilo Premium Cliente)
+   ========================================================= */
 
 .perfil-container {
   position: relative;
   max-width: 800px;
   margin: 0 auto;
-  background-color: #f8fafc;
+  background-color: #f8fafc; /* Fondo gris súper sutil */
   min-height: 100vh;
-  padding-bottom: 40px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  padding-bottom: 60px;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 /* --- ESTADOS DE CARGA --- */
@@ -16,7 +18,7 @@
   text-align: center;
   color: #64748b;
   font-size: 1.1rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* --- BOTÓN VOLVER FLOTANTE --- */
@@ -24,26 +26,25 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: none;
-  padding: 10px 15px;
-  border-radius: 25px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 30px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   cursor: pointer;
-  font-weight: bold;
-  color: #1e293b;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: #111827;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
   z-index: 10;
-  backdrop-filter: blur(4px);
   transition: all 0.2s ease;
 }
 
 .btn-flotante-volver:hover {
-  background-color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.12);
 }
 
 /* --- BANNER Y FOTO --- */
@@ -54,7 +55,7 @@
 
 .banner-imagen {
   width: 100%;
-  height: 280px;
+  height: 320px; /* Un poco más alto para dar impacto visual */
   object-fit: cover;
   display: block;
 }
@@ -62,39 +63,48 @@
 /* --- INFO DEL CLUB --- */
 .info-club-tarjeta {
   background-color: #ffffff;
-  padding: 25px 20px;
-  border-radius: 24px 24px 0 0;
-  margin-top: -30px; /* Esto hace el efecto de superposición sobre la foto */
+  padding: 35px 30px;
+  border-radius: 32px 32px 0 0; /* Bordes bien redondeados arriba */
+  margin-top: -40px; /* Sube la tarjeta sobre la imagen */
   position: relative;
   z-index: 2;
-  box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 -10px 20px rgba(0,0,0,0.03);
 }
 
 .info-club-nombre {
-  margin: 0 0 15px 0;
-  font-size: 2rem;
-  color: #0f172a;
-  letter-spacing: -0.5px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  margin: 0 0 20px 0;
+  line-height: 1.1;
 }
 
+/* Contenedor para reemplazar Emojis por Iconos Sobrios */
 .info-club-direccion,
 .info-club-telefono,
 .info-club-estacionamiento {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
-  color: #475569;
-  font-size: 0.95rem;
+  gap: 12px; /* Separación perfecta entre el ícono y el texto */
+  margin-bottom: 14px;
+  color: #4b5563; /* Gris oscuro elegante */
+  font-size: 1rem;
+  font-weight: 500;
 }
 
+/* Le damos estilo al SVG (ícono) para que sea el reemplazo del emoji */
 .icono-margen {
-  margin-right: 10px;
+  color: #64748b; /* Color sobrio para los iconos */
+  flex-shrink: 0;
 }
 
 .info-club-telefono a {
-  color: #2563eb;
+  color: #2563eb; /* Azul interactivo */
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   transition: color 0.2s;
 }
 
@@ -109,82 +119,141 @@
 
 /* --- SECCIÓN CANCHAS --- */
 .canchas-seccion {
-  padding: 20px;
+  padding: 10px 30px 40px 30px;
 }
 
 .canchas-titulo {
-  font-size: 1.4rem;
-  color: #1e293b;
-  margin-top: 10px;
-  margin-bottom: 20px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 25px;
+  letter-spacing: -0.5px;
 }
 
 .mensaje-sin-canchas {
   color: #64748b;
-  background-color: #f1f5f9;
-  padding: 20px;
-  border-radius: 12px;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
   text-align: center;
+  font-weight: 600;
 }
 
 .canchas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .cancha-link {
   text-decoration: none;
   color: inherit;
   display: block;
+  outline: none;
 }
 
 .cancha-tarjeta {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 24px;
   transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
 }
 
 .cancha-link:hover .cancha-tarjeta {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -8px rgba(37, 99, 235, 0.15);
-  border-color: #93c5fd;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
 }
 
+/* Contenedor izquierdo para separar Nombre y Deporte */
 .cancha-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
+  align-items: center;
+  gap: 12px; /* Espacio entre el nombre y la pastilla del deporte */
+  flex-wrap: wrap; /* Por si el nombre es muy largo en celulares */
 }
 
 .cancha-nombre {
   margin: 0;
-  font-size: 1.2rem;
-  color: #0f172a;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.5px;
 }
 
+/* La pastilla (badge) del Deporte */
 .cancha-tipo {
   background-color: #f1f5f9;
   color: #475569;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: capitalize;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Colores personalizados automáticos para la pastilla según el deporte (Opcional, quedan mortales) */
+.cancha-tipo[data-deporte*="padel"], .cancha-tipo[data-deporte*="Pádel"], .cancha-tipo[data-deporte*="Padel"] { background-color: #eff6ff; color: #2563eb; }
+.cancha-tipo[data-deporte*="futbol"], .cancha-tipo[data-deporte*="Fútbol"], .cancha-tipo[data-deporte*="Futbol"] { background-color: #f0fdf4; color: #16a34a; }
+.cancha-tipo[data-deporte*="basket"], .cancha-tipo[data-deporte*="Basquet"] { background-color: #fff7ed; color: #ea580c; }
+.cancha-tipo[data-deporte*="tenis"], .cancha-tipo[data-deporte*="Tenis"] { background-color: #fdf4ff; color: #c026d3; }
+
+/* Contenedor derecho para el Precio */
+.cancha-precio-contenedor {
+  text-align: right;
 }
 
 .cancha-precio {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #16a34a;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #22c55e; /* El verde premium */
+  line-height: 1;
+  letter-spacing: -1px;
 }
 
 .cancha-precio-hora {
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* =========================================================
+   📱 ADAPTACIÓN PARA CELULARES
+   ========================================================= */
+@media screen and (max-width: 768px) {
+  .info-club-tarjeta {
+    padding: 30px 20px;
+    border-radius: 24px 24px 0 0;
+  }
+  
+  .canchas-seccion {
+    padding: 10px 20px 30px 20px;
+  }
+
+  .cancha-tarjeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+  }
+
+  .cancha-precio-contenedor {
+    text-align: left;
+    width: 100%;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
+  }
 }
