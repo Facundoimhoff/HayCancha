@@ -1,6 +1,4 @@
-/* =========================================================
-   LandingPage.css (Modo Mixto: Claro/Oscuro)
-   ========================================================= */
+/* LandingPage.css */
 
 .landing-container {
   min-height: 100vh;
@@ -9,45 +7,24 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 .landing-card {
   max-width: 500px;
   width: 100%;
   background-color: #ffffff;
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s ease;
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Transición a modo oscuro cuando se abre el Login Admin */
-.landing-card.dark-mode {
-  background-color: #111827;
-  border-color: #374151;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-.animacion-acordeon {
-  animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* --- VISTA 1: SELECCIÓN (CLARA) --- */
+/* --- TEXTOS PRINCIPALES --- */
 .landing-titulo {
   text-align: center;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 900;
+  font-size: 2rem;
   color: #111827;
   margin: 0 0 10px 0;
-  letter-spacing: -0.5px;
 }
 
 .landing-subtitulo {
@@ -55,9 +32,9 @@
   color: #6b7280;
   margin: 0 0 30px 0;
   font-size: 1.05rem;
-  font-weight: 500;
 }
 
+/* --- BOTONES DE ACCESO (CLIENTE / ADMIN) --- */
 .landing-opciones {
   display: flex;
   flex-direction: column;
@@ -72,7 +49,7 @@
   padding: 20px;
   background-color: #ffffff;
   border: 2px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -83,12 +60,12 @@
   border-color: #2563eb;
   background-color: #eff6ff;
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
 }
 
 .btn-icono {
   margin-right: 15px;
-  color: #64748b;
+  color: #4b5563;
   transition: color 0.2s ease;
 }
 
@@ -102,15 +79,15 @@
 }
 
 .btn-text-title {
-  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: bold;
 }
 
 .btn-text-desc {
   font-size: 0.85rem;
-  color: #6b7280;
+  font-weight: normal;
   margin-top: 2px;
+  color: #6b7280;
 }
 
 .btn-flecha {
@@ -121,15 +98,15 @@
 
 .btn-cliente:hover .btn-flecha, .btn-admin:hover .btn-flecha {
   color: #2563eb;
-  transform: translateX(4px);
 }
 
+/* --- BLOQUE EMPRESA --- */
 .bloque-empresa {
   background-color: #f8fafc;
   padding: 25px 20px;
-  border-radius: 16px;
+  border-radius: 12px;
   text-align: center;
-  border: 1px dashed #cbd5e1;
+  border: 1px solid #e2e8f0;
 }
 
 .bloque-empresa h3 {
@@ -147,106 +124,93 @@
 
 .btn-contacto-empresa {
   display: inline-block;
-  background-color: #ffffff;
-  color: #0f172a;
-  padding: 12px 24px;
-  border-radius: 12px;
+  background-color: #f1f5f9;
+  color: #334155;
+  padding: 10px 20px;
+  border-radius: 8px;
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
+  font-weight: bold;
   transition: all 0.2s ease;
   border: 1px solid #cbd5e1;
 }
 
 .btn-contacto-empresa:hover {
-  background-color: #f1f5f9;
-  transform: translateY(-2px);
-  border-color: #94a3b8;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 
-/* --- VISTA 2: LOGIN PREMIUM (OSCURA) --- */
-.login-premium-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* --- FORMULARIOS (LOGIN Y RECUPERACIÓN) --- */
+.animacion-acordeon {
+  animation: fadeIn 0.4s ease;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 10px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.icono-admin-wrapper {
-  background-color: rgba(34, 197, 94, 0.1);
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+.form-header {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #1e3a8a;
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px auto;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
 }
 
-.icono-admin {
-  color: #22c55e;
+.form-header-icon {
+  margin-right: 8px;
 }
 
-.login-titulo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+.alerta-error {
+  color: #ef4444;
+  background-color: #fee2e2;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
 }
 
-.login-subtitulo {
-  color: #9ca3af;
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-/* Formulario */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.alerta-exito {
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
+  margin-bottom: 15px;
 }
 
 .form-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #d1d5db;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #374151;
 }
 
-.form-input {
+.input-login {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background-color: #1f2937;
-  border: 1px solid #374151;
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-input:focus {
+.input-login:focus {
   outline: none;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .input-con-icono {
@@ -255,148 +219,130 @@
 
 .input-icono {
   position: absolute;
-  left: 14px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
 }
 
-.form-input.con-padding {
-  padding-left: 44px;
+.input-login.con-padding {
+  padding-left: 40px;
 }
 
-/* Enlace Olvidaste contraseña */
-.olvide-password-container {
+.texto-ayuda {
+  color: #4b5563;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* --- BOTONES DEL FORMULARIO --- */
+.forgot-password-container {
+  margin-bottom: 25px;
   text-align: right;
-  margin-top: -8px;
 }
 
-.link-olvide-password {
+.btn-link-simple {
   background: none;
   border: none;
-  padding: 0;
-  color: #22c55e;
+  color: #2563eb;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: bold;
   cursor: pointer;
+  padding: 0;
   transition: color 0.2s ease;
 }
 
-.link-olvide-password:hover {
-  color: #16a34a;
+.btn-link-simple:hover {
+  color: #1d4ed8;
   text-decoration: underline;
 }
 
-/* Acciones (Botones) */
-.login-acciones {
+.btn-group {
   display: flex;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 10px;
 }
 
-.btn-volver-sutil {
+.btn-volver-login {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid #374151;
-  color: #d1d5db;
   padding: 14px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-volver-sutil:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-}
-
-.btn-entrar-principal {
-  flex: 2;
-  background-color: #22c55e;
-  color: #000000;
-  border: none;
-  padding: 14px;
-  border-radius: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4);
   transition: all 0.2s ease;
 }
 
-.btn-entrar-principal:hover:not(:disabled) {
-  background-color: #16a34a;
-  transform: translateY(-2px);
+.btn-volver-login:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
-.btn-volver-sutil:disabled, .btn-entrar-principal:disabled {
+.btn-entrar-login {
+  flex: 2;
+  padding: 14px;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-entrar-login:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.btn-entrar-login.verde {
+  background-color: #10b981;
+}
+
+.btn-entrar-login.verde:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.btn-volver-login:disabled, .btn-entrar-login:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Footer (Planes) */
-.login-footer {
-  margin-top: 10px;
+/* --- FOOTER REGISTRO --- */
+.footer-registro {
+  margin-top: 25px;
   text-align: center;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
 }
 
-.linea-separadora {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #374151, transparent);
-  margin-bottom: 20px;
-}
-
-.texto-footer {
-  color: #9ca3af;
-  font-size: 0.95rem;
+.footer-texto {
   margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
 }
 
-.link-destacado {
-  color: #ffffff;
-  font-weight: 800;
+.link-registro {
+  color: #1e3a8a;
+  font-weight: bold;
   text-decoration: none;
-  margin-left: 4px;
   transition: color 0.2s ease;
 }
 
-.link-destacado:hover {
-  color: #22c55e;
+.link-registro:hover {
+  color: #1e40af;
+  text-decoration: underline;
 }
 
-/* Alertas */
-.alerta-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.alerta-exito {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* Responsive */
-@media screen and (max-width: 768px) {
-  .landing-card {
-    padding: 30px 20px;
-  }
+/* =======================================
+   ESTA CLASE EVITA QUE EL FORMULARIO
+   SE APLASTE DE LADO A LADO
+   ======================================= */
+.fix-layout-vertical {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
