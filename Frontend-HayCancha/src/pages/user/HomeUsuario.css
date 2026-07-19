@@ -1,9 +1,11 @@
-/* HomeUsuario.css */
+/* =========================================================
+   HomeUsuario.css (Estilo App Nativa Premium)
+   ========================================================= */
 
 .home-usuario-container {
   min-height: 100vh;
   background-color: #f8fafc;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* --- NAVBAR SUPERIOR --- */
@@ -22,7 +24,7 @@
 .navbar-izq {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-volver-home {
@@ -30,17 +32,17 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  color: #64748b;
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: #111827;
+  transition: transform 0.2s ease;
 }
 
 .btn-volver-home:hover {
-  color: #0f172a;
-  transform: translateX(-2px);
+  transform: translateX(-3px);
 }
 
 .titulo-app {
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.4rem;
   color: #0f172a;
   font-weight: 900;
@@ -48,34 +50,38 @@
 }
 
 .titulo-resalte {
-  color: #3b82f6;
+  color: #22c55e; /* Verde Premium */
 }
 
 .subtitulo-ubicacion {
   margin: 0;
   font-size: 0.7rem;
   color: #94a3b8;
-  font-weight: bold;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .btn-mis-reservas {
-  background-color: #0f172a;
+  background-color: #111827; /* Botón oscuro premium */
   color: white;
   border: none;
   padding: 10px 16px;
   border-radius: 20px;
-  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-mis-reservas:hover {
-  background-color: #334155;
+  background-color: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .btn-mis-reservas:active {
@@ -86,14 +92,14 @@
 .lista-clubes-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px;
 }
 
 .texto-estado {
   text-align: center;
   color: #64748b;
   margin-top: 40px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .grid-clubes {
@@ -105,15 +111,17 @@
 /* --- TARJETA DEL CLUB --- */
 .tarjeta-club {
   background-color: white;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
 }
 
 .tarjeta-club:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  border-color: #d1d5db;
 }
 
 .tarjeta-imagen-wrapper {
@@ -127,7 +135,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.7s ease;
 }
 
 .tarjeta-club:hover .tarjeta-imagen {
@@ -136,87 +144,97 @@
 
 .tarjeta-degradado {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 80%);
+  inset: 0;
+  background: linear-gradient(to top, rgba(17,24,39,0.9) 0%, rgba(17,24,39,0.2) 50%, transparent 100%);
 }
 
 .etiqueta-reservas {
   position: absolute;
   top: 15px;
   right: 15px;
-  background-color: white;
-  color: #16a34a;
-  padding: 6px 12px;
+  background-color: #ffffff;
+  color: #16a34a; /* Verde oscuro para texto sobre blanco */
+  padding: 8px 14px;
   border-radius: 20px;
-  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
   font-size: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .info-superior {
   position: absolute;
   bottom: 15px;
-  left: 15px;
-  right: 15px;
+  left: 20px;
+  right: 20px;
 }
 
 .tarjeta-nombre {
   margin: 0;
-  color: white;
-  font-size: 1.8rem;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
   font-weight: 900;
   text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 
 .tarjeta-direccion {
-  margin: 5px 0 0 0;
+  margin: 8px 0 0 0;
   color: #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* --- FOOTER TARJETA --- */
 .tarjeta-footer {
-  padding: 15px 20px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: #ffffff;
 }
 
-.badge-nuevo {
-  background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
-  padding: 6px 12px;
-  border-radius: 20px;
+.etiqueta-canchas {
   display: flex;
   align-items: center;
   gap: 6px;
+  background-color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
 }
 
-.badge-texto {
+.texto-canchas {
   font-size: 0.75rem;
-  font-weight: bold;
-  color: #475569;
+  font-weight: 800;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.icono-canchas {
+  color: #22c55e;
 }
 
 .btn-ver-turnos {
   background: none;
   border: none;
   color: #2563eb;
-  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
   font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 4px;
   cursor: pointer;
   padding: 0;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .tarjeta-club:hover .btn-ver-turnos {

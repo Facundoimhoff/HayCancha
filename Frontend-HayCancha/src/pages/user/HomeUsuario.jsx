@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { MapPin, Calendar, Star, ChevronRight, ArrowLeft } from 'lucide-react';
-// IMPORTANTE: Importar CSS
+// IMPORTANTE: Cambiamos Star por LayoutGrid
+import { MapPin, Calendar, LayoutGrid, ChevronRight, ArrowLeft } from 'lucide-react';
 import './HomeUsuario.css';
 
 const HomeUsuario = () => {
@@ -13,9 +13,10 @@ const HomeUsuario = () => {
 
   useEffect(() => {
     const cargarClubes = async () => {
+      // MAGIA DE SUPABASE: Pedimos los clubes y al mismo tiempo las canchas que tienen vinculadas
       const { data, error } = await supabase
         .from('clubes')
-        .select('*')
+        .select('*, canchas(id)') 
         .eq('provincia', provincia)
         .eq('ciudad', ciudad);
 
@@ -59,49 +60,54 @@ const HomeUsuario = () => {
           <p className="texto-estado">No hay clubes disponibles en esta ciudad.</p>
         ) : (
           <div className="grid-clubes">
-            {clubes.map(club => (
-              
-              // TARJETA DEL CLUB
-              <div key={club.id} className="tarjeta-club">
-                
-                {/* PARTE SUPERIOR: IMAGEN Y DEGRADADO */}
-                <div className="tarjeta-imagen-wrapper">
-                  <img 
-                    src={club.imagen_url || "https://images.unsplash.com/photo-1574629810360-7efbb1925536?q=80&w=1000&auto=format&fit=crop"} 
-                    alt={club.nombre}
-                    className="tarjeta-imagen"
-                  />
+            {clubes.map(club => {
+              // Calculamos la cantidad de canchas en base a lo que nos devolvió Supabase
+              const cantidadCanchas = club.canchas ? club.canchas.length : 0;
+
+              return (
+                // TARJETA DEL CLUB
+                <div key={club.id} className="tarjeta-club" onClick={() => navigate(`/club/${club.id}`)} style={{cursor: 'pointer'}}>
                   
-                  <div className="tarjeta-degradado"></div>
+                  {/* PARTE SUPERIOR: IMAGEN Y DEGRADADO */}
+                  <div className="tarjeta-imagen-wrapper">
+                    <img 
+                      src={club.imagen_url || "https://images.unsplash.com/photo-1574629810360-7efbb1925536?q=80&w=1000&auto=format&fit=crop"} 
+                      alt={club.nombre}
+                      className="tarjeta-imagen"
+                    />
+                    
+                    <div className="tarjeta-degradado"></div>
 
-                  <div className="etiqueta-reservas">
-                    RESERVAS ABIERTAS
+                    <div className="etiqueta-reservas">
+                      RESERVAS ABIERTAS
+                    </div>
+
+                    <div className="info-superior">
+                      <h2 className="tarjeta-nombre">
+                        {club.nombre}
+                      </h2>
+                      <p className="tarjeta-direccion">
+                        <MapPin size={16} /> {club.direccion || ciudad}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="info-superior">
-                    <h2 className="tarjeta-nombre">
-                      {club.nombre}
-                    </h2>
-                    <p className="tarjeta-direccion">
-                      <MapPin size={16} /> {club.direccion || ciudad}
-                    </p>
+                  {/* PARTE INFERIOR: BOTONES */}
+                  <div className="tarjeta-footer">
+                    <div className="etiqueta-canchas">
+                      <LayoutGrid size={16} className="icono-canchas" />
+                      <span className="texto-canchas">
+                        {cantidadCanchas} {cantidadCanchas === 1 ? 'cancha' : 'canchas'}
+                      </span>
+                    </div>
+
+                    <button className="btn-ver-turnos">
+                      Ver turnos <ChevronRight size={18} />
+                    </button>
                   </div>
                 </div>
-
-                {/* PARTE INFERIOR: BOTONES */}
-                <div className="tarjeta-footer">
-                  <div className="badge-nuevo">
-                    <Star size={14} color="#eab308" fill="#eab308" />
-                    <span className="badge-texto">NUEVO EN APP</span>
-                  </div>
-
-                  <button onClick={() => navigate(`/club/${club.id}`)} className="btn-ver-turnos">
-                    Ver turnos <ChevronRight size={18} />
-                  </button>
-                </div>
-
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
