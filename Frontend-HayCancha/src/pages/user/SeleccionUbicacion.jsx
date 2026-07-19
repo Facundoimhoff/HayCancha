@@ -1,101 +1,111 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { ArrowLeft, Map } from 'lucide-react';
-// IMPORTANTE: Importamos nuestro nuevo archivo CSS
+import { MapPin, ChevronRight, ArrowLeft, Map } from 'lucide-react';
 import './SeleccionUbicacion.css';
 
 const SeleccionUbicacion = () => {
-  const [provinciaSeleccionada, setProvinciaSeleccionada] = useState('');
-  const [clubesProvincia, setClubesProvincia] = useState([]);
-  const [buscando, setBuscando] = useState(false);
   const navigate = useNavigate();
+  const [ubicaciones, setUbicaciones] = useState([]);
+  const [provincias, setProvincias] = useState([]);
+  const [provinciaSelec, setProvinciaSelec] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-  // Las 24 jurisdicciones de Argentina
-  const provincias = [
-    "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Ciudad Autónoma de Buenos Aires", 
-    "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", 
-    "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", 
-    "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
-  ];
+  useEffect(() => {
+    const cargarUbicaciones = async () => {
+      // Traemos todas las provincias y ciudades de los clubes existentes
+      const { data, error } = await supabase
+        .from('clubes')
+        .select('provincia, ciudad');
 
-  // Ordenamos las provincias alfabéticamente de la A a la Z
-  const provinciasOrdenadas = [...provincias].sort((a, b) => a.localeCompare(b));
+      if (!error && data) {
+        setUbicaciones(data);
+        // Filtramos para que no haya provincias repetidas
+        const provsUnicas = [...new Set(data.map(item => item.provincia))].filter(Boolean).sort();
+        setProvincias(provsUnicas);
+      }
+      setCargando(false);
+    };
 
-  const seleccionarProvincia = async (provincia) => {
-    setBuscando(true);
-    setProvinciaSeleccionada(provincia);
-    
-    const { data, error } = await supabase
-      .from('clubes')
-      .select('*')
-      .eq('provincia', provincia);
-    
-    if (!error) {
-      setClubesProvincia(data || []);
-    }
-    setBuscando(false);
+    cargarUbicaciones();
+  }, []);
+
+  const handleSeleccionProvincia = (prov) => {
+    setProvinciaSelec(prov);
   };
 
-  // Extraemos ciudades sin repetir
-  const ciudadesDisponibles = [...new Set(clubesProvincia.map(club => club.ciudad))].filter(Boolean);
-
-  const irAExplorar = (ciudad) => {
-    navigate(`/explorar/${provinciaSeleccionada}/${ciudad}`);
+  const handleSeleccionCiudad = (ciudad) => {
+    // Cuando elige ciudad, lo mandamos al HomeUsuario de esa zona
+    navigate(`/explorar/${encodeURIComponent(provinciaSelec)}/${encodeURIComponent(ciudad)}`);
   };
+
+  // Filtramos las ciudades que pertenecen a la provincia seleccionada
+  const ciudadesDisponibles = [...new Set(ubicaciones
+    .filter(u => u.provincia === provinciaSelec)
+    .map(u => u.ciudad)
+  )].filter(Boolean).sort();
 
   return (
-    <div className="seleccion-ubicacion-container">
-      <div className="seleccion-ubicacion-card">
-        
-        <button onClick={() => navigate('/')} className="btn-volver">
-          <ArrowLeft size={20} /> Volver al inicio
-        </button>
+    <div className="ubicacion-container">
+      
+      {/* BOTÓN VOLVER FLOTANTE */}
+      <button 
+        onClick={() => provinciaSelec ? setProvinciaSelec(null) : navigate('/')} 
+        className="btn-flotante-volver"
+      >
+        <ArrowLeft size={18} /> {provinciaSelec ? 'Cambiar Provincia' : 'Volver al Inicio'}
+      </button>
 
-        {/* PASO 1: PROVINCIA */}
-        <div>
-          <h2 className="seccion-titulo">1. Elegí tu Provincia</h2>
-          
-          <div className="provincias-scroll">
-            {provinciasOrdenadas.map(prov => (
+      <div className="ubicacion-card">
+        
+        <div className="ubicacion-header">
+          <div className="ubicacion-icono">
+            {provinciaSelec ? <MapPin size={32} /> : <Map size={32} />}
+          </div>
+          <h1 className="ubicacion-titulo">
+            {provinciaSelec ? 'Elegí tu Ciudad' : '¿Dónde querés jugar?'}
+          </h1>
+          <p className="ubicacion-subtitulo">
+            {provinciaSelec 
+              ? `Clubes disponibles en ${provinciaSelec}` 
+              : 'Seleccioná tu provincia para empezar'}
+          </p>
+        </div>
+
+        {cargando ? (
+          <p className="estado-carga">Buscando zonas disponibles...</p>
+        ) : (
+          <div className="lista-vertical">
+            {/* VISTA 1: PROVINCIAS */}
+            {!provinciaSelec && provincias.map((prov) => (
               <button 
                 key={prov} 
-                onClick={() => seleccionarProvincia(prov)}
-                // Acá le decimos: si esta provincia es la elegida, agregale la clase "activa"
-                className={`btn-provincia ${provinciaSeleccionada === prov ? 'activa' : ''}`}
+                className="btn-opcion"
+                onClick={() => handleSeleccionProvincia(prov)}
               >
-                {prov}
+                <span>{prov}</span>
+                <ChevronRight size={20} className="icono-flecha" />
+              </button>
+            ))}
+
+            {!provinciaSelec && provincias.length === 0 && !cargando && (
+              <p className="estado-carga">Aún no hay clubes registrados en la plataforma.</p>
+            )}
+
+            {/* VISTA 2: CIUDADES */}
+            {provinciaSelec && ciudadesDisponibles.map((ciudad) => (
+              <button 
+                key={ciudad} 
+                className="btn-opcion ciudad"
+                onClick={() => handleSeleccionCiudad(ciudad)}
+              >
+                <span>{ciudad}</span>
+                <ChevronRight size={20} className="icono-flecha" />
               </button>
             ))}
           </div>
-        </div>
-
-        {/* PASO 2: CIUDAD */}
-        {provinciaSeleccionada && (
-          <div className="seccion-ciudades">
-            <h2 className="seccion-titulo">2. Elegí tu Ciudad</h2>
-            
-            {buscando ? (
-              <p className="texto-buscando">Buscando ciudades...</p>
-            ) : ciudadesDisponibles.length > 0 ? (
-              <div className="ciudades-grid">
-                {ciudadesDisponibles.map(ciudad => (
-                  <button 
-                    key={ciudad}
-                    onClick={() => irAExplorar(ciudad)}
-                    className="btn-ciudad"
-                  >
-                    <Map size={14} /> {ciudad}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="texto-alerta">
-                Aún no tenemos clubes registrados en {provinciaSeleccionada}.
-              </p>
-            )}
-          </div>
         )}
+
       </div>
     </div>
   );

@@ -1,128 +1,188 @@
-/* SeleccionUbicacion.css */
+/* =========================================================
+   SeleccionUbicacion.css (Flujo Vertical Premium)
+   ========================================================= */
 
-.seleccion-ubicacion-container {
+.ubicacion-container {
   min-height: 100vh;
-  background-color: #f3f4f6;
-  padding: 20px;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px 40px 20px;
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
 }
 
-.seleccion-ubicacion-card {
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.btn-volver {
-  background: none;
-  border: none;
+/* --- BOTÓN VOLVER (Estilo App) --- */
+.btn-flotante-volver {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 30px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   cursor: pointer;
-  color: #4b5563;
-  margin-bottom: 25px;
-  padding: 0;
-  font-weight: bold;
-  transition: color 0.2s ease;
-}
-
-.btn-volver:hover {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
   color: #111827;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
-.seccion-titulo {
-  color: #111827;
-  margin: 0 0 5px 0;
-  font-size: 1.5rem;
+.btn-flotante-volver:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  border-color: #d1d5db;
 }
 
-.provincias-scroll {
+/* --- TARJETA CENTRAL --- */
+.ubicacion-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 32px;
+  padding: 40px 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ENCABEZADO --- */
+.ubicacion-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.ubicacion-icono {
+  background: #f0fdf4; /* Verde muy clarito */
+  color: #22c55e;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
   display: flex;
-  overflow-x: auto;
-  gap: 10px;
-  margin-top: 15px;
-  padding-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2);
 }
 
-/* Estilo para que la barra de scroll de provincias se vea moderna */
-.provincias-scroll::-webkit-scrollbar {
-  height: 6px;
+.ubicacion-titulo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
 }
-.provincias-scroll::-webkit-scrollbar-thumb {
+
+.ubicacion-subtitulo {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* --- LISTA VERTICAL DE BOTONES --- */
+.lista-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 50vh; /* Si hay muchas provincias, se puede scrollear internamente */
+  overflow-y: auto;
+  padding-right: 8px; /* Espacio para la barra de scroll */
+}
+
+/* Scrollbar sutil para la lista */
+.lista-vertical::-webkit-scrollbar {
+  width: 6px;
+}
+.lista-vertical::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 10px;
 }
-
-.btn-provincia {
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 10px 15px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background-color: white;
-  color: #374151;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s ease;
+.lista-vertical::-webkit-scrollbar-track {
+  background-color: transparent;
 }
 
-.btn-provincia:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
-
-/* Esta clase se aplica automáticamente cuando la provincia está seleccionada */
-.btn-provincia.activa {
-  background-color: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-
-.seccion-ciudades {
-  margin-top: 25px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 25px;
-}
-
-.texto-buscando {
-  color: #6b7280;
-  margin-top: 10px;
-}
-
-.ciudades-grid {
+/* --- BOTONES DE OPCIÓN --- */
+.btn-opcion {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.btn-ciudad {
-  padding: 8px 16px;
-  border: 1px solid #93c5fd;
-  border-radius: 20px;
-  background-color: white;
-  color: #1e40af;
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 5px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 18px 20px;
+  border-radius: 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.btn-opcion:hover {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(34, 197, 94, 0.2);
+  color: #16a34a;
+}
+
+/* Botón ciudad un poco menos agresivo visualmente que provincia */
+.btn-opcion.ciudad {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+}
+
+.icono-flecha {
+  color: #9ca3af;
   transition: all 0.2s ease;
 }
 
-.btn-ciudad:hover {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  transform: translateY(-1px);
+.btn-opcion:hover .icono-flecha {
+  color: #22c55e;
+  transform: translateX(5px);
 }
 
-.texto-alerta {
-  color: #ef4444;
-  margin-top: 10px;
-  background-color: #fee2e2;
-  padding: 10px;
-  border-radius: 8px;
+.estado-carga {
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+  padding: 20px 0;
+}
+
+/* =========================================================
+   📱 ADAPTACIÓN PARA CELULARES
+   ========================================================= */
+@media screen and (max-width: 768px) {
+  .ubicacion-container {
+    padding: 70px 15px 20px 15px;
+  }
+  
+  .ubicacion-card {
+    padding: 30px 20px;
+    border-radius: 24px;
+    border: none;
+    box-shadow: none; /* En celular queda más limpio sin tanta sombra */
+    background: transparent; 
+  }
+  
+  .btn-opcion {
+    background: #ffffff; /* Los botones siguen siendo blancos */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
 }
