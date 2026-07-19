@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone } from 'lucide-react';
+import { MapPin, Phone, CarFront } from 'lucide-react';
 import { supabase } from '../../services/supabase'; 
-// IMPORTANTE: Importamos nuestro CSS
 import './PerfilClub.css';
 
 const PerfilClub = () => {
@@ -113,8 +112,8 @@ const PerfilClub = () => {
                 <div className="cancha-tarjeta">
                   <div className="cancha-header">
                     <h3 className="cancha-nombre">{cancha.nombre}</h3>
-                    <span className="cancha-tipo">
-                      {cancha.tipo || cancha.deporte}
+                    <span className="cancha-tipo" data-deporte={cancha.deporte}>
+                      {cancha.deporte}
                     </span>
                   </div>
                   <p className="cancha-precio">
