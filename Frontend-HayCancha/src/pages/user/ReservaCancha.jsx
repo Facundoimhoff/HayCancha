@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, Calendar } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-// IMPORTANTE: Importamos nuestro CSS
+// IMPORTANTE: Importamos nuestro CSS premium
 import './ReservaCancha.css';
 
 const ReservaCancha = () => {
@@ -146,6 +146,7 @@ const ReservaCancha = () => {
   return (
     <div className="reserva-container">
       
+      {/* HEADER */}
       <div className="header-reserva">
         <button onClick={() => navigate(-1)} className="btn-volver-reserva">
           <ArrowLeft size={24} />
@@ -153,11 +154,29 @@ const ReservaCancha = () => {
         <h1 className="titulo-cancha">{cancha.nombre}</h1>
       </div>
 
+      {/* --- NUEVO: BARRA DE PASOS (STEPPER) --- */}
+      <div className="stepper-reserva">
+        <div className={`stepper-item ${paso >= 1 ? 'activo' : ''}`}>
+          <span className="stepper-numero">1</span>
+          <span className="stepper-label">Horario</span>
+        </div>
+        <div className="stepper-linea"></div>
+        <div className={`stepper-item ${paso >= 2 ? 'activo' : ''}`}>
+          <span className="stepper-numero">2</span>
+          <span className="stepper-label">Datos</span>
+        </div>
+        <div className="stepper-linea"></div>
+        <div className={`stepper-item ${paso >= 3 ? 'activo' : ''}`}>
+          <span className="stepper-numero">3</span>
+          <span className="stepper-label">Listo</span>
+        </div>
+      </div>
+
       {/* PASO 1: Elegir Día y Horario */}
       {paso === 1 && (
         <div className="paso-horarios">
           <h2 className="titulo-paso">
-            <Calendar size={18} style={{ marginRight: '8px' }} /> Seleccioná tu turno
+            Elegí día y horario
           </h2>
           
           <div className="lista-dias">
@@ -183,7 +202,6 @@ const ReservaCancha = () => {
                         const estaOcupado = turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
                         const estaSeleccionado = fechaSeleccionada === dia.fechaBD && horaSeleccionada === hora;
 
-                        // Determinamos qué clase de CSS usar
                         let claseBoton = 'btn-hora disponible';
                         if (estaOcupado) claseBoton = 'btn-hora ocupado';
                         else if (estaSeleccionado) claseBoton = 'btn-hora seleccionado';
@@ -197,7 +215,7 @@ const ReservaCancha = () => {
                           >
                             <span>{hora}</span>
                             <span className="hora-estado">
-                              {estaOcupado ? 'Ocupado' : 'Libre'}
+                              {estaOcupado ? 'Ocupado' : estaSeleccionado ? 'Elegido' : 'Libre'}
                             </span>
                           </button>
                         );
@@ -211,7 +229,7 @@ const ReservaCancha = () => {
 
           {horaSeleccionada && (
             <button onClick={() => setPaso(2)} className="btn-continuar">
-              Continuar <ArrowRight size={20} style={{ marginLeft: '10px' }} />
+              Continuar
             </button>
           )}
         </div>
@@ -220,6 +238,8 @@ const ReservaCancha = () => {
       {/* PASO 2: Ingresar Datos */}
       {paso === 2 && (
         <div className="paso-datos">
+          <h2 className="titulo-paso">Tus Datos</h2>
+          
           <div className="info-reserva-box">
             <p className="info-reserva-texto">
               Confirmando turno para el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs
@@ -227,7 +247,7 @@ const ReservaCancha = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Tu Nombre</label>
+            <label className="form-label">Nombre y Apellido</label>
             <input 
               type="text" 
               value={nombre}
@@ -237,8 +257,8 @@ const ReservaCancha = () => {
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label className="form-label">Tu Teléfono (WhatsApp)</label>
+          <div className="form-group">
+            <label className="form-label">Teléfono (WhatsApp)</label>
             <input 
               type="tel" 
               value={telefono}
@@ -266,7 +286,7 @@ const ReservaCancha = () => {
       {/* PASO 3: Éxito */}
       {paso === 3 && (
         <div className="paso-exito">
-          <CheckCircle size={60} color="#10b981" className="icono-exito" />
+          <CheckCircle size={60} color="#22c55e" className="icono-exito" />
           <h2 className="titulo-exito">¡Reserva Confirmada!</h2>
           <p className="texto-exito">Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
           <Link to={obtenerRutaVuelta()} className="btn-link-volver">
