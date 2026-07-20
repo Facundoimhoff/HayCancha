@@ -105,12 +105,12 @@ const LandingPage = () => {
             </div>
 
             <div className="bloque-empresa">
-              <h3>¿Administrás un club o complejo deportivo?</h3>
+              <h3>¿Querés sumar tu complejo a Hay Cancha?</h3>
               <p>
-                Descubrí cómo <strong>Hay Cancha</strong> puede ayudarte a gestionar reservas, clientes y turnos desde una única plataforma.
+                Digitalizá tu club, olvidate de la agenda de papel y empezá a recibir reservas automáticas las 24 horas.
               </p>
               <Link to="/contacto" className="btn-contacto-empresa">
-                Ir al formulario
+                Sumar mi club
               </Link>
             </div>
           </>
