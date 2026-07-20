@@ -1,78 +1,142 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound } from 'lucide-react';
+import { Lock, KeyRound, CheckCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-// IMPORTANTE: Importar CSS
 import './ActualizarPassword.css';
 
 const ActualizarPassword = () => {
-  const [nuevaPassword, setNuevaPassword] = useState('');
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [exito, setExito] = useState(false);
+  const [cargando, setCargando] = useState(false);
+
+  useEffect(() => {
+    // Verificamos si el usuario realmente viene del link de recuperación
+    const verificarSesion = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('El enlace de recuperación no es válido o ya expiró. Por favor, solicitá uno nuevo.');
+      }
+    };
+    verificarSesion();
+  }, []);
 
   const handleActualizar = async (e) => {
     e.preventDefault();
-    setCargando(true);
     setError('');
 
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setCargando(true);
+
     try {
+      // Supabase actualiza la contraseña del usuario actualmente autenticado (el que entró por el link)
       const { error: updateError } = await supabase.auth.updateUser({
-        password: nuevaPassword
+        password: password
       });
 
       if (updateError) throw updateError;
 
-      alert("¡Contraseña actualizada con éxito! Ya podés entrar a tu panel.");
-      navigate('/'); 
+      setExito(true);
+      
+      // Por seguridad, cerramos la sesión para obligarlo a entrar con su nueva clave
+      await supabase.auth.signOut();
+      
+      // Lo mandamos al inicio después de 3 segundos
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
 
-    } catch (error) {
-      setError("Hubo un error al actualizar la contraseña: " + error.message);
+    } catch (err) {
+      console.error("Error al actualizar contraseña:", err.message);
+      setError('Hubo un error al guardar. Es posible que el enlace haya expirado.');
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="actualizar-pass-container">
-      <div className="actualizar-pass-card">
+    <div className="actualizar-container">
+      <div className="actualizar-card dark-mode">
         
-        <h2 className="actualizar-pass-header">
-          <KeyRound size={24} /> Crear nueva contraseña
-        </h2>
-        <p className="actualizar-pass-desc">
-          Escribí tu nueva contraseña para acceder al panel de tu club.
-        </p>
-
-        {error && (
-          <div className="actualizar-pass-error">
-            {error}
+        <div className="form-header-premium">
+          <div className="icono-header-wrapper">
+            {exito ? <CheckCircle size={26} color="#22c55e" /> : <KeyRound size={26} />}
           </div>
+          <h2 style={{color: '#ffffff'}}>Nueva Contraseña</h2>
+          <p style={{color: '#9ca3af'}}>
+            {exito ? '¡Todo listo!' : 'Ingresá una nueva clave para tu cuenta'}
+          </p>
+        </div>
+
+        {error && <div className="alerta-error">{error}</div>}
+
+        {exito ? (
+          <div className="mensaje-exito-final">
+            <p>Tu contraseña se actualizó correctamente.</p>
+            <p className="redireccion-texto">Redirigiendo al inicio de sesión...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleActualizar} className="login-form">
+            <div className="form-group">
+              <label className="form-label">Nueva Contraseña</label>
+              <div className="input-con-icono">
+                <Lock size={18} className="input-icono" />
+                <input 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Mínimo 6 caracteres" 
+                  className="form-input con-padding" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Confirmar Contraseña</label>
+              <div className="input-con-icono">
+                <Lock size={18} className="input-icono" />
+                <input 
+                  type="password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  placeholder="Repetí la contraseña" 
+                  className="form-input con-padding" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div className="login-acciones" style={{marginTop: '25px'}}>
+              <button 
+                type="button" 
+                onClick={() => navigate('/')} 
+                className="btn-volver-sutil" 
+                disabled={cargando}
+              >
+                <ArrowLeft size={18} /> Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="btn-entrar-principal verde" 
+                disabled={cargando || !!error.includes('expiró')}
+              >
+                {cargando ? 'Guardando...' : 'Actualizar Clave'}
+              </button>
+            </div>
+          </form>
         )}
-
-        <form onSubmit={handleActualizar} className="actualizar-pass-form">
-          <div>
-            <label className="form-label-pass">Nueva Contraseña</label>
-            <input 
-              type="password" 
-              required
-              minLength={6}
-              value={nuevaPassword}
-              onChange={(e) => setNuevaPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              className="form-input-pass"
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={cargando || nuevaPassword.length < 6}
-            className="btn-actualizar-pass"
-          >
-            {cargando ? 'Guardando...' : 'Guardar y Continuar'}
-          </button>
-        </form>
-
       </div>
     </div>
   );
