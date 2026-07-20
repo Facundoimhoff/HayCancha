@@ -1,4 +1,6 @@
-/* LandingPage.css */
+/* =========================================================
+   LandingPage.css (Diseño Premium Claro)
+   ========================================================= */
 
 .landing-container {
   min-height: 100vh;
@@ -7,31 +9,36 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .landing-card {
   max-width: 500px;
   width: 100%;
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 40px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
 /* --- TEXTOS PRINCIPALES --- */
 .landing-titulo {
   text-align: center;
-  font-size: 2rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
   color: #111827;
   margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
 }
 
 .landing-subtitulo {
   text-align: center;
   color: #6b7280;
-  margin: 0 0 30px 0;
+  margin: 0 0 35px 0;
   font-size: 1.05rem;
+  font-weight: 500;
 }
 
 /* --- BOTONES DE ACCESO (CLIENTE / ADMIN) --- */
@@ -39,7 +46,7 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
 }
 
 .btn-cliente, .btn-admin {
@@ -49,7 +56,7 @@
   padding: 20px;
   background-color: #ffffff;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -60,12 +67,12 @@
   border-color: #2563eb;
   background-color: #eff6ff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
 }
 
 .btn-icono {
   margin-right: 15px;
-  color: #4b5563;
+  color: #64748b;
   transition: color 0.2s ease;
 }
 
@@ -79,15 +86,15 @@
 }
 
 .btn-text-title {
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .btn-text-desc {
   font-size: 0.85rem;
-  font-weight: normal;
-  margin-top: 2px;
   color: #6b7280;
+  margin-top: 2px;
 }
 
 .btn-flecha {
@@ -98,15 +105,16 @@
 
 .btn-cliente:hover .btn-flecha, .btn-admin:hover .btn-flecha {
   color: #2563eb;
+  transform: translateX(4px);
 }
 
 /* --- BLOQUE EMPRESA --- */
 .bloque-empresa {
   background-color: #f8fafc;
   padding: 25px 20px;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: center;
-  border: 1px solid #e2e8f0;
+  border: 1px dashed #cbd5e1;
 }
 
 .bloque-empresa h3 {
@@ -124,19 +132,21 @@
 
 .btn-contacto-empresa {
   display: inline-block;
-  background-color: #f1f5f9;
-  color: #334155;
-  padding: 10px 20px;
-  border-radius: 8px;
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 12px 24px;
+  border-radius: 12px;
   text-decoration: none;
-  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
   transition: all 0.2s ease;
   border: 1px solid #cbd5e1;
 }
 
 .btn-contacto-empresa:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+  border-color: #94a3b8;
 }
 
 /* --- FORMULARIOS (LOGIN Y RECUPERACIÓN) --- */
@@ -149,26 +159,50 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.form-header {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-  color: #1e3a8a;
+/* NUEVO HEADER DEL FORMULARIO */
+.form-header-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.icono-header-wrapper {
+  background-color: #eff6ff; /* Azul muy clarito */
+  color: #2563eb;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
 }
 
-.form-header-icon {
-  margin-right: 8px;
+.form-header-premium h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 5px 0;
+  letter-spacing: -0.5px;
 }
 
+.form-header-premium p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Alertas */
 .alerta-error {
   color: #ef4444;
   background-color: #fee2e2;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
   font-size: 0.9rem;
   font-weight: bold;
   text-align: center;
@@ -177,40 +211,47 @@
 .alerta-exito {
   color: #059669;
   background-color: #d1fae5;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
   font-size: 0.9rem;
   font-weight: bold;
   text-align: center;
 }
 
+/* Inputs y Labels */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #374151;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .input-login {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb; /* Fondo gris suave */
   box-sizing: border-box;
-  font-family: inherit;
+  font-family: 'Inter', inherit;
   font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  color: #1f2937;
+  transition: all 0.2s ease;
 }
 
 .input-login:focus {
   outline: none;
+  background-color: #ffffff;
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
 .input-con-icono {
@@ -219,25 +260,27 @@
 
 .input-icono {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
 }
 
 .input-login.con-padding {
-  padding-left: 40px;
+  padding-left: 44px;
 }
 
 .texto-ayuda {
+  text-align: center;
   color: #4b5563;
   font-size: 0.95rem;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   line-height: 1.5;
 }
 
-/* --- BOTONES DEL FORMULARIO --- */
+/* Botón Olvidaste Contraseña */
 .forgot-password-container {
+  margin-top: -5px;
   margin-bottom: 25px;
   text-align: right;
 }
@@ -245,78 +288,84 @@
 .btn-link-simple {
   background: none;
   border: none;
-  color: #2563eb;
+  color: #6b7280; /* Gris sutil */
   font-size: 0.85rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
   transition: color 0.2s ease;
 }
 
 .btn-link-simple:hover {
-  color: #1d4ed8;
+  color: #111827;
   text-decoration: underline;
 }
 
+/* --- BOTONES DEL FORMULARIO --- */
 .btn-group {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-volver-login {
   flex: 1;
   padding: 14px;
-  background-color: #f3f4f6;
+  background-color: #ffffff;
   color: #4b5563;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: 12px;
+  font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-volver-login:hover:not(:disabled) {
-  background-color: #e5e7eb;
+  background-color: #f3f4f6;
   color: #111827;
 }
 
 .btn-entrar-login {
   flex: 2;
   padding: 14px;
-  background-color: #2563eb;
+  background-color: #111827; /* Botón oscuro, muy premium */
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
 }
 
 .btn-entrar-login:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  background-color: #1f2937;
+  transform: translateY(-2px);
 }
 
 .btn-entrar-login.verde {
-  background-color: #10b981;
+  background-color: #22c55e;
+  color: #000000;
 }
 
 .btn-entrar-login.verde:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: #16a34a;
 }
 
 .btn-volver-login:disabled, .btn-entrar-login:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* --- FOOTER REGISTRO --- */
 .footer-registro {
-  margin-top: 25px;
+  margin-top: 30px;
   text-align: center;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 25px;
 }
 
 .footer-texto {
@@ -326,23 +375,25 @@
 }
 
 .link-registro {
-  color: #1e3a8a;
+  color: #111827;
   font-weight: bold;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .link-registro:hover {
-  color: #1e40af;
+  color: #2563eb;
   text-decoration: underline;
 }
 
-/* =======================================
-   ESTA CLASE EVITA QUE EL FORMULARIO
-   SE APLASTE DE LADO A LADO
-   ======================================= */
 .fix-layout-vertical {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .landing-card {
+    padding: 30px 20px;
+  }
 }

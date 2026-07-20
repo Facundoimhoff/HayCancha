@@ -63,7 +63,6 @@ const LandingPage = () => {
     <div className="landing-container">
       <div className="landing-card">
         
-        {/* Ocultamos el título gigante si se abre el login, para que el formulario no se aplaste */}
         {!mostrarLogin && (
           <>
             <h1 className="landing-titulo">¡Bienvenido a Hay Cancha!</h1>
@@ -76,41 +75,26 @@ const LandingPage = () => {
             <div className="landing-opciones">
               <button onClick={() => navigate('/seleccionar-ubicacion')} className="btn-cliente">
                 <User size={24} className="btn-icono" />
-
                 <div className="btn-text-content">
-                  <strong className="btn-text-title">
-                    Entrar como Cliente
-                  </strong>
-                  <span className="btn-text-desc">
-                    Quiero buscar y reservar canchas
-                  </span>
+                  <strong className="btn-text-title">Entrar como Cliente</strong>
+                  <span className="btn-text-desc">Quiero buscar y reservar canchas</span>
                 </div>
-
                 <ArrowRight size={20} className="btn-flecha" />
               </button>
 
               <button onClick={() => setMostrarLogin(true)} className="btn-admin">
                 <ShieldCheck size={24} className="btn-icono" />
-
                 <div className="btn-text-content">
-                  <strong className="btn-text-title">
-                    Entrar como Administrador
-                  </strong>
-                  <span className="btn-text-desc">
-                    Quiero gestionar mi club y turnos
-                  </span>
+                  <strong className="btn-text-title">Entrar como Administrador</strong>
+                  <span className="btn-text-desc">Quiero gestionar mi club y turnos</span>
                 </div>
-
                 <ArrowRight size={20} className="btn-flecha" />
               </button>
             </div>
 
             <div className="bloque-empresa">
               <h3>¿Administrás un club o complejo deportivo?</h3>
-              <p>
-                Descubrí cómo <strong>Hay Cancha</strong> puede ayudarte a gestionar reservas, clientes y turnos desde una única plataforma.
-              </p>
-              {/* CAMBIO APLICADO AQUÍ */}
+              <p>Descubrí cómo <strong>Hay Cancha</strong> puede ayudarte a gestionar reservas, clientes y turnos desde una única plataforma.</p>
               <Link to="/planes" className="btn-contacto-empresa">
                 Conocé nuestros planes
               </Link>
@@ -118,20 +102,21 @@ const LandingPage = () => {
           </>
         ) : (
           <div className="animacion-acordeon fix-layout-vertical">
-            <h2 className="form-header">
-              {mostrarRecuperar ? (
-                <><KeyRound size={18} className="form-header-icon" /> Recuperar Contraseña</>
-              ) : (
-                <><Lock size={18} className="form-header-icon" /> Acceso Administrativo</>
-              )}
-            </h2>
+            
+            {/* NUEVO HEADER PREMIUM */}
+            <div className="form-header-premium">
+              <div className="icono-header-wrapper">
+                {mostrarRecuperar ? <KeyRound size={26} /> : <Lock size={26} />}
+              </div>
+              <h2>{mostrarRecuperar ? 'Recuperar Contraseña' : 'Acceso Administrativo'}</h2>
+              <p>{mostrarRecuperar ? 'Te enviaremos un enlace de recuperación' : 'Ingresá tus datos para gestionar tu club'}</p>
+            </div>
 
             {error && <div className="alerta-error">{error}</div>}
-            
             {mensajeExito && <div className="alerta-exito">{mensajeExito}</div>}
 
             {!mostrarRecuperar ? (
-              // FORMULARIO DE LOGIN NORMAL
+              // FORMULARIO DE LOGIN
               <form onSubmit={handleLogin}>
                 <div className="form-group">
                   <label className="form-label">Email</label>
@@ -181,12 +166,8 @@ const LandingPage = () => {
                 </div>
               </form>
             ) : (
-              // FORMULARIO DE RECUPERACIÓN DE CONTRASEÑA
+              // FORMULARIO DE RECUPERACIÓN
               <form onSubmit={handleRecuperarPassword}>
-                <p className="texto-ayuda">
-                  Ingresá el correo electrónico con el que te registraste y te enviaremos un enlace para que puedas cambiar tu contraseña.
-                </p>
-
                 <div className="form-group">
                   <label className="form-label">Email de recuperación</label>
                   <div className="input-con-icono">
@@ -202,7 +183,7 @@ const LandingPage = () => {
                   </div>
                 </div>
 
-                <div className="btn-group">
+                <div className="btn-group" style={{ marginTop: '30px' }}>
                   <button type="button" onClick={() => setMostrarRecuperar(false)} className="btn-volver-login" disabled={cargando}>
                     Cancelar
                   </button>
@@ -217,7 +198,6 @@ const LandingPage = () => {
               <div className="footer-registro">
                 <p className="footer-texto">
                   ¿No tenés una cuenta?{' '}
-                  {/* CAMBIO APLICADO AQUÍ */}
                   <Link to="/planes" className="link-registro">
                     Conocé nuestros planes
                   </Link>
