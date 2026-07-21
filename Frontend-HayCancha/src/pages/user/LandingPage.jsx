@@ -116,16 +116,16 @@ const LandingPage = () => {
           </>
         ) : (
           <div className="animacion-acordeon fix-layout-vertical">
-            <h2 className="form-header">
-              {mostrarRecuperar ? (
-                <><KeyRound size={18} className="form-header-icon" /> Recuperar Contraseña</>
-              ) : (
-                <><Lock size={18} className="form-header-icon" /> Acceso Administrativo</>
-              )}
-            </h2>
+            
+            <div className="form-header-premium">
+              <div className="icono-header-wrapper">
+                {mostrarRecuperar ? <KeyRound size={26} /> : <Lock size={26} />}
+              </div>
+              <h2>{mostrarRecuperar ? 'Recuperar Contraseña' : 'Acceso Administrativo'}</h2>
+              <p>{mostrarRecuperar ? 'Te enviaremos un enlace de recuperación' : 'Ingresá tus datos para gestionar tu club'}</p>
+            </div>
 
             {error && <div className="alerta-error">{error}</div>}
-            
             {mensajeExito && <div className="alerta-exito">{mensajeExito}</div>}
 
             {!mostrarRecuperar ? (
@@ -181,10 +181,6 @@ const LandingPage = () => {
             ) : (
               // FORMULARIO DE RECUPERACIÓN DE CONTRASEÑA
               <form onSubmit={handleRecuperarPassword}>
-                <p className="texto-ayuda">
-                  Ingresá el correo electrónico con el que te registraste y te enviaremos un enlace para que puedas cambiar tu contraseña.
-                </p>
-
                 <div className="form-group">
                   <label className="form-label">Email de recuperación</label>
                   <div className="input-con-icono">
@@ -200,7 +196,7 @@ const LandingPage = () => {
                   </div>
                 </div>
 
-                <div className="btn-group">
+                <div className="btn-group" style={{ marginTop: '30px' }}>
                   <button type="button" onClick={() => setMostrarRecuperar(false)} className="btn-volver-login" disabled={cargando}>
                     Cancelar
                   </button>
@@ -215,8 +211,8 @@ const LandingPage = () => {
               <div className="footer-registro">
                 <p className="footer-texto">
                   ¿No tenés una cuenta?{' '}
-                  <Link to="/contacto" className="link-registro">
-                    Contactanos
+                  <Link to="/planes" className="link-registro">
+                    Conocé nuestros planes
                   </Link>
                 </p>
               </div>
