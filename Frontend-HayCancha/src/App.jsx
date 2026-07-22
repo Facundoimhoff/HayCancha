@@ -12,6 +12,7 @@ import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';
 import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
+import HeaderCliente from './pages/user/HeaderCliente';
 
 function App() {
   return (
