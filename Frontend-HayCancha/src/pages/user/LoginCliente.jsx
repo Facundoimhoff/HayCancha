@@ -65,56 +65,6 @@ const LoginCliente = () => {
     } finally {
       setCargando(false);
     }
-  };const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setCargando(true);
-
-    try {
-      if (esRegistro) {
-        // --- CREAR CUENTA ---
-        const { data, error: errorRegistro } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: nombre,
-              rol: 'cliente' // Guardamos que es un cliente
-            }
-          }
-        });
-        
-        if (errorRegistro) throw errorRegistro;
-        
-        // NUEVO: Verificamos si Supabase pide confirmación por correo
-        if (data.user && !data.session) {
-          setError('✅ ¡Cuenta creada! Revisá tu correo (y el spam) para confirmar tu cuenta y poder entrar.');
-          setEsRegistro(false); // Lo mandamos a la pestaña de Iniciar Sesión
-          return;
-        }
-
-        // Si sale bien y no pide confirmación, lo mandamos a elegir ciudad
-        if (data.user) navigate('/seleccionar-ubicacion');
-
-      } else {
-        // --- INICIAR SESIÓN ---
-        const { data, error: errorLogin } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (errorLogin) throw errorLogin;
-
-        if (data.user) navigate('/seleccionar-ubicacion');
-      }
-    } catch (err) {
-      console.error("Detalle del error:", err);
-      if (err.message.includes('Invalid login')) setError('Email o contraseña incorrectos.');
-      else if (err.message.includes('already registered')) setError('Este email ya tiene una cuenta.');
-      else setError('Error: ' + err.message); // Acá te va a mostrar el error exacto si hay otro problema
-    } finally {
-      setCargando(false);
-    }
   };
 
   const handleGoogleLogin = async () => {
@@ -138,7 +88,7 @@ const LoginCliente = () => {
           <p>{esRegistro ? 'Registrate para empezar a reservar canchas' : 'Ingresá a tu cuenta para gestionar tus turnos'}</p>
         </div>
 
-        {error && <div className="alerta-error-cli">{error}</div>}
+        {error && <div className={`alerta-error-cli ${error.includes('✅') ? 'exito' : ''}`} style={error.includes('✅') ? {backgroundColor: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0'} : {}}>{error}</div>}
 
         <form onSubmit={handleSubmit} className="login-cli-form">
           
@@ -210,6 +160,7 @@ const LoginCliente = () => {
           <p>
             {esRegistro ? '¿Ya tenés una cuenta?' : '¿No tenés una cuenta?'}
             <button 
+              type="button"
               onClick={() => { setEsRegistro(!esRegistro); setError(''); }} 
               className="btn-switch-modo"
             >
