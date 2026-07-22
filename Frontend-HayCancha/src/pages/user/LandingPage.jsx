@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, ShieldCheck, ArrowRight, Lock, Mail, KeyRound } from 'lucide-react';
 import { supabase } from '../../services/supabase';
@@ -8,6 +8,9 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
+  
+  // Estado para saber si el cliente ya está logueado
+  const [sesionCliente, setSesionCliente] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +18,39 @@ const LandingPage = () => {
   const [mensajeExito, setMensajeExito] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  const handleLogin = async (e) => {
+  useEffect(() => {
+    // Verificamos si ya hay una sesión activa para no pedirle Google de nuevo
+    const verificarSesion = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSesionCliente(true);
+      }
+    };
+    verificarSesion();
+  }, []);
+
+  // --- NUEVA FUNCIÓN PARA EL CLIENTE ---
+  const handleEntrarComoCliente = async () => {
+    if (sesionCliente) {
+      // Si ya está logueado, lo dejamos pasar a buscar canchas
+      navigate('/seleccionar-ubicacion');
+    } else {
+      // Si no, disparamos el pop-up de Google
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/seleccionar-ubicacion'
+          }
+        });
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error al iniciar con Google:', error.message);
+      }
+    }
+  };
+
+  const handleLoginAdmin = async (e) => {
     e.preventDefault();
     setError('');
     setCargando(true);
@@ -73,7 +108,9 @@ const LandingPage = () => {
         {!mostrarLogin ? (
           <>
             <div className="landing-opciones">
-              <button onClick={() => navigate('/seleccionar-ubicacion')} className="btn-cliente">
+              
+              {/* ACÁ APLICAMOS EL NUEVO INGRESO DE CLIENTE */}
+              <button onClick={handleEntrarComoCliente} className="btn-cliente">
                 <User size={24} className="btn-icono" />
 
                 <div className="btn-text-content">
@@ -129,8 +166,8 @@ const LandingPage = () => {
             {mensajeExito && <div className="alerta-exito">{mensajeExito}</div>}
 
             {!mostrarRecuperar ? (
-              // FORMULARIO DE LOGIN NORMAL
-              <form onSubmit={handleLogin}>
+              // FORMULARIO DE LOGIN NORMAL ADMIN
+              <form onSubmit={handleLoginAdmin}>
                 <div className="form-group">
                   <label className="form-label">Email</label>
                   <input 
@@ -179,7 +216,7 @@ const LandingPage = () => {
                 </div>
               </form>
             ) : (
-              // FORMULARIO DE RECUPERACIÓN DE CONTRASEÑA
+              // FORMULARIO DE RECUPERACIÓN DE CONTRASEÑA ADMIN
               <form onSubmit={handleRecuperarPassword}>
                 <div className="form-group">
                   <label className="form-label">Email de recuperación</label>
