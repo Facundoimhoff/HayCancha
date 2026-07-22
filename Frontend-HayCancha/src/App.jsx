@@ -11,7 +11,7 @@ import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';
 import ActualizarPassword from './pages/user/ActualizarPassword';
-import LoginCliente from './ruta/hacia/LoginCliente';
+import LoginCliente from './pages/user/LoginCliente';
 
 function App() {
   return (
