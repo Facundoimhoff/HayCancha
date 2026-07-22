@@ -11,6 +11,7 @@ import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';
 import ActualizarPassword from './pages/user/ActualizarPassword';
+import LoginCliente from './ruta/hacia/LoginCliente';
 
 function App() {
   return (
@@ -42,6 +43,8 @@ function App() {
         <Route path="/dashboard" element={<RegistroClub />} />
 
         <Route path="/actualizar-password" element={<ActualizarPassword />} />
+
+        <Route path="/login-cliente" element={<LoginCliente />} />
         
       </Routes>
     </BrowserRouter>

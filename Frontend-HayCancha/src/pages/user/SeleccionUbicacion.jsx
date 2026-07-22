@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { MapPin, ChevronRight, ArrowLeft, Map, Frown } from 'lucide-react';
 import './SeleccionUbicacion.css';
 
-// Lista fija con todas las provincias de Argentina
+// Lista fija con todas las provincias de Argentina (Las constantes sí van afuera)
 const TODAS_LAS_PROVINCIAS = [
   "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Ciudad Autónoma de Buenos Aires",
   "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja",
@@ -17,7 +17,23 @@ const SeleccionUbicacion = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [provinciaSelec, setProvinciaSelec] = useState(null);
   const [cargando, setCargando] = useState(true);
+  
+  // --- NUEVO: ESTADO PARA EL NOMBRE DEL CLIENTE ---
+  const [nombreUsuario, setNombreUsuario] = useState('');
 
+  // 1. Buscamos el nombre del usuario logueado
+  useEffect(() => {
+    const sacarNombre = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+         // Agarramos el "full_name" y lo cortamos en el primer espacio para usar solo el nombre de pila
+         setNombreUsuario(session.user.user_metadata.full_name?.split(' ')[0] || '');
+      }
+    };
+    sacarNombre();
+  }, []);
+
+  // 2. Cargamos las ubicaciones de los clubes
   useEffect(() => {
     const cargarUbicaciones = async () => {
       // Traemos las ubicaciones de los clubes que SÍ existen
@@ -65,9 +81,14 @@ const SeleccionUbicacion = () => {
           <div className="ubicacion-icono">
             {provinciaSelec ? <MapPin size={32} /> : <Map size={32} />}
           </div>
+          
+          {/* --- NUEVO: TÍTULO DINÁMICO --- */}
           <h1 className="ubicacion-titulo">
-            {provinciaSelec ? 'Elegí tu Ciudad' : '¿Dónde querés jugar?'}
+            {provinciaSelec 
+              ? 'Elegí tu Ciudad' 
+              : (nombreUsuario ? `¡Bienvenido, ${nombreUsuario}!` : '¿Dónde querés jugar?')}
           </h1>
+          
           <p className="ubicacion-subtitulo">
             {provinciaSelec 
               ? `Clubes disponibles en ${provinciaSelec}` 

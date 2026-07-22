@@ -32,21 +32,10 @@ const LandingPage = () => {
   // --- NUEVA FUNCIÓN PARA EL CLIENTE ---
   const handleEntrarComoCliente = async () => {
     if (sesionCliente) {
-      // Si ya está logueado, lo dejamos pasar a buscar canchas
       navigate('/seleccionar-ubicacion');
     } else {
-      // Si no, disparamos el pop-up de Google
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/seleccionar-ubicacion'
-          }
-        });
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error al iniciar con Google:', error.message);
-      }
+      // Lo mandamos a la nueva pantalla de Login de Cliente
+      navigate('/login-cliente');
     }
   };
 
