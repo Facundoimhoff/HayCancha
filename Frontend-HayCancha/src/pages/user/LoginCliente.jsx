@@ -55,9 +55,25 @@ const LoginCliente = () => {
         if (data.user) navigate('/seleccionar-ubicacion');
       }
     } catch (err) {
-      if (err.message.includes('Invalid login')) setError('Email o contraseña incorrectos.');
-      else if (err.message.includes('already registered')) setError('Este email ya tiene una cuenta.');
-      else setError('Error: ' + err.message);
+      console.error("Detalle del error:", err);
+      
+      // --- CATCH MEJORADO ---
+      // Extraemos el mensaje real, venga en el formato que venga
+      const mensajeError = err?.message || err?.error_description || JSON.stringify(err);
+      
+      if (mensajeError.includes('Invalid login')) {
+        setError('Email o contraseña incorrectos.');
+      } else if (mensajeError.includes('already registered')) {
+        setError('Este email ya tiene una cuenta.');
+      } else if (mensajeError.includes('rate_limit') || mensajeError.includes('429')) {
+        setError('Demasiados intentos. Aguardá un momento y volvé a probar.');
+      } else if (mensajeError === '{}') {
+        setError('Error de conexión o bloqueo temporal. Reintentá en unos minutos.');
+      } else {
+        setError('Error: ' + mensajeError); 
+      }
+      // ----------------------
+
     } finally {
       setCargando(false);
     }
@@ -79,7 +95,7 @@ const LoginCliente = () => {
 
       setMensajeExito('✅ ¡Te enviamos un enlace! Revisá tu correo (y el spam) para cambiar la contraseña.');
     } catch (error) {
-      console.error("Error al recuperar:", error.message);
+      console.error("Error al recuperar:", error);
       setError('Hubo un problema al enviar el correo. Verificá que esté bien escrito.');
     } finally {
       setCargando(false);
