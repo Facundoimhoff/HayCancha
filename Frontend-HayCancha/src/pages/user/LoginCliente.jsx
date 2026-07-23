@@ -103,7 +103,22 @@ const LoginCliente = () => {
   };
 
   const handleGoogleLogin = async () => {
-    alert("El inicio con Google se activará próximamente. Por favor, usá tu email y contraseña.");
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // Acá lo mandamos a la ruta que quieras una vez que Google lo aprueba
+          redirectTo: window.location.origin + '/seleccionar-ubicacion' 
+        }
+      });
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error("Error al iniciar con Google:", error);
+      // Si tenés un estado de error, podés setearlo acá
+      // setError("Hubo un problema al conectar con Google.");
+    }
   };
 
   return (
