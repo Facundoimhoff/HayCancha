@@ -45,8 +45,6 @@ export default function LandingPage() {
   return (
     <div className="landing-container">
       <section className="hero-section">
-        <div className="hero-overlay"></div>
-        
         <nav className="navbar">
           <div className="logo">
             HayCancha<span className="text-green">.</span>
@@ -96,7 +94,7 @@ export default function LandingPage() {
 
           <div className="search-box">
             <Search className="search-icon" size={24} />
-            <input type="text" placeholder="Provincia, ciudad o nombre del club..." />
+            <input type="text" placeholder="Barrio, ciudad o nombre del club..." />
             <button className="btn-search">BUSCAR</button>
           </div>
         </div>
