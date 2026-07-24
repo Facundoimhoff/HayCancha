@@ -1,53 +1,77 @@
 import React, { useState } from 'react';
-import { Search, MapPin, ArrowRight } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './LandingPage.css'; // Asegurate de que coincida mayúsculas/minúsculas
+import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Datos iniciales para que la pantalla se vea completa y profesional
-  const [provincias] = useState([
-    { id: 'CBA', nombre: 'Córdoba', cantidad_canchas: 432 },
-    { id: 'BUE', nombre: 'Buenos Aires', cantidad_canchas: 1250 },
-    { id: 'SFE', nombre: 'Santa Fe', cantidad_canchas: 380 },
-    { id: 'MZA', nombre: 'Mendoza', cantidad_canchas: 215 },
-    { id: 'TUC', nombre: 'Tucumán', cantidad_canchas: 145 },
-    { id: 'SLA', nombre: 'Salta', cantidad_canchas: 98 },
-    { id: 'NQN', nombre: 'Neuquén', cantidad_canchas: 87 },
-    { id: 'CABA', nombre: 'Capital Federal', cantidad_canchas: 512 },
-  ]);
+  const provincias = [
+    { id: 'CABA', nombre: 'Capital Federal' },
+    { id: 'BUE', nombre: 'Buenos Aires' },
+    { id: 'CAT', nombre: 'Catamarca' },
+    { id: 'CHA', nombre: 'Chaco' },
+    { id: 'CHU', nombre: 'Chubut' },
+    { id: 'CBA', nombre: 'Córdoba' },
+    { id: 'COR', nombre: 'Corrientes' },
+    { id: 'ENT', nombre: 'Entre Ríos' },
+    { id: 'FOR', nombre: 'Formosa' },
+    { id: 'JUJ', nombre: 'Jujuy' },
+    { id: 'LAP', nombre: 'La Pampa' },
+    { id: 'LAR', nombre: 'La Rioja' },
+    { id: 'MZA', nombre: 'Mendoza' },
+    { id: 'MIS', nombre: 'Misiones' },
+    { id: 'NEU', nombre: 'Neuquén' },
+    { id: 'RIO', nombre: 'Río Negro' },
+    { id: 'SAL', nombre: 'Salta' },
+    { id: 'SJU', nombre: 'San Juan' },
+    { id: 'SLU', nombre: 'San Luis' },
+    { id: 'SCR', nombre: 'Santa Cruz' },
+    { id: 'SFE', nombre: 'Santa Fe' },
+    { id: 'SDE', nombre: 'Santiago del Estero' },
+    { id: 'TDF', nombre: 'Tierra del Fuego' },
+    { id: 'TUC', nombre: 'Tucumán' }
+  ];
 
-  const [cantidadCanchas] = useState({
-    futbol: 1268,
-    padel: 981,
-    tenis: 385
-  });
-
-  // Esta función inicia el flujo: Provincia -> Ciudad -> Club -> Cancha
   const iniciarReserva = (provincia) => {
-    // Acá podés mandarlo a tu próxima pantalla. 
-    // Podrías pasarle el ID de la provincia por URL si querés.
     navigate('/seleccionar-ciudad'); 
   };
 
+  const toggleMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <div className="landing-desktop">
-      
-      {/* SECCIÓN 1: HERO */}
+    <div className="landing-container">
       <section className="hero-section">
         <div className="hero-overlay"></div>
         
-        {/* BARRA DE NAVEGACIÓN */}
         <nav className="navbar">
           <div className="logo">
             HayCancha<span className="text-green">.</span>
           </div>
-          <div className="nav-buttons">
-            {/* Solo dejamos el acceso para el dueño del predio */}
+          
+          <div className="nav-buttons desktop-only">
             <button 
               className="btn-admin"
               onClick={() => navigate('/login-admin')}
+            >
+              Acceso Administrador
+            </button>
+          </div>
+
+          <button className="mobile-menu-btn" onClick={toggleMenu}>
+            {isMobileMenuOpen ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
+          </button>
+
+          <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
+            <button 
+              className="btn-admin-mobile"
+              onClick={() => {
+                toggleMenu();
+                navigate('/login-admin');
+              }}
             >
               Acceso Administrador
             </button>
@@ -77,7 +101,6 @@ export default function LandingPage() {
           </div>
 
           <div className="quick-cities">
-            {/* Chips rápidos debajo del buscador */}
             {['Córdoba', 'Capital Federal', 'Rosario', 'Mendoza'].map(prov => (
               <button key={prov} className="btn-city-chip">
                 <MapPin size={14} className="icon-green" /> {prov}
@@ -87,36 +110,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECCIÓN 2: DEPORTES */}
       <main className="landing-main">
-        <div className="section-divider">
-          <hr /><span>ENCONTRÁ POR DEPORTE</span><hr />
-        </div>
-
-        <div className="sports-grid">
-          <div className="sport-card active">
-            <div className="sport-dot dot-green"></div>
-            <h2>FÚTBOL</h2>
-            <p className="sport-count">{cantidadCanchas.futbol} canchas</p>
-            <p className="sport-link text-green">Ver Todas <ArrowRight size={16}/></p>
-          </div>
-          
-          <div className="sport-card">
-            <div className="sport-dot dot-cyan"></div>
-            <h2>PÁDEL</h2>
-            <p className="sport-count">{cantidadCanchas.padel} canchas</p>
-            <p className="sport-link text-cyan">Ver Todas <ArrowRight size={16}/></p>
-          </div>
-          
-          <div className="sport-card">
-            <div className="sport-dot dot-lime"></div>
-            <h2>TENIS</h2>
-            <p className="sport-count">{cantidadCanchas.tenis} canchas</p>
-            <p className="sport-link text-lime">Ver Todas <ArrowRight size={16}/></p>
-          </div>
-        </div>
-
-        {/* SECCIÓN 3: PROVINCIAS */}
         <h2 className="section-title">EXPLORÁ POR PROVINCIA</h2>
         
         <div className="cities-grid">
@@ -128,7 +122,6 @@ export default function LandingPage() {
             >
               <div>
                 <h4><span className="city-id">{provincia.id}</span> {provincia.nombre}</h4>
-                <p>{provincia.cantidad_canchas} canchas</p>
               </div>
               <ArrowRight className="city-arrow" size={20} />
             </div>
