@@ -193,32 +193,6 @@
 
 .btn-search:hover { background-color: #16a34a; }
 
-.quick-cities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn-city-chip {
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-city-chip:hover { background-color: rgba(255, 255, 255, 0.2); }
-.icon-green { color: #4ade80; }
-
 .landing-main {
   max-width: 1200px;
   margin: 0 auto;

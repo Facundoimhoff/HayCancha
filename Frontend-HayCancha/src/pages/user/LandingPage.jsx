@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MapPin, ArrowRight, Menu, X } from 'lucide-react';
+import { Search, ArrowRight, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 
@@ -98,14 +98,6 @@ export default function LandingPage() {
             <Search className="search-icon" size={24} />
             <input type="text" placeholder="Provincia, ciudad o nombre del club..." />
             <button className="btn-search">BUSCAR</button>
-          </div>
-
-          <div className="quick-cities">
-            {['Córdoba', 'Capital Federal', 'Rosario', 'Mendoza'].map(prov => (
-              <button key={prov} className="btn-city-chip">
-                <MapPin size={14} className="icon-green" /> {prov}
-              </button>
-            ))}
           </div>
         </div>
       </section>
