@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './Landingpage.css';
+import './LandingPage.css';
 
 export default function Landingpage() {
   const navigate = useNavigate();
