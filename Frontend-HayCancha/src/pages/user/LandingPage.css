@@ -1,398 +1,343 @@
-/* =========================================================
-   LandingPage.css (Diseño Premium Claro)
-   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,900;1,900&display=swap');
 
-.landing-container {
-  min-height: 100vh;
-  background-color: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
-
-.landing-card {
-  max-width: 500px;
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-/* --- TEXTOS PRINCIPALES --- */
-.landing-titulo {
-  text-align: center;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: #111827;
-  margin: 0 0 10px 0;
-  letter-spacing: -0.5px;
-}
-
-.landing-subtitulo {
-  text-align: center;
-  color: #6b7280;
-  margin: 0 0 35px 0;
-  font-size: 1.05rem;
-  font-weight: 500;
-}
-
-/* --- BOTONES DE ACCESO (CLIENTE / ADMIN) --- */
-.landing-opciones {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 35px;
-}
-
-.btn-cliente, .btn-admin {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 20px;
-  background-color: #ffffff;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  color: #1f2937;
-}
-
-.btn-cliente:hover, .btn-admin:hover {
-  border-color: #2563eb;
-  background-color: #eff6ff;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
-}
-
-.btn-icono {
-  margin-right: 15px;
-  color: #64748b;
-  transition: color 0.2s ease;
-}
-
-.btn-cliente:hover .btn-icono, .btn-admin:hover .btn-icono {
-  color: #2563eb;
-}
-
-.btn-text-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.btn-text-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.btn-text-desc {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-top: 2px;
-}
-
-.btn-flecha {
-  margin-left: auto;
-  color: #9ca3af;
-  transition: color 0.2s ease;
-}
-
-.btn-cliente:hover .btn-flecha, .btn-admin:hover .btn-flecha {
-  color: #2563eb;
-  transform: translateX(4px);
-}
-
-/* --- BLOQUE EMPRESA --- */
-.bloque-empresa {
+.landing-desktop {
+  font-family: 'Inter', sans-serif;
   background-color: #f8fafc;
-  padding: 25px 20px;
-  border-radius: 16px;
-  text-align: center;
-  border: 1px dashed #cbd5e1;
+  display: none; 
 }
 
-.bloque-empresa h3 {
-  margin: 0 0 10px 0;
-  color: #1e293b;
-  font-size: 1.1rem;
+@media (min-width: 768px) {
+  .landing-desktop { display: block; }
 }
 
-.bloque-empresa p {
-  color: #64748b;
-  font-size: 0.95rem;
-  margin: 0 0 20px 0;
-  line-height: 1.5;
-}
-
-.btn-contacto-empresa {
-  display: inline-block;
-  background-color: #ffffff;
-  color: #0f172a;
-  padding: 12px 24px;
-  border-radius: 12px;
-  text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
-  transition: all 0.2s ease;
-  border: 1px solid #cbd5e1;
-}
-
-.btn-contacto-empresa:hover {
-  background-color: #f1f5f9;
-  transform: translateY(-2px);
-  border-color: #94a3b8;
-}
-
-/* --- FORMULARIOS (LOGIN Y RECUPERACIÓN) --- */
-.animacion-acordeon {
-  animation: fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* NUEVO HEADER DEL FORMULARIO */
-.form-header-premium {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.icono-header-wrapper {
-  background-color: #eff6ff; /* Azul muy clarito */
-  color: #2563eb;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
-}
-
-.form-header-premium h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: #111827;
-  margin: 0 0 5px 0;
-  letter-spacing: -0.5px;
-}
-
-.form-header-premium p {
-  color: #6b7280;
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-/* Alertas */
-.alerta-error {
-  color: #ef4444;
-  background-color: #fee2e2;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-align: center;
-}
-
-.alerta-exito {
-  color: #059669;
-  background-color: #d1fae5;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Inputs y Labels */
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #4b5563;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.input-login {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background-color: #f9fafb; /* Fondo gris suave */
-  box-sizing: border-box;
-  font-family: 'Inter', inherit;
-  font-size: 1rem;
-  color: #1f2937;
-  transition: all 0.2s ease;
-}
-
-.input-login:focus {
-  outline: none;
-  background-color: #ffffff;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-}
-
-.input-con-icono {
+.navbar {
   position: relative;
-}
-
-.input-icono {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-}
-
-.input-login.con-padding {
-  padding-left: 44px;
-}
-
-.texto-ayuda {
-  text-align: center;
-  color: #4b5563;
-  font-size: 0.95rem;
-  margin-bottom: 25px;
-  line-height: 1.5;
-}
-
-/* Botón Olvidaste Contraseña */
-.forgot-password-container {
-  margin-top: -5px;
-  margin-bottom: 25px;
-  text-align: right;
-}
-
-.btn-link-simple {
-  background: none;
-  border: none;
-  color: #6b7280; /* Gris sutil */
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
-}
-
-.btn-link-simple:hover {
-  color: #111827;
-  text-decoration: underline;
-}
-
-/* --- BOTONES DEL FORMULARIO --- */
-.btn-group {
+  z-index: 20;
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.btn-volver-login {
-  flex: 1;
-  padding: 14px;
-  background-color: #ffffff;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 1rem;
+.logo {
+  font-size: 32px;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  letter-spacing: -0.05em;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.btn-volver-login:hover:not(:disabled) {
-  background-color: #f3f4f6;
-  color: #111827;
+.nav-buttons {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
-.btn-entrar-login {
-  flex: 2;
-  padding: 14px;
-  background-color: #111827; /* Botón oscuro, muy premium */
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
-  font-size: 1rem;
+.btn-admin {
+  background: transparent;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
 }
 
-.btn-entrar-login:hover:not(:disabled) {
-  background-color: #1f2937;
-  transform: translateY(-2px);
+.btn-admin:hover {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.btn-entrar-login.verde {
+.btn-client {
   background-color: #22c55e;
-  color: #000000;
+  color: #0f172a;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Inter', sans-serif;
 }
 
-.btn-entrar-login.verde:hover:not(:disabled) {
+.btn-client:hover {
   background-color: #16a34a;
 }
 
-.btn-volver-login:disabled, .btn-entrar-login:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
+.hero-section {
+  position: relative;
+  height: 600px;
+  background-image: url('https://images.unsplash.com/photo-1554068865-24cecd4e34f8?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
 }
 
-/* --- FOOTER REGISTRO --- */
-.footer-registro {
-  margin-top: 30px;
-  text-align: center;
-  border-top: 1px solid #f3f4f6;
-  padding-top: 25px;
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
 }
 
-.footer-texto {
-  margin: 0;
-  color: #6b7280;
-  font-size: 0.95rem;
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 32px 0;
 }
 
-.link-registro {
-  color: #111827;
-  font-weight: bold;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.link-registro:hover {
-  color: #2563eb;
-  text-decoration: underline;
-}
-
-.fix-layout-vertical {
+.hero-subtitle {
+  color: #22c55e;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 14px;
+  text-transform: uppercase;
   display: flex;
-  flex-direction: column;
-  width: 100%;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
 }
-@media screen and (max-width: 768px) {
-  .landing-card {
-    padding: 30px 20px;
-  }
+
+.hero-title {
+  font-size: 72px;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+  margin: 0 0 24px 0;
+}
+
+.hero-description {
+  color: #e2e8f0;
+  font-size: 20px;
+  font-weight: 500;
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+.text-green { color: #22c55e; }
+.text-cyan { color: #06b6d4; }
+.text-lime { color: #84cc16; }
+
+.dot-green { background-color: #22c55e; width: 8px; height: 8px; border-radius: 50%; }
+.dot-cyan { background-color: #06b6d4; width: 12px; height: 12px; border-radius: 50%; }
+.dot-lime { background-color: #84cc16; width: 12px; height: 12px; border-radius: 50%; }
+
+.search-box {
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  max-width: 768px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.search-icon { color: #22c55e; margin: 0 16px; }
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 16px 8px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.btn-search {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  padding: 16px 40px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-search:hover { background-color: #16a34a; }
+
+.quick-cities {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-city-chip {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-city-chip:hover { background-color: rgba(255, 255, 255, 0.2); }
+.icon-green { color: #4ade80; }
+
+.landing-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 32px;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.section-divider hr { flex: 1; border: none; border-top: 1px solid #e2e8f0; }
+
+.section-divider span {
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.sports-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 96px;
+}
+
+.sport-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sport-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+.sport-card.active {
+  background-color: #1e293b;
+  border-left: 4px solid #22c55e;
+  border-top: none; border-right: none; border-bottom: none;
+}
+
+.sport-card.active h2 { color: white; }
+.sport-card.active p.sport-count { color: #94a3b8; }
+.sport-card.active:hover { border-color: #22c55e; }
+
+.sport-dot { margin-bottom: 24px; }
+
+.sport-card h2 {
+  font-size: 36px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.sport-count { color: #64748b; font-weight: 500; margin: 0 0 40px 0; }
+
+.sport-link {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.section-title {
+  font-size: 36px;
+  font-weight: 900;
+  font-style: italic;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+}
+
+.cities-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.city-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.city-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #86efac; 
+}
+
+.city-card h4 {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px 0;
+}
+
+.city-id {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.city-card p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.city-arrow {
+  color: #22c55e;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.city-card:hover .city-arrow {
+  opacity: 1;
+  transform: translateX(4px);
 }
