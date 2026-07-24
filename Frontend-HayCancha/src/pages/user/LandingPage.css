@@ -55,10 +55,35 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.btn-client {
+  background-color: #22c55e;
+  color: #0f172a;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-client:hover {
+  background-color: #16a34a;
+}
+
 .hero-section {
   position: relative;
   height: 600px;
-  background-color: #475162;
+  background-image: url('https://images.unsplash.com/photo-1554068865-24cecd4e34f8?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
 }
 
 .hero-content {
@@ -101,7 +126,12 @@
 }
 
 .text-green { color: #22c55e; }
+.text-cyan { color: #06b6d4; }
+.text-lime { color: #84cc16; }
+
 .dot-green { background-color: #22c55e; width: 8px; height: 8px; border-radius: 50%; }
+.dot-cyan { background-color: #06b6d4; width: 12px; height: 12px; border-radius: 50%; }
+.dot-lime { background-color: #84cc16; width: 12px; height: 12px; border-radius: 50%; }
 
 .search-box {
   background: white;
@@ -139,10 +169,110 @@
 
 .btn-search:hover { background-color: #16a34a; }
 
+.quick-cities {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-city-chip {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-city-chip:hover { background-color: rgba(255, 255, 255, 0.2); }
+.icon-green { color: #4ade80; }
+
 .landing-main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 32px;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.section-divider hr { flex: 1; border: none; border-top: 1px solid #e2e8f0; }
+
+.section-divider span {
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.sports-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 96px;
+}
+
+.sport-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sport-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+.sport-card.active {
+  background-color: #1e293b;
+  border-left: 4px solid #22c55e;
+  border-top: none; border-right: none; border-bottom: none;
+}
+
+.sport-card.active h2 { color: white; }
+.sport-card.active p.sport-count { color: #94a3b8; }
+.sport-card.active:hover { border-color: #22c55e; }
+
+.sport-dot { margin-bottom: 24px; }
+
+.sport-card h2 {
+  font-size: 36px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.sport-count { color: #64748b; font-weight: 500; margin: 0 0 40px 0; }
+
+.sport-link {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
 
 .section-title {
@@ -185,7 +315,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 4px 0;
 }
 
 .city-id {
@@ -193,6 +323,12 @@
   color: #94a3b8;
   font-weight: 900;
   letter-spacing: 0.05em;
+}
+
+.city-card p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
 }
 
 .city-arrow {
@@ -204,4 +340,42 @@
 .city-card:hover .city-arrow {
   opacity: 1;
   transform: translateX(4px);
+}
+
+.provincias-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 80px;
+}
+
+.provincia-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all .25s;
+}
+
+.provincia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0,0,0,.08);
+  border-color: #22c55e;
+}
+
+.provincia-card h4 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.provincia-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
 }

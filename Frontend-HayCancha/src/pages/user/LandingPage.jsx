@@ -1,77 +1,64 @@
-import React, { useState } from 'react';
-import { Search, ArrowRight, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './LandingPage.css';
+import './Landingpage.css';
 
-export default function LandingPage() {
+export default function Landingpage() {
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [ciudades, setCiudades] = useState([]);
+  const [ciudadesPopulares, setCiudadesPopulares] = useState([]);
   const provincias = [
-    { id: 'CABA', nombre: 'Capital Federal' },
-    { id: 'BUE', nombre: 'Buenos Aires' },
-    { id: 'CAT', nombre: 'Catamarca' },
-    { id: 'CHA', nombre: 'Chaco' },
-    { id: 'CHU', nombre: 'Chubut' },
-    { id: 'CBA', nombre: 'Córdoba' },
-    { id: 'COR', nombre: 'Corrientes' },
-    { id: 'ENT', nombre: 'Entre Ríos' },
-    { id: 'FOR', nombre: 'Formosa' },
-    { id: 'JUJ', nombre: 'Jujuy' },
-    { id: 'LAP', nombre: 'La Pampa' },
-    { id: 'LAR', nombre: 'La Rioja' },
-    { id: 'MZA', nombre: 'Mendoza' },
-    { id: 'MIS', nombre: 'Misiones' },
-    { id: 'NEU', nombre: 'Neuquén' },
-    { id: 'RIO', nombre: 'Río Negro' },
-    { id: 'SAL', nombre: 'Salta' },
-    { id: 'SJU', nombre: 'San Juan' },
-    { id: 'SLU', nombre: 'San Luis' },
-    { id: 'SCR', nombre: 'Santa Cruz' },
-    { id: 'SFE', nombre: 'Santa Fe' },
-    { id: 'SDE', nombre: 'Santiago del Estero' },
-    { id: 'TDF', nombre: 'Tierra del Fuego' },
-    { id: 'TUC', nombre: 'Tucumán' }
-  ];
+  "Buenos Aires",
+  "Catamarca",
+  "Chaco",
+  "Chubut",
+  "Córdoba",
+  "Corrientes",
+  "Entre Ríos",
+  "Formosa",
+  "Jujuy",
+  "La Pampa",
+  "La Rioja",
+  "Mendoza",
+  "Misiones",
+  "Neuquén",
+  "Río Negro",
+  "Salta",
+  "San Juan",
+  "San Luis",
+  "Santa Cruz",
+  "Santa Fe",
+  "Santiago del Estero",
+  "Tierra del Fuego",
+  "Tucumán",
+  "Ciudad Autónoma de Buenos Aires"
+];
 
-  const iniciarReserva = (provincia) => {
-    navigate('/seleccionar-ciudad'); 
-  };
-
-  const toggleMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  useEffect(() => {
+  }, []);
 
   return (
-    <div className="landing-container">
+    <div className="landing-desktop">
       <section className="hero-section">
+        <div className="hero-overlay"></div>
+        
         <nav className="navbar">
           <div className="logo">
             HayCancha<span className="text-green">.</span>
           </div>
-          
-          <div className="nav-buttons desktop-only">
+          <div className="nav-buttons">
             <button 
               className="btn-admin"
               onClick={() => navigate('/login-admin')}
             >
               Acceso Administrador
             </button>
-          </div>
-
-          <button className="mobile-menu-btn" onClick={toggleMenu}>
-            {isMobileMenuOpen ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
-          </button>
-
-          <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
             <button 
-              className="btn-admin-mobile"
-              onClick={() => {
-                toggleMenu();
-                navigate('/login-admin');
-              }}
+              className="btn-client"
+              onClick={() => navigate('/login-cliente')}
             >
-              Acceso Administrador
+              Entrar como Cliente
             </button>
           </div>
         </nav>
@@ -97,25 +84,61 @@ export default function LandingPage() {
             <input type="text" placeholder="Barrio, ciudad o nombre del club..." />
             <button className="btn-search">BUSCAR</button>
           </div>
+
+          <div className="quick-cities">
+            {ciudadesPopulares.map(city => (
+              <button key={city.id} className="btn-city-chip">
+                <MapPin size={14} className="icon-green" /> {city.nombre}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
       <main className="landing-main">
+        <div className="section-divider">
+          <hr /><span>ENCONTRÁ POR DEPORTE</span><hr />
+        </div>
+
         <h2 className="section-title">EXPLORÁ POR PROVINCIA</h2>
+
+<div className="provincias-grid">
+  {provincias.map((provincia) => (
+    <div
+      key={provincia}
+      className="provincia-card"
+      onClick={() => console.log(provincia)}
+    >
+      <div>
+        <h4>{provincia}</h4>
+        <p>Ver ciudades</p>
+      </div>
+
+      <ArrowRight className="city-arrow" size={20} />
+    </div>
+  ))}
+</div>
+
+<h2 className="section-title" style={{ marginTop: '80px' }}>
+  EXPLORÁ POR CIUDAD
+</h2>
+
+        <h2 className="section-title">EXPLORÁ POR CIUDAD</h2>
         
         <div className="cities-grid">
-          {provincias.map(provincia => (
-            <div 
-              key={provincia.id} 
-              className="city-card"
-              onClick={() => iniciarReserva(provincia)}
-            >
-              <div>
-                <h4><span className="city-id">{provincia.id}</span> {provincia.nombre}</h4>
+          {ciudades.length > 0 ? (
+            ciudades.map(city => (
+              <div key={city.id} className="city-card">
+                <div>
+                  <h4><span className="city-id">{city.codigo || city.id}</span> {city.nombre}</h4>
+                  <p>{city.cantidad_canchas || 0} canchas</p>
+                </div>
+                <ArrowRight className="city-arrow" size={20} />
               </div>
-              <ArrowRight className="city-arrow" size={20} />
-            </div>
-          ))}
+            ))
+          ) : (
+            <p style={{ color: '#64748b', fontWeight: '500' }}>Cargando ciudades...</p>
+          )}
         </div>
       </main>
     </div>
