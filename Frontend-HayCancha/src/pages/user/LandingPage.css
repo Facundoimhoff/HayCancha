@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Montserrat:ital,wght@0,700;0,800;0,900;1,800;1,900&display=swap');
 
 /* 
 ======================================================
@@ -8,9 +8,9 @@ para recuperar tu estética oscura y verde.
 ====================================================== 
 */
 :root {
-  /* Tipografías */
+ /* Tipografías */
   --font-body: 'Inter', sans-serif;
-  --font-display: 'Inter', sans-serif;
+  --font-display: 'Montserrat', sans-serif; /* <-- ESTA LÍNEA CAMBIA */
   --font-mono: 'Inter', monospace;
   
   /* Colores Base (La estética que querías) */
@@ -113,9 +113,10 @@ para recuperar tu estética oscura y verde.
 .logo {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 400;
+  font-weight: 900;
+  font-style: italic;
   color: white;
-  letter-spacing: 0.5px;
+  letter-spacing: -1px;
   cursor: pointer;
 }
 
@@ -177,10 +178,11 @@ para recuperar tu estética oscura y verde.
 .hero-title {
   font-family: var(--font-display);
   font-size: 5.2rem;
-  font-weight: 400;
+  font-weight: 900;
+  font-style: italic;
   color: white;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: -2px;
   line-height: 0.92;
   margin: 0 0 26px 0;
 }
@@ -263,10 +265,11 @@ para recuperar tu estética oscura y verde.
 .section-title {
   font-family: var(--font-display);
   font-size: 2.3rem;
-  font-weight: 400;
+  font-weight: 900;
+  font-style: italic;
   color: var(--ink);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: -1px;
   margin: 0 0 8px 0;
 }
 
