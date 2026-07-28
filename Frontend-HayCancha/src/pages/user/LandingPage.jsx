@@ -14,7 +14,7 @@ export default function LandingPage() {
 
   const [slideIndex, setSlideIndex] = useState(0);
   
-  const deportes = [
+ const deportes = [
     { 
       nombre: "FÚTBOL", 
       img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
@@ -33,6 +33,7 @@ export default function LandingPage() {
     },
     { 
       nombre: "BEACH VÓLEY", 
+      // Este es el tuyo, que sí era un link directo a la imagen
       img: "https://images.unsplash.com/photo-1615193983287-db8ce82987eb?q=80&w=2000&auto=format&fit=crop" 
     }
   ];
