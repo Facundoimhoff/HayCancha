@@ -1,20 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,900;1,900&display=swap');
+/* --- LANDING DESKTOP: usa las variables globales de tu index.css --- */
 
 .landing-desktop {
-  font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
-  display: none; 
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  display: none;
 }
 
 @media (min-width: 768px) {
   .landing-desktop { display: block; }
 }
 
-/* --- ESTILOS DEL BLOQUE DE ARRIBA (GRIS) --- */
+/* --- BLOQUE SUPERIOR (HERO OSCURO) --- */
 .hero-section {
   position: relative;
-  height: 600px;
-  background-color: #475162; /* Este es el color gris liso exacto de tu captura */
+  min-height: 600px;
+  background-color: var(--ink);
+  overflow: hidden;
+}
+
+/* Resplandor tipo reflectores de estadio */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 900px 500px at 15% 0%, rgba(31, 173, 92, 0.28), transparent 60%);
+  pointer-events: none;
+}
+
+/* Textura de líneas de cancha, muy sutil */
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 2px,
+    transparent 2px,
+    transparent 70px
+  );
+  pointer-events: none;
 }
 
 .navbar {
@@ -23,17 +48,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
+  padding: 28px 32px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .logo {
-  font-size: 32px;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
   color: white;
-  font-style: italic;
-  letter-spacing: -0.05em;
+  letter-spacing: 0.5px;
   cursor: pointer;
 }
 
@@ -45,21 +70,22 @@
 
 .btn-admin {
   background: transparent;
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
   padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  transition: all 0.25s var(--ease);
+  font-family: var(--font-body);
 }
 
 .btn-admin:hover {
   color: white;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--turf);
+  background: rgba(31, 173, 92, 0.12);
+  transform: translateY(-1px);
 }
 
 .hero-content {
@@ -67,142 +93,230 @@
   z-index: 10;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 120px 32px 0;
+  padding: 100px 32px 0;
 }
 
 .hero-subtitle {
-  color: #22c55e;
+  color: var(--turf);
   font-weight: 700;
-  letter-spacing: 0.1em;
-  font-size: 14px;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
   text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.dot-green {
+  background-color: var(--turf);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: hc-pulse-dot 2s infinite;
+  flex-shrink: 0;
 }
 
 .hero-title {
-  font-size: 72px;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 5.2rem;
+  font-weight: 400;
   color: white;
-  font-style: italic;
   text-transform: uppercase;
-  letter-spacing: -0.05em;
-  line-height: 0.85;
-  margin: 0 0 24px 0;
+  letter-spacing: 0.5px;
+  line-height: 0.92;
+  margin: 0 0 26px 0;
 }
+
+.text-green { color: var(--turf); }
 
 .hero-description {
-  color: #e2e8f0;
-  font-size: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.15rem;
   font-weight: 500;
-  max-width: 600px;
-  margin-bottom: 40px;
+  max-width: 560px;
+  margin-bottom: 42px;
+  line-height: 1.5;
 }
 
-.text-green { color: #22c55e; }
-.dot-green { background-color: #22c55e; width: 8px; height: 8px; border-radius: 50%; }
-
-/* --- ESTILOS DEL BUSCADOR --- */
+/* --- BUSCADOR --- */
 .search-box {
   background: white;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  max-width: 768px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 700px;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid transparent;
+  transition: border-color 0.25s ease;
 }
 
-.search-icon { color: #22c55e; margin: 0 16px; }
+.search-box:focus-within {
+  border-color: var(--turf);
+}
+
+.search-icon { color: var(--turf); margin: 0 14px; flex-shrink: 0; }
 
 .search-box input {
   flex: 1;
   border: none;
   outline: none;
   padding: 16px 8px;
-  font-size: 18px;
+  font-size: 1.05rem;
   font-weight: 500;
-  color: #334155;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: var(--text-soft);
 }
 
 .btn-search {
-  background-color: #22c55e;
+  background-color: var(--turf);
   color: white;
   border: none;
-  padding: 16px 40px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 16px 38px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s var(--ease);
 }
 
-.btn-search:hover { background-color: #16a34a; }
+.btn-search:hover {
+  background-color: var(--turf-600);
+  transform: translateY(-1px);
+}
 
-/* --- ESTILOS DEL BLOQUE DE ABAJO (PROVINCIAS) --- */
+.btn-search:active {
+  transform: scale(0.97);
+}
+
+/* --- BLOQUE INFERIOR (PROVINCIAS) --- */
 .landing-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px 32px;
+  padding: 70px 32px 90px;
 }
 
 .section-title {
-  font-size: 36px;
-  font-weight: 900;
-  font-style: italic;
-  color: #1e293b;
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 400;
+  color: var(--ink);
   text-transform: uppercase;
-  letter-spacing: -0.02em;
-  margin-bottom: 40px;
+  letter-spacing: 0.4px;
+  margin: 0 0 8px 0;
+}
+
+/* pequeña línea de acento bajo el título, mismo lenguaje que el resto de la app */
+.section-title::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--turf), var(--flash));
+  margin-top: 14px;
+  margin-bottom: 36px;
 }
 
 .provincias-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 80px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
 }
 
 .provincia-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 24px;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: all .25s;
+  transition: all 0.25s var(--ease);
+  position: relative;
+  overflow: hidden;
+  animation: hc-fade-up 0.4s var(--ease) backwards;
+}
+
+/* stagger sutil de entrada por columna */
+.provincias-grid .provincia-card:nth-child(4n+1) { animation-delay: 0.02s; }
+.provincias-grid .provincia-card:nth-child(4n+2) { animation-delay: 0.06s; }
+.provincias-grid .provincia-card:nth-child(4n+3) { animation-delay: 0.1s; }
+.provincias-grid .provincia-card:nth-child(4n+4) { animation-delay: 0.14s; }
+
+/* barra de acento que crece al hacer hover, mismo gesto que el resto de la app */
+.provincia-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--turf), var(--flash));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease);
 }
 
 .provincia-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0,0,0,.08);
-  border-color: #22c55e;
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+.provincia-card:hover::before {
+  transform: scaleX(1);
+}
+
+.provincia-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.provincia-codigo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--turf-700);
+  background: var(--turf-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
 }
 
 .provincia-card h4 {
   margin: 0 0 6px;
-  font-size: 20px;
-  color: #1e293b;
-  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  font-weight: 800;
 }
 
 .provincia-card p {
   margin: 0;
-  color: #64748b;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .city-arrow {
-  color: #22c55e;
-  opacity: 0.5;
-  transition: all 0.2s;
+  color: var(--turf);
+  opacity: 0.45;
+  transition: all 0.25s var(--ease);
+  flex-shrink: 0;
 }
 
 .provincia-card:hover .city-arrow {
   opacity: 1;
   transform: translateX(4px);
+  color: var(--turf-600);
 }
