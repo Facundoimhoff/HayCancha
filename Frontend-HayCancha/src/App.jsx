@@ -14,7 +14,6 @@ import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
 import HeaderCliente from './pages/user/HeaderCliente';
 import Buscar from './pages/user/Buscar';
-import ClubDetalle from './pages/user/ClubDetalle';
 
 function App() {
   return (
@@ -28,7 +27,7 @@ function App() {
         
         {/* Las rutas que ya tenías funcionando */}
         <Route path="/club/:id" element={<PerfilClub />} />
-        
+
         <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
         
         {/* Dashboard temporal para comprobar que el Login funciona */}
@@ -52,8 +51,6 @@ function App() {
 
         <Route path="/buscar" element={<Buscar />} />
 
-        <Route path="/club/:id" element={<ClubDetalle />} />
-        
       </Routes>
     </BrowserRouter>
   );
