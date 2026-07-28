@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle } from 'lucide-react';
+import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
 
@@ -11,6 +11,24 @@ export default function LandingPage() {
   
   // NUEVO: Estado para guardar lo que se escribe en el buscador
   const [busqueda, setBusqueda] = useState('');
+
+  const [slideIndex, setSlideIndex] = useState(0);
+  
+  const deportes = [
+    { nombre: "FÚTBOL", img: "https://images.unsplash.com/photo-1518605368461-1e12922378ce?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "TENIS", img: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "PÁDEL", img: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "VÓLEY", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "BEACH VÓLEY", img: "https://images.unsplash.com/photo-1615193983287-db8ce82987eb?q=80&w=2000&auto=format&fit=crop" }
+  ];
+
+  const nextSlide = () => {
+    setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setSlideIndex((prev) => (prev === 0 ? deportes.length - 1 : prev - 1));
+  };
 
   const provincias = [
     "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes",
@@ -124,7 +142,38 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* --- PARTE DE ABAJO (CONTACTO/NEWSLETTER ESTILO PUMA) --- */}
+{/* --- NUEVO: CARRUSEL DE DEPORTES --- */}
+      <section className="sports-carousel-section">
+        <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
+        
+        <div className="carousel-container">
+          <button onClick={prevSlide} className="carousel-btn left" type="button">
+            <ChevronLeft size={28} />
+          </button>
+          
+          <div className="carousel-track-wrapper">
+            <div 
+              className="carousel-track" 
+              style={{ transform: `translateX(-${slideIndex * 100}%)` }}
+            >
+              {deportes.map((dep, idx) => (
+                <div key={idx} className="carousel-slide">
+                  <img src={dep.img} alt={dep.nombre} />
+                  <div className="slide-overlay">
+                    <h3>{dep.nombre}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={nextSlide} className="carousel-btn right" type="button">
+            <ChevronRight size={28} />
+          </button>
+        </div>
+      </section>
+      
+      {/* --- PARTE DE ABAJO (CONTACTO/NEWSLETTER) --- */}
       <section className="contact-section">
         <div className="contact-container">
           
