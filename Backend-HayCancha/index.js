@@ -40,6 +40,30 @@ app.post('/api/crear-suscripcion', async (req, res) => {
   }
 });
 
+app.get('/api/buscar', async (req, res) => {
+  // 1. Atrapamos la palabra que el usuario buscó en el frontend (ej: "San Francisco")
+  const palabraBuscada = req.query.q;
+
+  /* 
+    2. Acá más adelante vas a hacer las consultas reales a tu base de datos (schema.sql)
+    Ejemplo: SELECT * FROM clubes WHERE nombre LIKE '%palabraBuscada%';
+  */
+
+  // 3. Por ahora, le devolvemos tu JSON de prueba para que el frontend funcione y renderice las tarjetas
+  const respuesta = {
+    clubes: [
+      { id: 1, nombre: "Sport Automovil Club", ciudad: "San Francisco", deporte: "Tenis y Pádel" }
+    ],
+    ciudades: [
+      { id: 10, nombre: "San Francisco", provincia: "Córdoba" }
+    ],
+    provincias: []
+  };
+
+  // Enviamos el JSON al frontend
+  res.json(respuesta);
+});
+
 // 3. Render nos asigna el puerto automáticamente, por eso usamos process.env.PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

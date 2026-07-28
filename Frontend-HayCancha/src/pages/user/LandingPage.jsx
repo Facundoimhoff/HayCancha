@@ -18,6 +18,10 @@ export default function LandingPage() {
     "Tucumán", "Ciudad Autónoma de Buenos Aires"
   ];
 
+  const provinciasFiltradas = provincias.filter(provincia => 
+    provincia.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   const deportes = [
     { 
       nombre: "FÚTBOL", 
@@ -47,6 +51,15 @@ export default function LandingPage() {
   const manejarBusqueda = (e) => {
     e.preventDefault(); 
     if (busqueda.trim() !== '') {
+      navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
+    }
+  };
+
+  const manejarBusqueda = (e) => {
+    e.preventDefault(); 
+    if (busqueda.trim() !== '') {
+      // Te redirige a la página de resultados para buscar Clubes o Ciudades.
+      // (Más adelante crearemos el componente para la ruta /buscar)
       navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
     }
   };
@@ -110,17 +123,17 @@ export default function LandingPage() {
         <div className="hero-content">
           <p className="hero-subtitle">
             <span className="dot-green"></span>
-            La red que conecta complejos deportivos
+            Tu próximo partido empieza acá.
           </p>
           
           <h1 className="hero-title">
-            Tu próximo<br />
-            partido<br />
-            <span className="text-green">empieza acá.</span>
+            La red que<br />
+            conecta<br />
+            <span className="text-green">complejos deportivos</span>
           </h1>
           
           <p className="hero-description">
-            Encontrá clubes y canchas de tenis, pádel y fútbol. Gratis y sin vueltas.
+            Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
 
           <form className="search-box" onSubmit={manejarBusqueda}>

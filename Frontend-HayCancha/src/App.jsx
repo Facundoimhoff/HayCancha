@@ -13,6 +13,7 @@ import RegistroClub from './pages/user/RegistroClub';
 import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
 import HeaderCliente from './pages/user/HeaderCliente';
+import Buscar from './pages/user/Buscar';
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
         <Route path="/actualizar-password" element={<ActualizarPassword />} />
 
         <Route path="/login-cliente" element={<LoginCliente />} />
+
+        <Route path="/buscar" element={<Buscar />} />
         
       </Routes>
     </BrowserRouter>

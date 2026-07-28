@@ -1,0 +1,225 @@
+/* Heredamos variables por si se renderiza aislado */
+:root {
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Montserrat', sans-serif; 
+  
+  --paper: #f8fafc; 
+  --ink: #475162; 
+  --ink-dark: #1e293b; 
+  --paper-card: #ffffff; 
+  --line: #e2e8f0; 
+  
+  --turf: #22c55e;
+  --flash: #84cc16;
+  
+  --text-muted: #64748b;
+  --text-soft: #94a3b8;
+}
+
+.buscar-page {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  min-height: 100vh;
+}
+
+/* --- HEADER OSCURO --- */
+.buscar-header {
+  background-color: var(--ink);
+  padding-bottom: 40px;
+}
+
+.buscar-nav {
+  display: flex;
+  align-items: center;
+  padding: 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.btn-back {
+  background: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.buscar-header-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 32px 0;
+  text-align: center;
+}
+
+.search-box-internal {
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.search-box-internal input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 16px 8px;
+  font-size: 1.1rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.search-feedback {
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 16px;
+  font-size: 1.1rem;
+}
+
+.search-feedback strong {
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* --- MAIN Y RESULTADOS --- */
+.buscar-main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 32px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.no-results h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--ink);
+  margin: 20px 0 10px;
+}
+
+.results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.section-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--ink-dark);
+  margin-bottom: 20px;
+  border-bottom: 3px solid var(--turf);
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* TARJETAS DE RESULTADO */
+.result-card {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+  border-color: var(--turf);
+}
+
+.card-info h4 {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ink-dark);
+}
+
+.card-info p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-deporte {
+  display: inline-block;
+  background: var(--turf-100);
+  color: var(--turf-700);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.card-arrow {
+  color: var(--turf);
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.result-card:hover .card-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .buscar-nav {
+    padding: 16px;
+  }
+  .buscar-header-content {
+    padding: 10px 16px 0;
+  }
+  .search-box-internal {
+    flex-direction: column;
+    padding: 12px;
+  }
+  .search-box-internal input {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .search-box-internal .btn-search {
+    width: 100%;
+  }
+  .buscar-main {
+    padding: 40px 16px;
+  }
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
