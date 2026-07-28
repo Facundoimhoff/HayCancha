@@ -64,6 +64,50 @@ app.get('/api/buscar', async (req, res) => {
   res.json(respuesta);
 });
 
+// --- NUEVA RUTA: DETALLES Y HORARIOS DEL CLUB ---
+app.get('/api/clubes/:id', async (req, res) => {
+  const clubId = parseInt(req.params.id);
+
+  try {
+    // Simulamos la respuesta de la base de datos para ese club en específico
+    const clubData = {
+      id: clubId,
+      nombre: clubId === 1 ? "Sport Automovil Club" : "Grid Pádel Center",
+      ciudad: clubId === 1 ? "San Francisco" : "Córdoba Capital",
+      direccion: "Av. Principal 1234",
+      deporte: "Tenis y Pádel",
+      // Simulamos las canchas y los turnos de ese día
+      canchas: [
+        {
+          id: 101,
+          nombre: "Cancha 1 - Blindex",
+          superficie: "Césped Sintético",
+          horarios: [
+            { id: 1, hora: "18:00", disponible: false, precio: 8000 },
+            { id: 2, hora: "19:30", disponible: true, precio: 8000 },
+            { id: 3, hora: "21:00", disponible: true, precio: 8000 }
+          ]
+        },
+        {
+          id: 102,
+          nombre: "Cancha 2 - Muro",
+          superficie: "Cemento",
+          horarios: [
+            { id: 4, hora: "18:00", disponible: true, precio: 6000 },
+            { id: 5, hora: "19:30", disponible: false, precio: 6000 },
+            { id: 6, hora: "21:00", disponible: true, precio: 6000 }
+          ]
+        }
+      ]
+    };
+
+    // Le devolvemos el JSON al frontend
+    res.json(clubData);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los datos del club" });
+  }
+});
+
 // 3. Render nos asigna el puerto automáticamente, por eso usamos process.env.PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

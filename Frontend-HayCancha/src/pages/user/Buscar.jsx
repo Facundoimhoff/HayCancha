@@ -30,8 +30,7 @@ export default function Buscar() {
 
       try {
         // IMPORTANTE: Reemplazá esta URL por la ruta real de tu backend (Ej: Node/Express)
-        const response = await fetch(`http://localhost:3000/api/buscar?q=${encodeURIComponent(query)}`);
-        
+        const response = await fetch(`https://haycancha.onrender.com/api/buscar?q=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Error de conexión con el servidor');
         
         const data = await response.json();
