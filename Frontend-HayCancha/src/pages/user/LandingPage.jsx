@@ -15,11 +15,26 @@ export default function LandingPage() {
   const [slideIndex, setSlideIndex] = useState(0);
   
   const deportes = [
-    { nombre: "FÚTBOL", img: "https://images.unsplash.com/photo-1518605368461-1e12922378ce?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "TENIS", img: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "PÁDEL", img: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "VÓLEY", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "BEACH VÓLEY", img: "https://images.unsplash.com/photo-1615193983287-db8ce82987eb?q=80&w=2000&auto=format&fit=crop" }
+    { 
+      nombre: "FÚTBOL", 
+      img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
+    },
+    { 
+      nombre: "TENIS", 
+      img: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2000&auto=format&fit=crop" // <-- La que antes estaba en pádel
+    },
+    { 
+      nombre: "PÁDEL", 
+      img: "https://images.unsplash.com/photo-1625510657159-26c36780825c?q=80&w=2000&auto=format&fit=crop" // <-- Una paleta de pádel real con la reja/blindex
+    },
+    { 
+      nombre: "VÓLEY", 
+      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" 
+    },
+    { 
+      nombre: "BEACH VÓLEY", 
+      img: "https://images.unsplash.com/photo-1593510526084-2a6cfa029202?q=80&w=2000&auto=format&fit=crop" // <-- Una foto clara de Beach Vóley en la arena
+    }
   ];
 
   const nextSlide = () => {
