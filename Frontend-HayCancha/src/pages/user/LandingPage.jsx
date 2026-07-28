@@ -21,19 +21,19 @@ export default function LandingPage() {
     },
     { 
       nombre: "TENIS", 
-      img: "https://unsplash.com/es/fotos/persona-sosteniendo-una-raqueta-de-tenis-sZKLku0YnFM?q=80&w=2000&auto=format&fit=crop" // <-- La que antes estaba en pádel
+      img: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "PÁDEL", 
-      img: "https://images.unsplash.com/photo-1625510657159-26c36780825c?q=80&w=2000&auto=format&fit=crop" // <-- Una paleta de pádel real con la reja/blindex
+      img: "https://images.unsplash.com/photo-1625510657159-26c36780825c?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "VÓLEY", 
-      img: "https://unsplash.com/es/fotos/un-grupo-de-mujeres-jovenes-jugando-un-partido-de-voleibol-v68Bj81jWrA?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://images.unsplash.com/photo-1592656094267-764a45160876?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "BEACH VÓLEY", 
-      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" // <-- Una foto clara de Beach Vóley en la arena
+      img: "https://images.unsplash.com/photo-1615193983287-db8ce82987eb?q=80&w=2000&auto=format&fit=crop" 
     }
   ];
 
