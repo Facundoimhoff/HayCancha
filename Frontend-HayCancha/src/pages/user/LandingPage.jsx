@@ -6,15 +6,19 @@ import './LandingPage.css';
 export default function LandingPage() {
   const navigate = useNavigate();
   
-  // Estado para el formulario de contacto
   const [enviado, setEnviado] = useState(false);
-  
-  // NUEVO: Estado para guardar lo que se escribe en el buscador
   const [busqueda, setBusqueda] = useState('');
-
   const [slideIndex, setSlideIndex] = useState(0);
-  
- const deportes = [
+
+  const provincias = [
+    "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes",
+    "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza",
+    "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis",
+    "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego",
+    "Tucumán", "Ciudad Autónoma de Buenos Aires"
+  ];
+
+  const deportes = [
     { 
       nombre: "FÚTBOL", 
       img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
@@ -37,33 +41,16 @@ export default function LandingPage() {
     }
   ];
 
-  const nextSlide = () => {
-    setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
-  };
+  const nextSlide = () => setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setSlideIndex((prev) => (prev === 0 ? deportes.length - 1 : prev - 1));
 
-  const prevSlide = () => {
-    setSlideIndex((prev) => (prev === 0 ? deportes.length - 1 : prev - 1));
-  };
-
-  const provincias = [
-    "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes",
-    "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza",
-    "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis",
-    "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego",
-    "Tucumán", "Ciudad Autónoma de Buenos Aires"
-  ];
-
-  // NUEVO: Lógica para ejecutar la búsqueda
   const manejarBusqueda = (e) => {
-    e.preventDefault(); // Evita que la página se recargue sola
+    e.preventDefault(); 
     if (busqueda.trim() !== '') {
-      // Te redirige a tu pantalla de búsqueda pasando el texto por URL
-      // (Ejemplo: misitio.com/buscar?q=padel)
       navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
     }
   };
 
-  // Lógica de Formspree integrada
   const manejarEnvio = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -86,6 +73,14 @@ export default function LandingPage() {
     }
   };
 
+  // NUEVO: Función para scrollear suavemente a la sección deseada
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="landing-desktop">
       
@@ -93,9 +88,16 @@ export default function LandingPage() {
       <section className="hero-section">
         <nav className="navbar">
           <div className="logo">
-            HayCancha<span className="text-green">.</span>
+            GridPlay<span className="text-green">.</span>
           </div>
           <div className="nav-buttons">
+            {/* NUEVOS BOTONES DE NAVEGACIÓN */}
+            <button className="btn-nav" onClick={() => scrollToSection('provincias')}>
+              Explorar
+            </button>
+            <button className="btn-nav" onClick={() => scrollToSection('contacto')}>
+              Contacto
+            </button>
             <button 
               className="btn-admin"
               onClick={() => navigate('/login-admin')}
@@ -108,7 +110,7 @@ export default function LandingPage() {
         <div className="hero-content">
           <p className="hero-subtitle">
             <span className="dot-green"></span>
-            El directorio de canchas de tu zona
+            La red que conecta complejos deportivos
           </p>
           
           <h1 className="hero-title">
@@ -121,7 +123,6 @@ export default function LandingPage() {
             Encontrá clubes y canchas de tenis, pádel y fútbol. Gratis y sin vueltas.
           </p>
 
-          {/* NUEVO: Buscador convertido en formulario interactivo */}
           <form className="search-box" onSubmit={manejarBusqueda}>
             <Search className="search-icon" size={24} />
             <input 
@@ -132,12 +133,11 @@ export default function LandingPage() {
             />
             <button type="submit" className="btn-search">BUSCAR</button>
           </form>
-          
         </div>
       </section>
 
-      {/* --- PARTE DEL MEDIO (PROVINCIAS CLARO) --- */}
-      <main className="landing-main">
+      {/* --- PARTE DEL MEDIO (PROVINCIAS) - AGREGADO id="provincias" --- */}
+      <main className="landing-main" id="provincias">
         <h2 className="section-title">EXPLORÁ POR PROVINCIA</h2>
 
         <div className="provincias-grid">
@@ -157,7 +157,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-{/* --- NUEVO: CARRUSEL DE DEPORTES --- */}
+      {/* --- CARRUSEL DE DEPORTES --- */}
       <section className="sports-carousel-section">
         <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
         
@@ -187,9 +187,9 @@ export default function LandingPage() {
           </button>
         </div>
       </section>
-      
-      {/* --- PARTE DE ABAJO (CONTACTO/NEWSLETTER) --- */}
-      <section className="contact-section">
+
+      {/* --- CONTACTO / NEWSLETTER - AGREGADO id="contacto" --- */}
+      <section className="contact-section" id="contacto">
         <div className="contact-container">
           
           <div className="contact-text-block">

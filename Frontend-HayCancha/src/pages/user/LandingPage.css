@@ -117,6 +117,23 @@
   align-items: center;
 }
 
+/* Nuevo estilo para los botones de navegación */
+.btn-nav {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-family: var(--font-body);
+}
+
+.btn-nav:hover {
+  color: white;
+}
+
 .btn-admin {
   background: transparent;
   color: rgba(255, 255, 255, 0.75);
@@ -602,7 +619,7 @@ Estos estilos solo se activan en pantallas chicas
   }
   .carousel-btn.left { left: 12px; }
   .carousel-btn.right { right: 12px; }
-  
+
 }
 
 /* 
