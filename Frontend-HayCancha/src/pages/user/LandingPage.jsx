@@ -21,20 +21,19 @@ export default function LandingPage() {
     },
     { 
       nombre: "TENIS", 
-      img: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "PÁDEL", 
-      img: "https://images.unsplash.com/photo-1625510657159-26c36780825c?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://plus.unsplash.com/premium_photo-1708692919998-e3dc853ef8a8?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "VÓLEY", 
-      img: "https://images.unsplash.com/photo-1592656094267-764a45160876?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://plus.unsplash.com/premium_photo-1708696216326-0317bac37b82?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "BEACH VÓLEY", 
-      // Este es el tuyo, que sí era un link directo a la imagen
-      img: "https://images.unsplash.com/photo-1615193983287-db8ce82987eb?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" 
     }
   ];
 
