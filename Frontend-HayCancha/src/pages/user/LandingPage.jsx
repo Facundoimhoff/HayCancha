@@ -55,15 +55,6 @@ export default function LandingPage() {
     }
   };
 
-  const manejarBusqueda = (e) => {
-    e.preventDefault(); 
-    if (busqueda.trim() !== '') {
-      // Te redirige a la página de resultados para buscar Clubes o Ciudades.
-      // (Más adelante crearemos el componente para la ruta /buscar)
-      navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
-    }
-  };
-
   const manejarEnvio = async (e) => {
     e.preventDefault();
     const form = e.target;
