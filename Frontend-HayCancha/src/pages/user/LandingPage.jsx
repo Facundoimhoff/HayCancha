@@ -21,7 +21,7 @@ export default function LandingPage() {
     },
     { 
       nombre: "TENIS", 
-      img: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2000&auto=format&fit=crop" // <-- La que antes estaba en pádel
+      img: "https://unsplash.com/es/fotos/persona-sosteniendo-una-raqueta-de-tenis-sZKLku0YnFM?q=80&w=2000&auto=format&fit=crop" // <-- La que antes estaba en pádel
     },
     { 
       nombre: "PÁDEL", 
@@ -29,11 +29,11 @@ export default function LandingPage() {
     },
     { 
       nombre: "VÓLEY", 
-      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" 
+      img: "https://unsplash.com/es/fotos/un-grupo-de-mujeres-jovenes-jugando-un-partido-de-voleibol-v68Bj81jWrA?q=80&w=2000&auto=format&fit=crop" 
     },
     { 
       nombre: "BEACH VÓLEY", 
-      img: "https://images.unsplash.com/photo-1593510526084-2a6cfa029202?q=80&w=2000&auto=format&fit=crop" // <-- Una foto clara de Beach Vóley en la arena
+      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" // <-- Una foto clara de Beach Vóley en la arena
     }
   ];
 
