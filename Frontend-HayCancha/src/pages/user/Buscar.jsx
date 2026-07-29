@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+import HeaderCliente from './HeaderCliente'; // 1. Importar el header
 import './Buscar.css';
 
 export default function Buscar() {
