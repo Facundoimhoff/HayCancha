@@ -11,27 +11,26 @@ const PerfilClub = () => {
   const [canchas, setCanchas] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
     const obtenerDatos = async () => {
       try {
         setCargando(true);
-        const clubId = parseInt(id, 10);
         
-        // 1. Buscamos la info del club
+        // 1. Buscamos la info del club usando el id directamente
         const { data: clubData, error: clubError } = await supabase
           .from('clubes')
           .select('*')
-          .eq('id', clubId)
+          .eq('id', id)
           .single();
 
         if (clubError) throw clubError;
         setClub(clubData);
 
-        // 2. Buscamos las canchas de este club específico
+        // 2. Buscamos las canchas de este club específico usando el id directamente
         const { data: canchasData, error: canchasError } = await supabase
           .from('canchas')
           .select('*')
-          .eq('club_id', clubId);
+          .eq('club_id', id);
 
         if (canchasError) {
           console.error("Error al cargar las canchas:", canchasError);
