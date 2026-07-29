@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon, KeyRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import './ReservaCancha.css';
 
@@ -16,7 +16,7 @@ const ReservaCancha = () => {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   
-  // Estados para el usuario y autenticación en el paso 2
+  // Estados para autenticación en el paso 2
   const [user, setUser] = useState(null);
   const [esRegistro, setEsRegistro] = useState(false);
   const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
@@ -30,7 +30,6 @@ const ReservaCancha = () => {
 
   const [turnosOcupados, setTurnosOcupados] = useState([]);
 
-  // Generar próximos días
   const generarProximosDias = () => {
     const dias = [];
     for (let i = 0; i < 7; i++) {
@@ -53,14 +52,16 @@ const ReservaCancha = () => {
   const diasSemana = generarProximosDias();
   const hoyBD = diasSemana[0].fechaBD; 
 
-  // Cargar datos de la cancha, club, turnos y sesión del usuario
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // Verificar sesión actual de Supabase
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(session.user);
+          // Si ya está logueado, pre-llenamos el nombre si lo tiene en el metadata
+          if (session.user.user_metadata?.full_name) {
+            setNombre(session.user.user_metadata.full_name);
+          }
         }
 
         const { data: dataCancha, error: errorCancha } = await supabase
@@ -103,7 +104,6 @@ const ReservaCancha = () => {
     cargarDatos();
   }, [idCancha, hoyBD]);
 
-  // Manejar Login o Registro desde el paso 2
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setErrorAuth('');
@@ -127,7 +127,10 @@ const ReservaCancha = () => {
           setEsRegistro(false);
           return;
         }
-        if (data.user) setUser(data.user);
+        if (data.user) {
+          setUser(data.user);
+          if (nombre) setNombre(nombre);
+        }
 
       } else {
         const { data, error: errorLogin } = await supabase.auth.signInWithPassword({
@@ -135,7 +138,12 @@ const ReservaCancha = () => {
           password,
         });
         if (errorLogin) throw errorLogin;
-        if (data.user) setUser(data.user);
+        if (data.user) {
+          setUser(data.user);
+          if (data.user.user_metadata?.full_name) {
+            setNombre(data.user.user_metadata.full_name);
+          }
+        }
       }
     } catch (err) {
       const mensaje = err?.message || 'Ocurrió un error en la autenticación.';
@@ -149,7 +157,6 @@ const ReservaCancha = () => {
     }
   };
 
-  // Recuperar contraseña
   const handleRecuperarPassword = async (e) => {
     e.preventDefault();
     setErrorAuth('');
@@ -169,7 +176,6 @@ const ReservaCancha = () => {
     }
   };
 
-  // Google Login
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -199,20 +205,22 @@ const ReservaCancha = () => {
 
   const horariosBase = cancha ? generarHorariosDisponibles(cancha.hora_apertura, cancha.hora_cierre) : [];
 
-  // Confirmar reserva final (asociada al usuario logueado)
+  // Confirmar reserva adaptada estrictamente a tus columnas de Supabase
   const confirmarReserva = async (e) => {
     e.preventDefault();
     try {
       setGuardando(true);
+      
+      const nombreClienteFinal = nombre || user?.user_metadata?.full_name || user?.email || 'Cliente';
+
       const { error } = await supabase
         .from('turnos')
         .insert([{
           cancha_id: idCancha,
           fecha: fechaSeleccionada,
           hora_inicio: horaSeleccionada,
-          nombre_cliente: nombre || user?.user_metadata?.full_name || user?.email,
-          telefono_cliente: telefono,
-          user_id: user.id // Vinculamos el turno al ID del usuario autenticado
+          nombre_cliente: nombreClienteFinal,
+          telefono_cliente: telefono
         }]);
 
       if (error) throw error;
@@ -243,7 +251,6 @@ const ReservaCancha = () => {
   return (
     <div className="reserva-container">
       
-      {/* HEADER */}
       <div className="header-reserva">
         <button onClick={() => navigate(-1)} className="btn-volver-reserva">
           <ArrowLeft size={24} />
@@ -251,7 +258,6 @@ const ReservaCancha = () => {
         <h1 className="titulo-cancha">{cancha.nombre}</h1>
       </div>
 
-      {/* STEPPER */}
       <div className="stepper-reserva">
         <div className={`stepper-item ${paso >= 1 ? 'activo' : ''}`}>
           <span className="stepper-numero">1</span>
@@ -269,7 +275,6 @@ const ReservaCancha = () => {
         </div>
       </div>
 
-      {/* PASO 1: Elegir Día y Horario */}
       {paso === 1 && (
         <div className="paso-horarios">
           <h2 className="titulo-paso">Elegí día y horario</h2>
@@ -327,7 +332,6 @@ const ReservaCancha = () => {
         </div>
       )}
 
-      {/* PASO 2: Autenticación y Datos */}
       {paso === 2 && (
         <div className="paso-datos">
           <h2 className="titulo-paso">
@@ -343,7 +347,6 @@ const ReservaCancha = () => {
           {errorAuth && <div className="alerta-error-cli" style={{color: '#ef4444', marginBottom: '15px', fontSize: '0.9rem'}}>{errorAuth}</div>}
           {mensajeExitoAuth && <div className="alerta-error-cli exito" style={{color: '#16a34a', marginBottom: '15px', fontSize: '0.9rem'}}>{mensajeExitoAuth}</div>}
 
-          {/* SI NO ESTÁ LOGUEADO */}
           {!user ? (
             <div>
               {mostrarRecuperar ? (
@@ -463,11 +466,22 @@ const ReservaCancha = () => {
               )}
             </div>
           ) : (
-            /* SI YA ESTÁ LOGUEADO: PEDIR TELÉFONO Y CONFIRMAR */
             <form onSubmit={confirmarReserva}>
               <p style={{marginBottom: '15px', color: '#475162', fontSize: '0.95rem'}}>
                 Conectado como: <strong>{user.email}</strong>
               </p>
+
+              <div className="form-group">
+                <label className="form-label">Nombre y Apellido</label>
+                <input 
+                  type="text" 
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej: Juan Pérez"
+                  className="form-input"
+                  required
+                />
+              </div>
 
               <div className="form-group">
                 <label className="form-label">Teléfono (WhatsApp)</label>
@@ -485,7 +499,7 @@ const ReservaCancha = () => {
                 <button type="button" onClick={() => setPaso(1)} className="btn-atras">
                   Atrás
                 </button>
-                <button type="submit" className="btn-confirmar" disabled={!telefono || guardando}>
+                <button type="submit" className="btn-confirmar" disabled={!telefono || !nombre || guardando}>
                   {guardando ? 'Guardando...' : 'Confirmar Turno'}
                 </button>
               </div>
@@ -494,7 +508,6 @@ const ReservaCancha = () => {
         </div>
       )}
 
-      {/* PASO 3: Éxito */}
       {paso === 3 && (
         <div className="paso-exito">
           <CheckCircle size={60} color="#22c55e" className="icono-exito" />
