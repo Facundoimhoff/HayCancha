@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, Phone, CarFront, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../../services/supabase'; 
+import HeaderCliente from './HeaderCliente'; // 1. Importar el header
 import './PerfilClub.css';
 
 const PerfilClub = () => {

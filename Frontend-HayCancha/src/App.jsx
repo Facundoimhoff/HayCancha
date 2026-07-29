@@ -14,6 +14,7 @@ import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
 import HeaderCliente from './pages/user/HeaderCliente';
 import Buscar from './pages/user/Buscar';
+import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 
 function App() {
   return (
@@ -50,6 +51,8 @@ function App() {
         <Route path="/login-cliente" element={<LoginCliente />} />
 
         <Route path="/buscar" element={<Buscar />} />
+
+        <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
 
       </Routes>
     </BrowserRouter>
