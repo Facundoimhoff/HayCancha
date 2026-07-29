@@ -43,9 +43,7 @@ function App() {
         <Route path="/contacto" element={<FormularioContacto />} />
 
         <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
-        
-        {/* Ruta alias para evitar errores si algún botón apunta acá */}
-        <Route path="/seleccionar-ciudad" element={<SeleccionUbicacion />} />
+        <Route path="/seleccionar-ubicacion/:provincia" element={<SeleccionUbicacion />} />
 
         <Route path="/dashboard" element={<RegistroClub />} />
 

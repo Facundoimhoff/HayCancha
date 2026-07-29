@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { MapPin, ChevronRight, ArrowLeft, Map, Frown } from 'lucide-react';
-// IMPORTAMOS EL HEADER (Asegurate de que la ruta sea correcta según donde guardaste el archivo)
+import { MapPin, ChevronRight, ArrowLeft, Map } from 'lucide-react';
 import HeaderCliente from './HeaderCliente'; 
 import './SeleccionUbicacion.css';
 
-// Lista fija con todas las provincias de Argentina
 const TODAS_LAS_PROVINCIAS = [
   "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Ciudad Autónoma de Buenos Aires",
   "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja",
@@ -16,14 +14,21 @@ const TODAS_LAS_PROVINCIAS = [
 
 const SeleccionUbicacion = () => {
   const navigate = useNavigate();
+  const { provincia } = useParams(); // Capturamos la provincia si viene por URL
+  
   const [ubicaciones, setUbicaciones] = useState([]);
-  const [provinciaSelec, setProvinciaSelec] = useState(null);
+  const [provinciaSelec, setProvinciaSelec] = useState(provincia ? decodeURIComponent(provincia) : null);
   const [cargando, setCargando] = useState(true);
 
-  // Cargamos las ubicaciones de los clubes
+  // Sincronizamos si cambia el parámetro de la URL
+  useEffect(() => {
+    if (provincia) {
+      setProvinciaSelec(decodeURIComponent(provincia));
+    }
+  }, [provincia]);
+
   useEffect(() => {
     const cargarUbicaciones = async () => {
-      // Traemos las ubicaciones de los clubes que SÍ existen
       const { data, error } = await supabase
         .from('clubes')
         .select('provincia, ciudad');
@@ -38,33 +43,31 @@ const SeleccionUbicacion = () => {
   }, []);
 
   const handleSeleccionProvincia = (prov) => {
-    setProvinciaSelec(prov);
+    // En vez de usar solo estado, navegamos a la ruta con la provincia para mantener la URL limpia
+    navigate(`/seleccionar-ubicacion/${encodeURIComponent(prov)}`);
   };
 
   const handleSeleccionCiudad = (ciudad) => {
     navigate(`/explorar/${encodeURIComponent(provinciaSelec)}/${encodeURIComponent(ciudad)}`);
   };
 
-  // Filtramos las ciudades que pertenecen a la provincia seleccionada (si es que hay)
   const ciudadesDisponibles = [...new Set(ubicaciones
-    .filter(u => u.provincia === provinciaSelec)
+    .filter(u => u.provincia && provinciaSelec && u.provincia.toLowerCase() === provinciaSelec.toLowerCase())
     .map(u => u.ciudad)
   )].filter(Boolean).sort();
 
   return (
     <>
-      {/* 1. ACÁ VA EL HEADER: Pegado arriba de todo */}
       <HeaderCliente />
 
-      {/* 2. ACÁ EMPIEZA TU CONTENEDOR ORIGINAL */}
       <div className="ubicacion-container">
         
-        {/* BOTÓN VOLVER FLOTANTE */}
+        {/* BOTÓN VOLVER */}
         <button 
-          onClick={() => provinciaSelec ? setProvinciaSelec(null) : navigate('/')} 
+          onClick={() => provincia ? navigate('/seleccionar-ubicacion') : (provinciaSelec ? setProvinciaSelec(null) : navigate('/'))} 
           className="btn-flotante-volver"
         >
-          <ArrowLeft size={18} /> {provinciaSelec ? 'Cambiar Provincia' : 'Volver al Inicio'}
+          <ArrowLeft size={18} /> {provincia ? 'Cambiar Provincia' : (provinciaSelec ? 'Cambiar Provincia' : 'Volver al Inicio')}
         </button>
 
         <div className="ubicacion-card">
@@ -90,7 +93,7 @@ const SeleccionUbicacion = () => {
           ) : (
             <div className="lista-vertical">
               
-              {/* VISTA 1: TODAS LAS PROVINCIAS */}
+              {/* VISTA 1: TODAS LAS PROVINCIAS (Solo se muestra si NO se eligió provincia antes) */}
               {!provinciaSelec && TODAS_LAS_PROVINCIAS.map((prov) => (
                 <button 
                   key={prov} 
@@ -102,7 +105,7 @@ const SeleccionUbicacion = () => {
                 </button>
               ))}
 
-              {/* VISTA 2: CIUDADES DISPONIBLES (SI HAY CLUBES) */}
+              {/* VISTA 2: CIUDADES DISPONIBLES */}
               {provinciaSelec && ciudadesDisponibles.length > 0 && ciudadesDisponibles.map((ciudad) => (
                 <button 
                   key={ciudad} 
@@ -114,13 +117,13 @@ const SeleccionUbicacion = () => {
                 </button>
               ))}
 
-              {/* VISTA 3: MENSAJE CUANDO NO HAY CLUBES EN LA PROVINCIA */}
+              {/* VISTA 3: MENSAJE CUANDO NO HAY CLUBES */}
               {provinciaSelec && ciudadesDisponibles.length === 0 && (
                 <div className="mensaje-vacio-ubicacion">
                   <MapPin size={40} className="icono-vacio" />
                   <h3>¡Ups! Todavía no llegamos</h3>
                   <p>Por ahora ningún club de <strong>{provinciaSelec}</strong> está registrado en la plataforma. ¡Pronto habrá novedades!</p>
-                  <button onClick={() => setProvinciaSelec(null)} className="btn-volver-vacio">
+                  <button onClick={() => provincia ? navigate('/seleccionar-ubicacion') : setProvinciaSelec(null)} className="btn-volver-vacio">
                     Elegir otra provincia
                   </button>
                 </div>

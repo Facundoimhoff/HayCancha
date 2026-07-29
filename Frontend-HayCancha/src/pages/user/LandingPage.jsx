@@ -149,7 +149,8 @@ export default function LandingPage() {
             <div
               key={provincia}
               className="provincia-card"
-              onClick={() => navigate('/seleccionar-ciudad')} 
+              // ACÁ ESTÁ EL CAMBIO PRINCIPAL PARA QUE VAYA DIRECTO A LA PROVINCIA
+              onClick={() => navigate(`/seleccionar-ubicacion/${encodeURIComponent(provincia)}`)} 
             >
               <div>
                 <h4>{provincia}</h4>
