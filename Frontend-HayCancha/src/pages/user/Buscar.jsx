@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { supabase } from '../../services/supabase'; // 1. IMPORTAMOS SUPABASE AQUÍ
 import './Buscar.css';
 
 export default function Buscar() {
@@ -10,16 +11,13 @@ export default function Buscar() {
   
   const [inputValue, setInputValue] = useState(query);
   
-  // ==========================================
-  // ESTADOS REALES PARA LA BASE DE DATOS
-  // ==========================================
   const [resultados, setResultados] = useState({ clubes: [], ciudades: [], provincias: [] });
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  // Efecto que hace la petición al backend cuando cambia la URL
+  // 2. REEMPLAZAMOS EL FETCH POR LA BÚSQUEDA DIRECTA EN SUPABASE
   useEffect(() => {
-    const buscarEnBaseDeDatos = async () => {
+    const buscarEnSupabase = async () => {
       if (!query.trim()) {
         setResultados({ clubes: [], ciudades: [], provincias: [] });
         return;
@@ -29,28 +27,30 @@ export default function Buscar() {
       setError(null);
 
       try {
-        // IMPORTANTE: Reemplazá esta URL por la ruta real de tu backend (Ej: Node/Express)
-        const response = await fetch(`https://haycancha.onrender.com/api/buscar?q=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error('Error de conexión con el servidor');
+        // Consultamos directo a tu tabla 'clubes' en Supabase buscando por nombre o ciudad
+        const { data, error: sbError } = await supabase
+          .from('clubes')
+          .select('*')
+          .or(`nombre.ilike.%${query}%,ciudad.ilike.%${query}%`);
+
+        if (sbError) throw sbError;
         
-        const data = await response.json();
-        
-        // Guardamos los datos reales del backend en el estado
+        // Guardamos los resultados (los clubes vienen de la base, ciudades/provincias quedan vacías por ahora)
         setResultados({
-          clubes: data.clubes || [],
-          ciudades: data.ciudades || [],
-          provincias: data.provincias || []
+          clubes: data || [],
+          ciudades: [],
+          provincias: []
         });
 
       } catch (err) {
-        console.error(err);
-        setError("Hubo un problema al conectar con la base de datos.");
+        console.error("Error al buscar en Supabase:", err);
+        setError("Hubo un problema al consultar la base de datos.");
       } finally {
         setCargando(false);
       }
     };
 
-    buscarEnBaseDeDatos();
+    buscarEnSupabase();
     setInputValue(query);
   }, [query]);
 
@@ -106,7 +106,7 @@ export default function Buscar() {
             <h2>BUSCANDO EN LA RED...</h2>
           </div>
         ) : error ? (
-          /* ESTADO 2: ERROR DEL SERVIDOR */
+          /* ESTADO 2: ERROR */
           <div className="no-results">
             <h2 style={{ color: '#ef4444' }}>ERROR</h2>
             <p>{error}</p>
@@ -119,7 +119,7 @@ export default function Buscar() {
             <p>Intentá buscar con otra palabra, nombre de ciudad o club.</p>
           </div>
         ) : (
-          /* ESTADO 4: CON RESULTADOS (Renderizado Real) */
+          /* ESTADO 4: CON RESULTADOS */
           <div className="results-container">
             
             {resultados.clubes.length > 0 && (
@@ -131,7 +131,7 @@ export default function Buscar() {
                       <div className="card-info">
                         <span className="badge-deporte">{club.deporte || 'Multideporte'}</span>
                         <h4>{club.nombre}</h4>
-                        <p><MapPin size={14}/> {club.ciudad}</p>
+                        <p><MapPin size={14}/> {club.direccion || club.ciudad}</p>
                       </div>
                       <ArrowRight className="card-arrow" size={20} />
                     </div>
