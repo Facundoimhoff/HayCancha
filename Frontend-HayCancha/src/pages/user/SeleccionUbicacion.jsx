@@ -62,12 +62,12 @@ const SeleccionUbicacion = () => {
 
       <div className="ubicacion-container">
         
-        {/* BOTÓN VOLVER */}
+        {/* ACÁ ESTÁ EL CAMBIO: navigate('/') siempre vuelve a la Landing Page (Inicio) */}
         <button 
-          onClick={() => provincia ? navigate('/seleccionar-ubicacion') : (provinciaSelec ? setProvinciaSelec(null) : navigate('/'))} 
+          onClick={() => navigate('/')} 
           className="btn-flotante-volver"
         >
-          <ArrowLeft size={18} /> {provincia ? 'Cambiar Provincia' : (provinciaSelec ? 'Cambiar Provincia' : 'Volver al Inicio')}
+          <ArrowLeft size={18} /> Volver al Inicio
         </button>
 
         <div className="ubicacion-card">
@@ -123,7 +123,9 @@ const SeleccionUbicacion = () => {
                   <MapPin size={40} className="icono-vacio" />
                   <h3>¡Ups! Todavía no llegamos</h3>
                   <p>Por ahora ningún club de <strong>{provinciaSelec}</strong> está registrado en la plataforma. ¡Pronto habrá novedades!</p>
-                  <button onClick={() => provincia ? navigate('/seleccionar-ubicacion') : setProvinciaSelec(null)} className="btn-volver-vacio">
+                  
+                  {/* CAMBIO ACÁ TAMBIÉN: En caso de no haber clubes, volver te lleva al inicio */}
+                  <button onClick={() => navigate('/')} className="btn-volver-vacio">
                     Elegir otra provincia
                   </button>
                 </div>

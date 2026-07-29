@@ -34,7 +34,8 @@ const HomeUsuario = () => {
       {/* NAVBAR SUPERIOR */}
       <div className="navbar-superior">
         <div className="navbar-izq">
-          <button onClick={() => navigate('/seleccionar-ubicacion')} className="btn-volver-home">
+          {/* ACÁ ESTÁ EL CAMBIO: navigate(-1) para que vuelva a la lista de ciudades de esa provincia */}
+          <button onClick={() => navigate(-1)} className="btn-volver-home">
             <ArrowLeft size={24} />
           </button>
           <div>
