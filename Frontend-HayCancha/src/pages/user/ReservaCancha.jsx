@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, Calendar } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon, KeyRound } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-// IMPORTANTE: Importamos nuestro CSS premium
 import './ReservaCancha.css';
 
 const ReservaCancha = () => {
@@ -17,12 +16,21 @@ const ReservaCancha = () => {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   
+  // Estados para el usuario y autenticación en el paso 2
+  const [user, setUser] = useState(null);
+  const [esRegistro, setEsRegistro] = useState(false);
+  const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
   const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [telefono, setTelefono] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [errorAuth, setErrorAuth] = useState('');
+  const [mensajeExitoAuth, setMensajeExitoAuth] = useState('');
 
   const [turnosOcupados, setTurnosOcupados] = useState([]);
 
+  // Generar próximos días
   const generarProximosDias = () => {
     const dias = [];
     for (let i = 0; i < 7; i++) {
@@ -45,9 +53,16 @@ const ReservaCancha = () => {
   const diasSemana = generarProximosDias();
   const hoyBD = diasSemana[0].fechaBD; 
 
+  // Cargar datos de la cancha, club, turnos y sesión del usuario
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        // Verificar sesión actual de Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+        }
+
         const { data: dataCancha, error: errorCancha } = await supabase
           .from('canchas')
           .select('*')
@@ -86,7 +101,86 @@ const ReservaCancha = () => {
     };
     
     cargarDatos();
-  }, [idCancha, hoyBD, diaExpandido]);
+  }, [idCancha, hoyBD]);
+
+  // Manejar Login o Registro desde el paso 2
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setErrorAuth('');
+    setMensajeExitoAuth('');
+    setGuardando(true);
+
+    try {
+      if (esRegistro) {
+        const { data, error: errorRegistro } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: nombre, rol: 'cliente' },
+            emailRedirectTo: window.location.origin
+          }
+        });
+        if (errorRegistro) throw errorRegistro;
+
+        if (data.user && !data.session) {
+          setErrorAuth('✅ ¡Cuenta creada! Revisá tu correo para confirmarla e iniciar sesión.');
+          setEsRegistro(false);
+          return;
+        }
+        if (data.user) setUser(data.user);
+
+      } else {
+        const { data, error: errorLogin } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (errorLogin) throw errorLogin;
+        if (data.user) setUser(data.user);
+      }
+    } catch (err) {
+      const mensaje = err?.message || 'Ocurrió un error en la autenticación.';
+      if (mensaje.includes('Invalid login')) {
+        setErrorAuth('Email o contraseña incorrectos.');
+      } else {
+        setErrorAuth(mensaje);
+      }
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Recuperar contraseña
+  const handleRecuperarPassword = async (e) => {
+    e.preventDefault();
+    setErrorAuth('');
+    setMensajeExitoAuth('');
+    setGuardando(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/actualizar-password',
+      });
+      if (error) throw error;
+      setMensajeExitoAuth('✅ ¡Te enviamos un enlace para restablecer tu contraseña!');
+    } catch (err) {
+      setErrorAuth('Hubo un problema al enviar el correo. Verificá que esté bien escrito.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Google Login
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setErrorAuth('Error al conectar con Google.');
+    }
+  };
 
   const generarHorariosDisponibles = (apertura, cierre) => {
     const horarios = [];
@@ -105,7 +199,9 @@ const ReservaCancha = () => {
 
   const horariosBase = cancha ? generarHorariosDisponibles(cancha.hora_apertura, cancha.hora_cierre) : [];
 
-  const confirmarReserva = async () => {
+  // Confirmar reserva final (asociada al usuario logueado)
+  const confirmarReserva = async (e) => {
+    e.preventDefault();
     try {
       setGuardando(true);
       const { error } = await supabase
@@ -114,8 +210,9 @@ const ReservaCancha = () => {
           cancha_id: idCancha,
           fecha: fechaSeleccionada,
           hora_inicio: horaSeleccionada,
-          nombre_cliente: nombre,
-          telefono_cliente: telefono
+          nombre_cliente: nombre || user?.user_metadata?.full_name || user?.email,
+          telefono_cliente: telefono,
+          user_id: user.id // Vinculamos el turno al ID del usuario autenticado
         }]);
 
       if (error) throw error;
@@ -154,7 +251,7 @@ const ReservaCancha = () => {
         <h1 className="titulo-cancha">{cancha.nombre}</h1>
       </div>
 
-      {/* --- NUEVO: BARRA DE PASOS (STEPPER) --- */}
+      {/* STEPPER */}
       <div className="stepper-reserva">
         <div className={`stepper-item ${paso >= 1 ? 'activo' : ''}`}>
           <span className="stepper-numero">1</span>
@@ -163,7 +260,7 @@ const ReservaCancha = () => {
         <div className="stepper-linea"></div>
         <div className={`stepper-item ${paso >= 2 ? 'activo' : ''}`}>
           <span className="stepper-numero">2</span>
-          <span className="stepper-label">Datos</span>
+          <span className="stepper-label">Cuenta y Datos</span>
         </div>
         <div className="stepper-linea"></div>
         <div className={`stepper-item ${paso >= 3 ? 'activo' : ''}`}>
@@ -175,9 +272,7 @@ const ReservaCancha = () => {
       {/* PASO 1: Elegir Día y Horario */}
       {paso === 1 && (
         <div className="paso-horarios">
-          <h2 className="titulo-paso">
-            Elegí día y horario
-          </h2>
+          <h2 className="titulo-paso">Elegí día y horario</h2>
           
           <div className="lista-dias">
             {diasSemana.map((dia) => {
@@ -185,8 +280,6 @@ const ReservaCancha = () => {
               
               return (
                 <div key={dia.fechaBD} className="dia-card">
-                  
-                  {/* Cabecera del Acordeón (El Día) */}
                   <div 
                     onClick={() => setDiaExpandido(estaAbierto ? null : dia.fechaBD)}
                     className={`dia-header ${estaAbierto ? 'abierto' : ''}`}
@@ -195,7 +288,6 @@ const ReservaCancha = () => {
                     <ChevronDown size={20} className={`flecha-icono ${estaAbierto ? 'abierta' : ''}`} />
                   </div>
 
-                  {/* Contenido del Acordeón (Los Horarios de ese día) */}
                   {estaAbierto && (
                     <div className="animacion-acordeon">
                       {horariosBase.map((hora) => {
@@ -235,51 +327,170 @@ const ReservaCancha = () => {
         </div>
       )}
 
-      {/* PASO 2: Ingresar Datos */}
+      {/* PASO 2: Autenticación y Datos */}
       {paso === 2 && (
         <div className="paso-datos">
-          <h2 className="titulo-paso">Tus Datos</h2>
+          <h2 className="titulo-paso">
+            {user ? 'Confirmar tus datos' : (mostrarRecuperar ? 'Recuperar Contraseña' : (esRegistro ? 'Creá tu cuenta' : 'Iniciá sesión para reservar'))}
+          </h2>
           
           <div className="info-reserva-box">
             <p className="info-reserva-texto">
-              Confirmando turno para el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs
+              Turno seleccionado: <strong>{fechaSeleccionada?.split('-').reverse().join('/')}</strong> a las <strong>{horaSeleccionada} hs</strong>
             </p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Nombre y Apellido</label>
-            <input 
-              type="text" 
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej: Juan Pérez"
-              className="form-input"
-            />
-          </div>
+          {errorAuth && <div className="alerta-error-cli" style={{color: '#ef4444', marginBottom: '15px', fontSize: '0.9rem'}}>{errorAuth}</div>}
+          {mensajeExitoAuth && <div className="alerta-error-cli exito" style={{color: '#16a34a', marginBottom: '15px', fontSize: '0.9rem'}}>{mensajeExitoAuth}</div>}
 
-          <div className="form-group">
-            <label className="form-label">Teléfono (WhatsApp)</label>
-            <input 
-              type="tel" 
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej: 3564..."
-              className="form-input"
-            />
-          </div>
+          {/* SI NO ESTÁ LOGUEADO */}
+          {!user ? (
+            <div>
+              {mostrarRecuperar ? (
+                <form onSubmit={handleRecuperarPassword}>
+                  <div className="form-group">
+                    <label className="form-label">Email de recuperación</label>
+                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+                      <Mail size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
+                      <input 
+                        type="email" 
+                        required 
+                        placeholder="tu@correo.com" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="form-input"
+                        style={{paddingLeft: '40px'}}
+                      />
+                    </div>
+                  </div>
 
-          <div className="btn-group">
-            <button onClick={() => setPaso(1)} className="btn-atras">
-              Atrás
-            </button>
-            <button 
-              onClick={confirmarReserva}
-              disabled={!nombre || !telefono || guardando}
-              className="btn-confirmar"
-            >
-              {guardando ? 'Guardando...' : 'Confirmar Turno'}
-            </button>
-          </div>
+                  <button type="submit" className="btn-confirmar" disabled={guardando} style={{marginTop: '10px'}}>
+                    {guardando ? 'Enviando...' : 'Enviar enlace'}
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={() => { setMostrarRecuperar(false); setErrorAuth(''); setMensajeExitoAuth(''); }} 
+                    className="btn-atras"
+                    style={{width: '100%', marginTop: '10px', textAlign: 'center'}}
+                  >
+                    Volver a iniciar sesión
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleAuthSubmit}>
+                  {esRegistro && (
+                    <div className="form-group">
+                      <label className="form-label">Nombre y Apellido</label>
+                      <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+                        <UserIcon size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
+                        <input 
+                          type="text" 
+                          required 
+                          placeholder="Ej: Lucas Pérez" 
+                          value={nombre}
+                          onChange={(e) => setNombre(e.target.value)}
+                          className="form-input"
+                          style={{paddingLeft: '40px'}}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+                      <Mail size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
+                      <input 
+                        type="email" 
+                        required 
+                        placeholder="tu@correo.com" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="form-input"
+                        style={{paddingLeft: '40px'}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Contraseña</label>
+                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+                      <Lock size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
+                      <input 
+                        type="password" 
+                        required 
+                        placeholder="Mínimo 6 caracteres" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        minLength={6}
+                        className="form-input"
+                        style={{paddingLeft: '40px'}}
+                      />
+                    </div>
+                    {!esRegistro && (
+                      <div style={{textAlign: 'right', marginTop: '5px'}}>
+                        <button type="button" onClick={() => { setMostrarRecuperar(true); setErrorAuth(''); }} style={{background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '0.85rem'}}>
+                          ¿Olvidaste tu contraseña?
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="btn-group" style={{marginTop: '15px'}}>
+                    <button type="button" onClick={() => setPaso(1)} className="btn-atras">
+                      Atrás
+                    </button>
+                    <button type="submit" className="btn-confirmar" disabled={guardando}>
+                      {guardando ? 'Procesando...' : (esRegistro ? 'Registrarse' : 'Iniciar Sesión')}
+                    </button>
+                  </div>
+
+                  <div style={{textAlign: 'center', margin: '20px 0 10px', color: '#64748b', fontSize: '0.9rem'}}>O ingresá con</div>
+
+                  <button onClick={handleGoogleLogin} type="button" style={{width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: '600', cursor: 'pointer'}}>
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
+                    Google
+                  </button>
+
+                  <div style={{textAlign: 'center', marginTop: '20px', fontSize: '0.9rem'}}>
+                    {esRegistro ? '¿Ya tenés una cuenta?' : '¿No tenés una cuenta?'} {' '}
+                    <button type="button" onClick={() => { setEsRegistro(!esRegistro); setErrorAuth(''); }} style={{background: 'none', border: 'none', color: '#16a34a', fontWeight: 'bold', cursor: 'pointer'}}>
+                      {esRegistro ? 'Iniciá sesión' : 'Registrate gratis'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            /* SI YA ESTÁ LOGUEADO: PEDIR TELÉFONO Y CONFIRMAR */
+            <form onSubmit={confirmarReserva}>
+              <p style={{marginBottom: '15px', color: '#475162', fontSize: '0.95rem'}}>
+                Conectado como: <strong>{user.email}</strong>
+              </p>
+
+              <div className="form-group">
+                <label className="form-label">Teléfono (WhatsApp)</label>
+                <input 
+                  type="tel" 
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="Ej: 3564..."
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="btn-group" style={{marginTop: '20px'}}>
+                <button type="button" onClick={() => setPaso(1)} className="btn-atras">
+                  Atrás
+                </button>
+                <button type="submit" className="btn-confirmar" disabled={!telefono || guardando}>
+                  {guardando ? 'Guardando...' : 'Confirmar Turno'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
 
@@ -288,10 +499,16 @@ const ReservaCancha = () => {
         <div className="paso-exito">
           <CheckCircle size={60} color="#22c55e" className="icono-exito" />
           <h2 className="titulo-exito">¡Reserva Confirmada!</h2>
-          <p className="texto-exito">Te esperamos el {fechaSeleccionada.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
-          <Link to={obtenerRutaVuelta()} className="btn-link-volver">
-            Volver a los clubes
-          </Link>
+          <p className="texto-exito">Te esperamos el {fechaSeleccionada?.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
+          
+          <div style={{display: 'flex', gap: '15px', marginTop: '20px', justifyContent: 'center'}}>
+            <Link to="/mis-reservas" className="btn-confirmar" style={{textDecoration: 'none', padding: '12px 24px'}}>
+              Ver mis reservas
+            </Link>
+            <Link to={obtenerRutaVuelta()} className="btn-atras" style={{textDecoration: 'none', padding: '12px 24px', display: 'flex', alignItems: 'center'}}>
+              Volver a los clubes
+            </Link>
+          </div>
         </div>
       )}
     </div>
