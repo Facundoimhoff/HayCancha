@@ -1,28 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone } from 'lucide-react';
+import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import './Planes.css';
 
 const Planes = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
+  
+  // Estados para el formulario de contacto
+  const [enviado, setEnviado] = useState(false);
 
   const iniciarPago = async () => {
     setCargando(true);
     try {
       const { data, error } = await supabase.functions.invoke('crear-pago');
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       if (data && data.init_point) {
         window.location.href = data.init_point; 
       } else {
         throw new Error("No se recibió el link de pago");
       }
-      
     } catch (error) {
       console.error("Error al iniciar el pago:", error);
       alert("Hubo un error al conectar con Mercado Pago.");
@@ -30,10 +28,32 @@ const Planes = () => {
     }
   };
 
+  const manejarEnvioDuda = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+
+    try {
+      // Usando el mismo endpoint de Formspree que tu Landing
+      const response = await fetch("https://formspree.io/f/xrengjgv", {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        setEnviado(true);
+        form.reset();
+        setTimeout(() => setEnviado(false), 5000); 
+      }
+    } catch (error) {
+      alert("Hubo un error al enviar tu consulta.");
+    }
+  };
+
   return (
     <div className="planes-page-modern">
       
-      {/* Navbar / Botón Volver */}
       <nav className="planes-nav">
         <button onClick={() => navigate(-1)} className="btn-volver-modern">
           <ArrowLeft size={20} /> Volver
@@ -45,7 +65,7 @@ const Planes = () => {
 
       <div className="planes-layout">
         
-        {/* COLUMNA IZQUIERDA: Textos de venta, beneficios y foto */}
+        {/* COLUMNA IZQUIERDA */}
         <div className="planes-info-section">
           <span className="badge-exclusivo">PARA COMPLEJOS DEPORTIVOS</span>
           <h1 className="planes-titulo-main">
@@ -100,7 +120,7 @@ const Planes = () => {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Tarjeta de Precio (Fija) */}
+        {/* COLUMNA DERECHA (Tarjeta) */}
         <div className="planes-card-section">
           <div className="plan-card-premium">
             
@@ -147,8 +167,38 @@ const Planes = () => {
             <p className="texto-seguro">Pago 100% seguro a través de Mercado Pago.</p>
           </div>
         </div>
-
       </div>
+
+      {/* NUEVA SECCIÓN: FORMULARIO DE DUDAS ABAJO */}
+      <div className="planes-dudas-section">
+        <div className="planes-dudas-container">
+          <div className="dudas-header">
+            <MessageCircleQuestion size={40} className="text-green" />
+            <h2>¿Tenés dudas antes de sumarte?</h2>
+            <p>Dejanos tu consulta o tu teléfono y nuestro equipo se contactará con vos para asesorarte sin compromiso.</p>
+          </div>
+
+          {enviado ? (
+            <div className="dudas-exito">
+              <CheckCircle size={40} color="#22c55e" />
+              <h3>¡Consulta enviada!</h3>
+              <p>Nos vamos a comunicar con vos a la brevedad.</p>
+            </div>
+          ) : (
+            <form onSubmit={manejarEnvioDuda} className="dudas-form">
+              <div className="dudas-inputs-row">
+                <input type="text" name="nombre_club" placeholder="Nombre de tu Club" required className="duda-input" />
+                <input type="email" name="email" placeholder="Tu Email o Teléfono" required className="duda-input" />
+              </div>
+              <textarea name="mensaje" placeholder="Escribí tu duda acá..." required rows="4" className="duda-input duda-textarea"></textarea>
+              <button type="submit" className="btn-enviar-duda">
+                Enviar consulta <Send size={18} />
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 };

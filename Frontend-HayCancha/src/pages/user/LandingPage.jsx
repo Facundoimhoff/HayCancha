@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
 
@@ -247,6 +247,14 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      
+      {/* BURBUJA FLOTANTE PARA DUEÑOS DE CLUBES */}
+      <div className="burbuja-admin" onClick={() => navigate('/login-admin')}>
+        <span className="burbuja-texto">¿Tenés un club? Sumalo acá</span>
+        <div className="burbuja-icono">
+          <Building2 size={26} />
+        </div>
+      </div>
       
     </div>
   );

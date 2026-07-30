@@ -716,3 +716,77 @@ Estos estilos solo se activan en pantallas chicas
 .carousel-btn.left { left: 24px; }
 .carousel-btn.right { right: 24px; }
 
+/* =========================================
+   Burbuja Admin Flotante (Landing Page)
+   ========================================= */
+.burbuja-admin {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.burbuja-admin:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.burbuja-texto {
+  background-color: white;
+  color: #0f172a;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s ease;
+  pointer-events: none; /* Para que el clic vaya directo al botón */
+  border: 1px solid #e2e8f0;
+}
+
+/* Al hacer hover en la burbuja, aparece el texto */
+.burbuja-admin:hover .burbuja-texto {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.burbuja-icono {
+  background-color: #22c55e;
+  color: white;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4);
+  animation: pulso-verde 2.5s infinite;
+}
+
+@keyframes pulso-verde {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@media (max-width: 768px) {
+  /* En celular, achicamos un poco y mostramos el texto fijo o lo ocultamos */
+  .burbuja-admin {
+    bottom: 20px;
+    right: 20px;
+  }
+  .burbuja-icono {
+    width: 55px;
+    height: 55px;
+  }
+  /* En celu, como no hay "hover", el texto se oculta para no molestar */
+  .burbuja-texto {
+    display: none; 
+  }
+}

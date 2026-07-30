@@ -323,3 +323,112 @@
     padding: 15px 20px;
   }
 }
+
+/* Sección de Dudas (Formulario abajo) */
+.planes-dudas-section {
+  background-color: white;
+  padding: 60px 20px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 40px;
+}
+
+.planes-dudas-container {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dudas-header {
+  margin-bottom: 32px;
+}
+
+.dudas-header h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 16px 0 8px 0;
+}
+
+.dudas-header p {
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.dudas-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.dudas-inputs-row {
+  display: flex;
+  gap: 16px;
+}
+
+.duda-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  outline: none;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.duda-input:focus {
+  border-color: #22c55e;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.duda-textarea {
+  resize: vertical;
+}
+
+.btn-enviar-duda {
+  padding: 16px;
+  background-color: #0f172a;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-enviar-duda:hover {
+  background-color: #1e293b;
+}
+
+.dudas-exito {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 40px 20px;
+  border-radius: 16px;
+}
+
+.dudas-exito h3 {
+  color: #16a34a;
+  margin: 16px 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.dudas-exito p {
+  color: #15803d;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .dudas-inputs-row {
+    flex-direction: column;
+  }
+}
