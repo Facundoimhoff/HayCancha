@@ -87,7 +87,6 @@ export default function LandingPage() {
   return (
     <div className="landing-desktop">
       
-      {/* --- PARTE DE ARRIBA (HERO OSCURO) --- */}
       <section className="hero-section">
         <nav className="navbar">
           <div className="logo">
@@ -100,7 +99,14 @@ export default function LandingPage() {
             <button className="btn-nav" onClick={() => scrollToSection('contacto')}>
               Contacto
             </button>
-            {/* EL BOTÓN DE ADMIN GIGANTE FUE ELIMINADO DE ACÁ */}
+            {/* BOTÓN "SOY ADMIN" AGREGADO ACÁ */}
+            <button 
+              className="btn-nav" 
+              onClick={() => navigate('/login-admin')}
+              style={{ fontWeight: 'bold', border: '1px solid #22c55e', color: '#22c55e', borderRadius: '8px', padding: '8px 16px' }}
+            >
+              Soy Admin
+            </button>
           </div>
         </nav>
 
@@ -133,7 +139,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- PARTE DEL MEDIO (PROVINCIAS) --- */}
       <main className="landing-main" id="provincias">
         <h2 className="section-title">EXPLORÁ POR PROVINCIA</h2>
 
@@ -154,7 +159,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* --- CARRUSEL DE DEPORTES --- */}
       <section className="sports-carousel-section">
         <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
         
@@ -185,7 +189,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- CONTACTO / NEWSLETTER --- */}
       <section className="contact-section" id="contacto">
         <div className="contact-container">
           
@@ -243,20 +246,6 @@ export default function LandingPage() {
             )}
           </div>
         </div>
-
-        {/* --- ACÁ ESTÁ EL ENLACE DISCRETO DE ADMIN --- */}
-        <div style={{ textAlign: 'center', marginTop: '60px', paddingBottom: '20px' }}>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-            ¿Sos administrador de un complejo deportivo?{' '}
-            <span 
-              onClick={() => navigate('/login-admin')} 
-              style={{ color: '#22c55e', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
-            >
-              Ingresá al panel acá
-            </span>
-          </p>
-        </div>
-
       </section>
       
     </div>

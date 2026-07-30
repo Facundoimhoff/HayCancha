@@ -15,6 +15,7 @@ import LoginCliente from './pages/user/LoginCliente';
 import HeaderCliente from './pages/user/HeaderCliente';
 import Buscar from './pages/user/Buscar';
 import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
+import LoginAdmin from './pages/user/LoginAdmin';
 
 function App() {
   return (
@@ -54,6 +55,8 @@ function App() {
         <Route path="/buscar" element={<Buscar />} />
 
         <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
+
+        <Route path="/login-admin" element={<LoginAdmin />} />
 
       </Routes>
     </BrowserRouter>
