@@ -77,7 +77,6 @@ export default function LandingPage() {
     }
   };
 
-  // NUEVO: Función para scrollear suavemente a la sección deseada
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
@@ -95,19 +94,13 @@ export default function LandingPage() {
             GridPlay<span className="text-green">.</span>
           </div>
           <div className="nav-buttons">
-            {/* NUEVOS BOTONES DE NAVEGACIÓN */}
             <button className="btn-nav" onClick={() => scrollToSection('provincias')}>
               Explorar
             </button>
             <button className="btn-nav" onClick={() => scrollToSection('contacto')}>
               Contacto
             </button>
-            <button 
-              className="btn-admin"
-              onClick={() => navigate('/login-admin')}
-            >
-              Acceso Administrador
-            </button>
+            {/* EL BOTÓN DE ADMIN GIGANTE FUE ELIMINADO DE ACÁ */}
           </div>
         </nav>
 
@@ -140,7 +133,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- PARTE DEL MEDIO (PROVINCIAS) - AGREGADO id="provincias" --- */}
+      {/* --- PARTE DEL MEDIO (PROVINCIAS) --- */}
       <main className="landing-main" id="provincias">
         <h2 className="section-title">EXPLORÁ POR PROVINCIA</h2>
 
@@ -149,7 +142,6 @@ export default function LandingPage() {
             <div
               key={provincia}
               className="provincia-card"
-              // ACÁ ESTÁ EL CAMBIO PRINCIPAL PARA QUE VAYA DIRECTO A LA PROVINCIA
               onClick={() => navigate(`/seleccionar-ubicacion/${encodeURIComponent(provincia)}`)} 
             >
               <div>
@@ -193,7 +185,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- CONTACTO / NEWSLETTER - AGREGADO id="contacto" --- */}
+      {/* --- CONTACTO / NEWSLETTER --- */}
       <section className="contact-section" id="contacto">
         <div className="contact-container">
           
@@ -251,6 +243,20 @@ export default function LandingPage() {
             )}
           </div>
         </div>
+
+        {/* --- ACÁ ESTÁ EL ENLACE DISCRETO DE ADMIN --- */}
+        <div style={{ textAlign: 'center', marginTop: '60px', paddingBottom: '20px' }}>
+          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+            ¿Sos administrador de un complejo deportivo?{' '}
+            <span 
+              onClick={() => navigate('/login-admin')} 
+              style={{ color: '#22c55e', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
+            >
+              Ingresá al panel acá
+            </span>
+          </p>
+        </div>
+
       </section>
       
     </div>

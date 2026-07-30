@@ -1,57 +1,50 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { MoreVertical, LogOut } from 'lucide-react';
-import './HeaderCliente.css';
 
 const HeaderCliente = () => {
-  const [nombre, setNombre] = useState('Cliente');
-  const [menuAbierto, setMenuAbierto] = useState(false);
+  const [sesion, setSesion] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Buscamos los datos del usuario logueado
-    const obtenerUsuario = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.user_metadata?.full_name) {
-        // Agarramos el primer nombre para que no quede larguísimo en la barra
-        const primerNombre = user.user_metadata.full_name.split(' ')[0];
-        setNombre(primerNombre);
-      }
-    };
-    obtenerUsuario();
+    // 1. Chequeamos si hay una sesión activa apenas carga la página
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSesion(session);
+    });
+
+    // 2. Nos quedamos escuchando cambios (por si inicia o cierra sesión en ese momento)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSesion(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleCerrarSesion = async () => {
-    // Cerramos sesión en Supabase y lo pateamos al inicio
     await supabase.auth.signOut();
-    navigate('/'); 
+    navigate('/'); // Lo mandamos al inicio después de cerrar sesión
   };
 
+  // MAGIA ACÁ: Si no hay nadie logueado, devolvemos "null" (la barra se oculta por completo)
+  if (!sesion) {
+    return null;
+  }
+
+  // Si hay sesión, dibujamos la barra
   return (
-    <header className="header-cliente-top">
-      <div className="saludo-header">
-        Hola, <strong>{nombre}</strong>
+    <header className="header-cliente" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+      
+      <div style={{ fontSize: '1rem', color: '#111827' }}>
+        Hola, <span style={{ color: '#22c55e', fontWeight: 'bold' }}>Cliente</span>
       </div>
       
-      <div className="opciones-header">
-        <button 
-          className="btn-tres-puntos" 
-          onClick={() => setMenuAbierto(!menuAbierto)}
-        >
-          <MoreVertical size={24} />
-        </button>
+      <button 
+        onClick={handleCerrarSesion} 
+        style={{ backgroundColor: 'transparent', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+      >
+        Cerrar sesión
+      </button>
 
-        {/* Menú flotante que aparece al tocar los 3 puntitos */}
-        {menuAbierto && (
-          <div className="menu-desplegable-perfil">
-            <button onClick={handleCerrarSesion} className="btn-cerrar-sesion">
-              <LogOut size={18} />
-              <span>Cerrar sesión</span>
-            </button>
-          </div>
-        )}
-      </div>
     </header>
   );
 };
