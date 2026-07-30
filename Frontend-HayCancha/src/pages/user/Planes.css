@@ -1,170 +1,325 @@
-/* Planes.css */
+/* =========================================
+   Planes.css (Estilo Landing Page Premium)
+   ========================================= */
 
-.planes-container {
+.planes-page-modern {
   min-height: 100vh;
   background-color: #f8fafc;
-  padding: 40px 20px;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.planes-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
+/* Navbar */
+.planes-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* --- BOTÓN VOLVER --- */
-.btn-volver-planes {
-  background: none;
-  border: none;
+.btn-volver-modern {
   display: flex;
   align-items: center;
-  gap: 5px;
-  cursor: pointer;
+  gap: 8px;
+  background: none;
+  border: none;
   color: #64748b;
-  margin-bottom: 30px;
-  padding: 0;
-  font-weight: bold;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-.btn-volver-planes:hover {
+.btn-volver-modern:hover {
   color: #0f172a;
-  transform: translateX(-3px);
 }
 
-/* --- CABECERA --- */
-.planes-header {
-  text-align: center;
+.planes-logo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.text-green {
+  color: #22c55e;
+}
+
+/* Layout Principal */
+.planes-layout {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  gap: 60px;
+}
+
+/* --- Columna Izquierda (Info) --- */
+.planes-info-section {
+  flex: 1;
+}
+
+.badge-exclusivo {
+  display: inline-block;
+  background-color: #dcfce7;
+  color: #16a34a;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.planes-titulo-main {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.planes-descripcion-main {
+  font-size: 1.2rem;
+  color: #475569;
+  line-height: 1.6;
   margin-bottom: 40px;
 }
 
-.planes-titulo {
-  font-size: 2.5rem;
-  color: #0f172a;
-  margin: 0 0 10px 0;
-  letter-spacing: -1px;
+/* Grilla de beneficios */
+.beneficios-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
-.planes-subtitulo {
-  font-size: 1.1rem;
-  color: #64748b;
-  margin: 0;
+.beneficio-item {
+  display: flex;
+  gap: 16px;
 }
 
-/* --- TARJETA DE PRECIO --- */
-.plan-card {
-  max-width: 400px;
-  margin: 0 auto;
-  background-color: white;
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 2px solid #2563eb;
-  position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.plan-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 25px 30px -5px rgba(37, 99, 235, 0.15), 0 15px 15px -5px rgba(37, 99, 235, 0.05);
-}
-
-.plan-badge {
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #2563eb;
-  color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 0.85rem;
+.ben-icon {
+  background-color: #f0fdf4;
+  color: #22c55e;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* --- PRECIO --- */
+.beneficio-item h4 {
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.beneficio-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Imagen contextual */
+.planes-imagen-contexto {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 250px;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+}
+
+.planes-imagen-contexto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay-imagen {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  padding: 30px 20px 20px 20px;
+}
+
+.overlay-imagen p {
+  color: white;
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* --- Columna Derecha (Tarjeta de Pago) --- */
+.planes-card-section {
+  width: 420px;
+  flex-shrink: 0;
+}
+
+.plan-card-premium {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  position: sticky;
+  top: 40px;
+}
+
+.plan-badge-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #22c55e;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
 .plan-precio-header {
-  text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .plan-nombre {
-  font-size: 1.5rem;
-  color: #1e293b;
-  margin: 0 0 15px 0;
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin: 0 0 10px 0;
 }
 
 .plan-precio-wrapper {
   display: flex;
-  justify-content: center;
   align-items: baseline;
-  gap: 4px;
+  color: #0f172a;
 }
 
 .plan-moneda {
   font-size: 2rem;
-  font-weight: bold;
-  color: #0f172a;
+  font-weight: 700;
 }
 
 .plan-monto {
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 900;
-  color: #0f172a;
+  line-height: 1;
+  font-family: 'Montserrat', sans-serif;
   letter-spacing: -2px;
 }
 
 .plan-periodo {
+  font-size: 1.1rem;
   color: #64748b;
-  font-weight: 500;
+  margin-left: 4px;
 }
 
-/* --- BENEFICIOS --- */
-.plan-beneficios {
+.plan-sub-precio {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.plan-divisor {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 24px 0;
+}
+
+.plan-lista-titulo {
+  font-size: 1.1rem;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+}
+
+.plan-beneficios-lista {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 35px;
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-.plan-beneficio-item {
+.plan-beneficio-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.plan-beneficio-texto {
-  color: #475569;
-  font-weight: 500;
+.check-verde {
+  color: #22c55e;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-/* --- BOTÓN DE PAGO --- */
-.btn-comprar {
+.plan-beneficio-row span {
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.btn-comprar-modern {
   width: 100%;
-  background-color: #2563eb;
+  padding: 18px;
+  background-color: #22c55e;
   color: white;
-  padding: 16px;
+  border: none;
   border-radius: 12px;
   font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
-.btn-comprar.activo:hover {
-  background-color: #1d4ed8;
+.btn-comprar-modern:hover:not(:disabled) {
+  background-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
 }
 
-.btn-comprar.activo:active {
-  transform: scale(0.98);
-}
-
-.btn-comprar.cargando {
+.btn-comprar-modern.cargando {
+  background-color: #94a3b8;
   cursor: not-allowed;
-  opacity: 0.8;
-  background-color: #3b82f6;
+  box-shadow: none;
+}
+
+.texto-seguro {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-top: 16px;
+}
+
+/* Responsive (Celulares y Tablets) */
+@media (max-width: 992px) {
+  .planes-layout {
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+  
+  .planes-card-section {
+    width: 100%;
+  }
+
+  .planes-titulo-main {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .beneficios-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .planes-nav {
+    padding: 15px 20px;
+  }
 }
