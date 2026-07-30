@@ -1,34 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, KeyRound, CheckCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import './ActualizarPassword.css';
+import { KeyRound, Lock, ArrowLeft } from 'lucide-react';
+import './ActualizarPassword.css'; 
 
 const ActualizarPassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [exito, setExito] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+  const [mensaje, setMensaje] = useState(null);
 
-  useEffect(() => {
-    // Verificamos si el usuario realmente viene del link de recuperación
-    const verificarSesion = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('El enlace de recuperación no es válido o ya expiró. Por favor, solicitá uno nuevo.');
-      }
-    };
-    verificarSesion();
-  }, []);
-
-  const handleActualizar = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+    setMensaje(null);
 
+    // 1. Validamos que las contraseñas coincidan
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+      setError('Las contraseñas no coinciden. Verificalas por favor.');
       return;
     }
 
@@ -40,103 +31,94 @@ const ActualizarPassword = () => {
     setCargando(true);
 
     try {
-      // Supabase actualiza la contraseña del usuario actualmente autenticado (el que entró por el link)
-      const { error: updateError } = await supabase.auth.updateUser({
+      // 2. Le pedimos a Supabase que actualice la clave del usuario actual
+      const { error } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      setExito(true);
+      // 3. Éxito: Mostramos mensaje y redirigimos al Login Admin
+      setMensaje('¡Contraseña actualizada con éxito! Redirigiendo...');
       
-      // Por seguridad, cerramos la sesión para obligarlo a entrar con su nueva clave
-      await supabase.auth.signOut();
-      
-      // Lo mandamos al inicio después de 3 segundos
+      // Esperamos 2 segundos para que el usuario lea el mensaje y lo mandamos al login
       setTimeout(() => {
-        navigate('/');
-      }, 3000);
+        navigate('/login-admin');
+      }, 2000);
 
-    } catch (err) {
-      console.error("Error al actualizar contraseña:", err.message);
-      setError('Hubo un error al guardar. Es posible que el enlace haya expirado.');
+    } catch (error) {
+      console.error("Error al actualizar:", error);
+      setError('Hubo un error al actualizar tu contraseña. Es posible que el enlace haya expirado.');
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="actualizar-container">
-      <div className="actualizar-card dark-mode">
+    <div className="actualizar-page">
+      <div className="actualizar-card">
         
-        <div className="form-header-premium">
-          <div className="icono-header-wrapper">
-            {exito ? <CheckCircle size={26} color="#22c55e" /> : <KeyRound size={26} />}
+        <div className="actualizar-header">
+          <div className="icono-wrapper">
+            <KeyRound size={32} />
           </div>
-          <h2 style={{color: '#ffffff'}}>Nueva Contraseña</h2>
-          <p style={{color: '#9ca3af'}}>
-            {exito ? '¡Todo listo!' : 'Ingresá una nueva clave para tu cuenta'}
-          </p>
+          <h1>Nueva Contraseña</h1>
+          <p>Ingresá una nueva clave para tu cuenta</p>
         </div>
 
         {error && <div className="alerta-error">{error}</div>}
+        {mensaje && <div className="alerta-exito">{mensaje}</div>}
 
-        {exito ? (
-          <div className="mensaje-exito-final">
-            <p>Tu contraseña se actualizó correctamente.</p>
-            <p className="redireccion-texto">Redirigiendo al inicio de sesión...</p>
+        <form onSubmit={handleSubmit}>
+          
+          <div className="form-group-act">
+            <label>Nueva Contraseña</label>
+            <div className="input-box-act">
+              <Lock size={20} className="input-icon-act" />
+              <input 
+                type="password" 
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                disabled={mensaje !== null} // Se bloquea si ya tuvo éxito
+              />
+            </div>
           </div>
-        ) : (
-          <form onSubmit={handleActualizar} className="login-form">
-            <div className="form-group">
-              <label className="form-label">Nueva Contraseña</label>
-              <div className="input-con-icono">
-                <Lock size={18} className="input-icono" />
-                <input 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  placeholder="Mínimo 6 caracteres" 
-                  className="form-input con-padding" 
-                  required 
-                />
-              </div>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Confirmar Contraseña</label>
-              <div className="input-con-icono">
-                <Lock size={18} className="input-icono" />
-                <input 
-                  type="password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  placeholder="Repetí la contraseña" 
-                  className="form-input con-padding" 
-                  required 
-                />
-              </div>
+          <div className="form-group-act">
+            <label>Confirmar Contraseña</label>
+            <div className="input-box-act">
+              <Lock size={20} className="input-icon-act" />
+              <input 
+                type="password" 
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repetí la contraseña"
+                disabled={mensaje !== null}
+              />
             </div>
+          </div>
 
-            <div className="login-acciones" style={{marginTop: '25px'}}>
-              <button 
-                type="button" 
-                onClick={() => navigate('/')} 
-                className="btn-volver-sutil" 
-                disabled={cargando}
-              >
-                <ArrowLeft size={18} /> Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="btn-entrar-principal verde" 
-                disabled={cargando || !!error.includes('expiró')}
-              >
-                {cargando ? 'Guardando...' : 'Actualizar Clave'}
-              </button>
-            </div>
-          </form>
-        )}
+          <button 
+            type="submit" 
+            className="btn-actualizar" 
+            disabled={cargando || mensaje !== null}
+          >
+            {cargando ? 'Guardando...' : 'Actualizar Clave'}
+          </button>
+          
+          <button 
+            type="button" 
+            onClick={() => navigate('/login-admin')} 
+            className="btn-cancelar"
+            disabled={cargando || mensaje !== null}
+          >
+            <ArrowLeft size={16} /> Cancelar y volver
+          </button>
+
+        </form>
       </div>
     </div>
   );
