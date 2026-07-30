@@ -790,3 +790,129 @@ Estos estilos solo se activan en pantallas chicas
     display: none; 
   }
 }
+
+/* =========================================
+   Footer Institucional
+   ========================================= */
+.landing-footer {
+  background-color: #0f172a;
+  padding: 60px 20px 40px 20px;
+  color: white;
+  text-align: center;
+  border-top: 1px solid #1e293b;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.footer-tagline {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.footer-contacto {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  text-decoration: none;
+  background-color: #1e293b;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.footer-link:hover {
+  background-color: #22c55e;
+  transform: translateY(-2px);
+}
+
+.footer-divisor {
+  width: 100%;
+  height: 1px;
+  background-color: #1e293b;
+  margin-bottom: 24px;
+}
+
+.footer-copyright {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+
+/* =========================================
+   Burbuja WhatsApp Flotante (Izquierda)
+   ========================================= */
+.burbuja-whatsapp {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1000;
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.burbuja-whatsapp:hover {
+  transform: translateY(-5px) scale(1.05);
+}
+
+.burbuja-icono-wp {
+  background-color: #25D366; /* Verde Oficial de WhatsApp */
+  color: white;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(37, 211, 102, 0.4);
+}
+
+
+/* Ajustes Responsive para las Burbujas y el Footer */
+@media (max-width: 768px) {
+  .footer-contacto {
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+  
+  .footer-link {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .burbuja-whatsapp {
+    bottom: 20px;
+    left: 20px;
+  }
+  
+  .burbuja-icono-wp {
+    width: 55px;
+    height: 55px;
+  }
+}

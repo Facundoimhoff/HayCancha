@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
+import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Building2, Instagram, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
 
@@ -18,31 +18,12 @@ export default function LandingPage() {
     "Tucumán", "Ciudad Autónoma de Buenos Aires"
   ];
 
-  const provinciasFiltradas = provincias.filter(provincia => 
-    provincia.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
   const deportes = [
-    { 
-      nombre: "FÚTBOL", 
-      img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
-    },
-    { 
-      nombre: "TENIS", 
-      img: "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop" 
-    },
-    { 
-      nombre: "PÁDEL", 
-      img: "https://plus.unsplash.com/premium_photo-1708692919998-e3dc853ef8a8?q=80&w=2000&auto=format&fit=crop" 
-    },
-    { 
-      nombre: "VÓLEY", 
-      img: "https://plus.unsplash.com/premium_photo-1708696216326-0317bac37b82?q=80&w=2000&auto=format&fit=crop" 
-    },
-    { 
-      nombre: "BEACH VÓLEY", 
-      img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" 
-    }
+    { nombre: "FÚTBOL", img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "TENIS", img: "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "PÁDEL", img: "https://plus.unsplash.com/premium_photo-1708692919998-e3dc853ef8a8?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "VÓLEY", img: "https://plus.unsplash.com/premium_photo-1708696216326-0317bac37b82?q=80&w=2000&auto=format&fit=crop" },
+    { nombre: "BEACH VÓLEY", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" }
   ];
 
   const nextSlide = () => setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
@@ -84,6 +65,11 @@ export default function LandingPage() {
     }
   };
 
+  // Mensaje predeterminado para WhatsApp
+  const numeroWhatsApp = "5493564609641"; 
+  const mensajeWhatsApp = "Hola GridPlay! Tengo un complejo deportivo y me gustaría conocer más sobre el sistema para sumar mi club.";
+  const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+
   return (
     <div className="landing-desktop">
       
@@ -93,20 +79,8 @@ export default function LandingPage() {
             GridPlay<span className="text-green">.</span>
           </div>
           <div className="nav-buttons">
-            <button className="btn-nav" onClick={() => scrollToSection('provincias')}>
-              Explorar
-            </button>
-            <button className="btn-nav" onClick={() => scrollToSection('contacto')}>
-              Contacto
-            </button>
-            {/* BOTÓN "SOY ADMIN" AGREGADO ACÁ */}
-            <button 
-              className="btn-nav" 
-              onClick={() => navigate('/login-admin')}
-              style={{ fontWeight: 'bold', border: '1px solid #22c55e', color: '#22c55e', borderRadius: '8px', padding: '8px 16px' }}
-            >
-              Soy Admin
-            </button>
+            <button className="btn-nav" onClick={() => scrollToSection('provincias')}>Explorar</button>
+            <button className="btn-nav" onClick={() => scrollToSection('contacto')}>Contacto</button>
           </div>
         </nav>
 
@@ -163,29 +137,20 @@ export default function LandingPage() {
         <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
         
         <div className="carousel-container">
-          <button onClick={prevSlide} className="carousel-btn left" type="button">
-            <ChevronLeft size={28} />
-          </button>
+          <button onClick={prevSlide} className="carousel-btn left" type="button"><ChevronLeft size={28} /></button>
           
           <div className="carousel-track-wrapper">
-            <div 
-              className="carousel-track" 
-              style={{ transform: `translateX(-${slideIndex * 100}%)` }}
-            >
+            <div className="carousel-track" style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
               {deportes.map((dep, idx) => (
                 <div key={idx} className="carousel-slide">
                   <img src={dep.img} alt={dep.nombre} />
-                  <div className="slide-overlay">
-                    <h3>{dep.nombre}</h3>
-                  </div>
+                  <div className="slide-overlay"><h3>{dep.nombre}</h3></div>
                 </div>
               ))}
             </div>
           </div>
 
-          <button onClick={nextSlide} className="carousel-btn right" type="button">
-            <ChevronRight size={28} />
-          </button>
+          <button onClick={nextSlide} className="carousel-btn right" type="button"><ChevronRight size={28} /></button>
         </div>
       </section>
 
@@ -210,45 +175,55 @@ export default function LandingPage() {
             ) : (
               <form onSubmit={manejarEnvio} className="contact-form">
                 <div className="form-group">
-                  <input 
-                    type="text" 
-                    name="nombre" 
-                    required 
-                    placeholder="Tu Nombre / Empresa" 
-                    className="sport-input" 
-                  />
+                  <input type="text" name="nombre" required placeholder="Tu Nombre / Empresa" className="sport-input" />
                 </div>
-                
                 <div className="form-group">
-                  <input 
-                    type="email" 
-                    name="email" 
-                    required 
-                    placeholder="Email de contacto" 
-                    className="sport-input" 
-                  />
+                  <input type="email" name="email" required placeholder="Email de contacto" className="sport-input" />
                 </div>
-
                 <div className="form-group">
-                  <textarea 
-                    name="mensaje" 
-                    required 
-                    rows="4" 
-                    placeholder="Dejanos tu comentario..." 
-                    className="sport-input sport-textarea"
-                  ></textarea>
+                  <textarea name="mensaje" required rows="4" placeholder="Dejanos tu comentario..." className="sport-input sport-textarea"></textarea>
                 </div>
-
-                <button type="submit" className="btn-submit-sport">
-                  ENVIAR MENSAJE <Send size={18} />
-                </button>
+                <button type="submit" className="btn-submit-sport">ENVIAR MENSAJE <Send size={18} /></button>
               </form>
             )}
           </div>
         </div>
       </section>
-      
-      {/* BURBUJA FLOTANTE PARA DUEÑOS DE CLUBES */}
+
+      {/* --- FOOTER INSTITUCIONAL --- */}
+      <footer className="landing-footer">
+        <div className="footer-content">
+          <div className="footer-logo">GridPlay<span className="text-green">.</span></div>
+          <p className="footer-tagline">Hecho 100% para complejos deportivos.</p>
+          
+          <div className="footer-contacto">
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="footer-link">
+              <Instagram size={20} /> @gridplay.app
+            </a>
+            <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
+              <Phone size={20} /> 3564-609641
+            </a>
+          </div>
+          
+          <div className="footer-divisor"></div>
+          
+          <div className="footer-copyright">
+            <p>© 2026 GridPlay. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* BURBUJA WHATSAPP (Izquierda) */}
+      <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="burbuja-whatsapp">
+        <div className="burbuja-icono-wp">
+          {/* SVG de WhatsApp Oficial */}
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="white">
+            <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.183 1.603 6L.516 23.484l5.603-1.47c1.745.96 3.722 1.47 5.912 1.47 6.646 0 12.031-5.385 12.031-12.031C24 5.385 18.615 0 12.031 0zm3.625 17.156c-.156.44-1.281 1.094-1.844 1.156-.563.063-1.094.22-3.156-.562-2.47-1-4.063-3.625-4.188-3.781-.125-.156-1-1.344-1-2.563s.625-1.781.844-2.031c.219-.25.563-.312.75-.312.188 0 .375.031.531.406.188.438.625 1.563.688 1.688.063.125.125.312.031.5-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.25-.125.531.156.281.688 1.156 1.469 1.844.969.875 1.813 1.156 2.094 1.281.281.125.438.094.625-.094.188-.188.75-.875.938-1.188.188-.312.375-.25.625-.156.25.094 1.563.75 1.844.875.281.125.469.188.531.281.063.125.063.688-.094 1.125z"/>
+          </svg>
+        </div>
+      </a>
+
+      {/* BURBUJA ADMIN (Derecha) */}
       <div className="burbuja-admin" onClick={() => navigate('/login-admin')}>
         <span className="burbuja-texto">¿Tenés un club? Sumalo acá</span>
         <div className="burbuja-icono">
