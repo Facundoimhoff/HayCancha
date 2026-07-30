@@ -87,7 +87,7 @@ const RegistroClub = () => {
       if (clubError) throw clubError;
 
       alert("¡Bienvenido a la familia! Tu club se registró con éxito. Por favor, iniciá sesión para empezar a cargar tus canchas.");
-      navigate('/login'); 
+      navigate('/login-admin'); 
 
     } catch (error) {
       console.error("Error al registrar:", error);

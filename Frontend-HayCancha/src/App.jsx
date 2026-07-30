@@ -46,7 +46,7 @@ function App() {
         <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
         <Route path="/seleccionar-ubicacion/:provincia" element={<SeleccionUbicacion />} />
 
-        <Route path="/dashboard" element={<RegistroClub />} />
+        <Route path="/registro-club" element={<RegistroClub />} />
 
         <Route path="/actualizar-password" element={<ActualizarPassword />} />
 
