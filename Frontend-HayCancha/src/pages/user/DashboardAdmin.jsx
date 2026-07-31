@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -28,7 +28,13 @@ const DashboardAdmin = () => {
   const [proximosTurnos, setProximosTurnos] = useState([]);
   const [turnosPasados, setTurnosPasados] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
-  
+  const [menuMobileAbierto, setMenuMobileAbierto] = useState(false);
+
+  const cambiarVista = (vista) => {
+    setVistaActual(vista);
+    setMenuMobileAbierto(false);
+  };
+
   // ESTADOS PARA MÚLTIPLES IMÁGENES
   const [imagenCanchaFiles, setImagenCanchaFiles] = useState([]);
   const [imagenCanchaEditFiles, setImagenCanchaEditFiles] = useState([]);
@@ -586,12 +592,23 @@ const DashboardAdmin = () => {
             )}
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad">
+                <Pie 
+                  data={datosFiltrados} 
+                  cx="50%" cy="50%" 
+                  innerRadius={60} outerRadius={100} 
+                  paddingAngle={5} 
+                  dataKey="cantidad"
+                  nameKey="nombre" /* <--- ESTO ARREGLA LA LEYENDA */
+                >
                   {datosFiltrados.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                {/* ESTO ARREGLA LO QUE SE VE AL PASAR EL MOUSE (HOVER) */}
+                <Tooltip 
+                  formatter={(value, name) => [`${value} turnos`, name]} 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} 
+                />
                 <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
@@ -678,23 +695,49 @@ const DashboardAdmin = () => {
 
   return (
     <div className="dashboard-container">
-      <aside className="sidebar-enterprise">
+      
+      {/* ==================================================== */}
+      {/* 1. NUEVA BARRA SUPERIOR (SOLO PARA CELULARES)        */}
+      {/* ==================================================== */}
+      <div className="mobile-topbar-enterprise">
+        <div className="logo-empresa" style={{ fontSize: '1.4rem' }}>
+          GridPlay<span className="dot-green">.</span>
+        </div>
+        <button className="btn-hamburguesa" onClick={() => setMenuMobileAbierto(true)}>
+          <Menu size={28} />
+        </button>
+      </div>
+
+      {/* FONDO OSCURO (Aparece cuando abrís el menú en el celu) */}
+      {menuMobileAbierto && (
+        <div className="sidebar-overlay" onClick={() => setMenuMobileAbierto(false)}></div>
+      )}
+
+      {/* ==================================================== */}
+      {/* 2. SIDEBAR (CON LÓGICA PARA OCULTARSE EN MÓVIL)      */}
+      {/* ==================================================== */}
+      <aside className={`sidebar-enterprise ${menuMobileAbierto ? 'abierto' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-empresa">
             GridPlay<span className="dot-green">.</span>
           </div>
           {miClub && <p className="club-name-enterprise">{miClub.nombre}</p>}
+          
+          {/* BOTÓN X PARA CERRAR EL MENÚ EN EL CELU */}
+          <button className="btn-cerrar-sidebar-mobile" onClick={() => setMenuMobileAbierto(false)}>
+            <X size={24} color="#94a3b8" />
+          </button>
         </div>
         
         <nav className="sidebar-nav">
           <span className="nav-section-title">MENÚ PRINCIPAL</span>
-          <button className={`nav-item-enterprise ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => setVistaActual('general')}><LayoutDashboard size={20} /> Vista General</button>
-          <button className={`nav-item-enterprise ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}><BarChart3 size={20} /> Reportes</button>
-          <button className={`nav-item-enterprise ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}><Users size={20} /> Clientes</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => cambiarVista('general')}><LayoutDashboard size={20} /> Vista General</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => cambiarVista('metricas')}><BarChart3 size={20} /> Reportes</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => cambiarVista('clientes')}><Users size={20} /> Clientes</button>
           
           <span className="nav-section-title mt-4">CONFIGURACIÓN</span>
-          <button className={`nav-item-enterprise ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}><Settings size={20} /> Canchas</button>
-          <button className={`nav-item-enterprise ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => setVistaActual('perfil')}><Building size={20} /> Mi Club</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => cambiarVista('ajustes')}><Settings size={20} /> Canchas</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => cambiarVista('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
         
         <button className="btn-salir-enterprise" onClick={cerrarSesion}><LogOut size={20} /> Cerrar Sesión</button>

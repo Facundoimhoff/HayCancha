@@ -760,3 +760,104 @@
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================================
+   ESTILOS PARA EL MENÚ MÓVIL (Hamburguesa)
+   ========================================= */
+
+/* Ocultamos elementos móviles en PC */
+.mobile-topbar-enterprise { display: none; }
+.sidebar-overlay { display: none; }
+.btn-cerrar-sidebar-mobile { display: none; }
+
+@media (max-width: 900px) {
+  .metricas-charts-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { flex-direction: column; }
+  
+  /* BARRA SUPERIOR FIJA */
+  .mobile-topbar-enterprise {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f172a;
+    padding: 16px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 900;
+    box-sizing: border-box;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+
+  .btn-hamburguesa {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* SIDEBAR OCULTO Y DESLIZABLE */
+  .sidebar-enterprise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Deslizamiento suave */
+  }
+
+  /* Clase que activa JavaScript cuando tocás el botón */
+  .sidebar-enterprise.abierto {
+    transform: translateX(0);
+  }
+
+  .btn-cerrar-sidebar-mobile {
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    padding: 0;
+  }
+
+  /* FONDO OSCURO ATRÁS DEL MENÚ */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 950;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* EMPUJAMOS EL CONTENIDO PARA ABAJO POR LA BARRA SUPERIOR */
+  .main-content-enterprise { 
+    padding: 100px 20px 20px 20px; 
+  }
+  
+  .modal-content { 
+    max-width: 90%; 
+    padding: 24px; 
+  }
+}
