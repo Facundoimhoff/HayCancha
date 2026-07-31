@@ -432,3 +432,85 @@
     flex-direction: column;
   }
 }
+
+/* =========================================
+   AJUSTES RESPONSIVE (CELULARES) PARA PLANES
+   Magia CRO (Optimización de Conversión)
+   ========================================= */
+@media (max-width: 768px) {
+  
+  /* Hacemos que la disposición cambie a columna (uno arriba del otro) */
+  .planes-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 20px 15px;
+  }
+
+  /* TRUCO VITAL: Mandamos la tarjeta de pago ARRIBA de todo */
+  .planes-card-section {
+    order: 1; /* Aparece primero */
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* La información secundaria y la foto van ABAJO de la tarjeta */
+  .planes-info-section {
+    order: 2; /* Aparece después */
+    text-align: center;
+  }
+
+  /* Estilizamos la tarjeta para que sea hiper-premium en celular */
+  .plan-card-premium {
+    padding: 30px 20px;
+    border: 3px solid #22c55e; /* Borde verde fuerte */
+    box-shadow: 0 15px 35px -5px rgba(34, 197, 94, 0.25); /* Sombra verde */
+    transform: scale(1);
+    margin-top: 10px;
+  }
+
+  .plan-card-premium:hover {
+    transform: scale(1.02); /* Pequeño salto al tocarla */
+  }
+
+  /* Acomodamos los textos descriptivos que ahora están abajo */
+  .planes-titulo-main {
+    font-size: 2.2rem;
+    line-height: 1.1;
+  }
+
+  .badge-exclusivo {
+    margin: 0 auto 15px auto;
+  }
+
+  /* La grilla de beneficios a 1 sola columna en celular */
+  .beneficios-grid {
+    grid-template-columns: 1fr;
+    text-align: left;
+    gap: 16px;
+  }
+
+  /* Ajustes para la foto de la cancha de padel */
+  .planes-imagen-contexto {
+    height: 250px;
+    margin-top: 30px;
+  }
+
+  /* El formulario de Dudas más encuadrado */
+  .planes-dudas-section {
+    padding: 40px 15px;
+  }
+
+  .dudas-header h2 {
+    font-size: 1.8rem;
+  }
+
+  .dudas-inputs-row {
+    flex-direction: column; /* Inputs de contacto apilados */
+    gap: 12px;
+  }
+
+  .btn-enviar-duda {
+    width: 100%;
+  }
+}
