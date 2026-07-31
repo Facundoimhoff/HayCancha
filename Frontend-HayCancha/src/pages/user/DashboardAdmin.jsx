@@ -4,11 +4,16 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle 
+  Building, MapPin, Map, CheckCircle, Download, FileText
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../../index.css';
 import './DashboardAdmin.css';
+
+const COLORES_GRAFICO = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -19,7 +24,7 @@ const DashboardAdmin = () => {
   const [miClub, setMiClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [clientes, setClientes] = useState([]);
-  const [turnosTotales, setTurnosTotales] = useState([]); // <-- NUEVO: Guardamos TODOS los turnos para el gráfico
+  const [turnosTotales, setTurnosTotales] = useState([]);
   const [proximosTurnos, setProximosTurnos] = useState([]);
   const [turnosPasados, setTurnosPasados] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
@@ -27,12 +32,7 @@ const DashboardAdmin = () => {
   const [imagenCanchaFile, setImagenCanchaFile] = useState(null);
   const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState(null);
 
-  const [metricas, setMetricas] = useState({ 
-    ingresosDia: 0, 
-    ingresosSemana: 0, 
-    ingresosMes: 0, 
-    turnosMes: 0 
-  });
+  const [metricas, setMetricas] = useState({ ingresosDia: 0, ingresosSemana: 0, ingresosMes: 0, turnosMes: 0 });
 
   const [mostrarModal, setMostrarModal] = useState(false);
   const [formTurno, setFormTurno] = useState({ cancha_id: '', fecha: '', hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
@@ -41,16 +41,11 @@ const DashboardAdmin = () => {
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
-  const [formCancha, setFormCancha] = useState({ 
-    nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
-  });
+  const [formCancha, setFormCancha] = useState({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
-  const [canchaEditando, setCanchaEditando] = useState({ 
-    id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
-  });
+  const [canchaEditando, setCanchaEditando] = useState({ id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
-  // <-- NUEVO: Estado para el modal de Detalles
   const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
 
@@ -81,8 +76,7 @@ const DashboardAdmin = () => {
       const semanaStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
 
       const { data: turnosData } = await supabase.from('turnos').select('*').in('cancha_id', canchasData.map(c => c.id)).order('fecha', { ascending: true }).order('hora_inicio', { ascending: true });
-
-      setTurnosTotales(turnosData || []); // Guardamos TODOS para usarlos en el gráfico luego
+      setTurnosTotales(turnosData || []);
 
       let iMes = 0, iSem = 0, iDia = 0, tMes = 0;
       const mapaClientes = {};
@@ -95,10 +89,7 @@ const DashboardAdmin = () => {
         const esBloqueo = t.telefono_cliente === 'BLOQUEO'; 
 
         if (!esBloqueo) {
-          if (t.fecha.startsWith(mesActualStr)) {
-            iMes += precio;
-            tMes += 1;
-          }
+          if (t.fecha.startsWith(mesActualStr)) { iMes += precio; tMes += 1; }
           if (t.fecha >= semanaStr) iSem += precio;
           if (t.fecha === hoyStr) iDia += precio;
 
@@ -130,7 +121,7 @@ const DashboardAdmin = () => {
     if(window.confirm(mensaje)) { 
       await supabase.from('turnos').delete().eq('id', id); 
       cargarDatos(); 
-      setMostrarModalDetalles(false); // Cierra el modal por si cancela desde adentro
+      setMostrarModalDetalles(false); 
     } 
   };
   
@@ -217,6 +208,64 @@ const DashboardAdmin = () => {
     } catch (err) { alert("Error inesperado al editar: " + err.message); }
   };
 
+  const exportarExcel = () => {
+    const dataAExportar = turnosTotales
+      .filter(t => t.telefono_cliente !== 'BLOQUEO')
+      .map(t => {
+        const canchaInfo = canchas.find(c => c.id === t.cancha_id);
+        return {
+          Fecha: t.fecha.split('-').reverse().join('/'),
+          Hora: t.hora_inicio,
+          Cliente: t.nombre_cliente,
+          Teléfono: t.telefono_cliente,
+          Cancha: canchaInfo?.nombre || 'Desconocida',
+          'Ingreso ($)': canchaInfo?.precio_hora || 0,
+        };
+      });
+
+    const ws = XLSX.utils.json_to_sheet(dataAExportar);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Métricas GridPlay");
+    XLSX.writeFile(wb, `Reporte_${miClub?.nombre.replace(/\s+/g, '_')}_${new Date().toLocaleDateString()}.xlsx`);
+  };
+
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(`Reporte de Ingresos - ${miClub?.nombre}`, 14, 20);
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    const tableData = turnosTotales
+      .filter(t => t.telefono_cliente !== 'BLOQUEO')
+      .map(t => {
+        const canchaInfo = canchas.find(c => c.id === t.cancha_id);
+        return [
+          t.fecha.split('-').reverse().join('/'),
+          t.hora_inicio,
+          t.nombre_cliente,
+          canchaInfo?.nombre || 'Desconocida',
+          `$${canchaInfo?.precio_hora || 0}`
+        ];
+      });
+
+    doc.autoTable({
+      head: [['Fecha', 'Hora', 'Cliente', 'Cancha', 'Ingreso']],
+      body: tableData,
+      startY: 35,
+      theme: 'striped',
+      headStyles: { fillColor: [15, 23, 42] }, // Slate-900 (Color empresarial)
+    });
+
+    doc.save(`Reporte_${miClub?.nombre.replace(/\s+/g, '_')}_${new Date().toLocaleDateString()}.pdf`);
+  };
+
+
+  /* ================= VISTAS DE PANTALLA ================= */
+
   const PantallaPerfil = () => {
     const [formPerfil, setFormPerfil] = useState({ nombre: miClub?.nombre || '', provincia: miClub?.provincia || '', ciudad: miClub?.ciudad || '' });
     const [guardando, setGuardando] = useState(false);
@@ -282,10 +331,13 @@ const DashboardAdmin = () => {
   const PantallaGeneral = () => (
     <div>
       <div className="general-header">
-        <h2>Vista General</h2>
+        <div>
+          <h2>Vista General</h2>
+          <p className="subtitle-header">Resumen de actividad de {mesActualNombre}</p>
+        </div>
         <div className="acciones-header">
           <button onClick={() => setMostrarModalBloqueo(true)} className="btn-accion bloqueo">
-            <Ban size={18} /> Bloquear
+            <Ban size={18} /> Bloquear Horario
           </button>
           <button onClick={() => setMostrarModal(true)} className="btn-accion nuevo">
             <Plus size={18} /> Nuevo Turno
@@ -297,8 +349,8 @@ const DashboardAdmin = () => {
         <div className="metrica-card">
           <div className="icono-box verde"><DollarSign size={24} color="#16a34a" /></div>
           <div className="metrica-info">
-            <p>Caja Acumulada</p>
-            <h3>${metricas.ingresosMes}</h3>
+            <p>Ingresos del Mes</p>
+            <h3>${metricas.ingresosMes.toLocaleString('es-AR')}</h3>
           </div>
         </div>
         <div className="metrica-card">
@@ -310,10 +362,9 @@ const DashboardAdmin = () => {
         </div>
       </div>
 
-      {/* --- SECCIÓN 1: TURNOS PRÓXIMOS --- */}
       <div className="seccion-turnos">
         <h3 className="titulo-seccion azul">
-          <Clock size={20} /> Turnos Próximos de {mesActualNombre}
+          <Clock size={20} /> Turnos Próximos
         </h3>
         <div className="turnos-lista">
           {proximosTurnos.length === 0 ? <p className="texto-ayuda">No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
@@ -326,37 +377,19 @@ const DashboardAdmin = () => {
                   {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
                 </p>
               </div>
-              
-              {/* BOTONERA TRIPLE */}
               <div className="turno-acciones-triple">
                 {!t.esBloqueo && (
                   <a 
                     href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn-accion-mini btn-recordatorio"
-                    title="Enviar recordatorio"
+                    target="_blank" rel="noopener noreferrer" className="btn-accion-mini btn-recordatorio" title="Enviar recordatorio"
                   >
                     <CheckCircle size={16} />
                   </a>
                 )}
-                
-                <button 
-                  onClick={() => {
-                    setTurnoSeleccionado(t);
-                    setMostrarModalDetalles(true);
-                  }}
-                  className="btn-accion-mini btn-detalles"
-                  title="Ver detalles"
-                >
+                <button onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); }} className="btn-accion-mini btn-detalles" title="Ver detalles">
                   <Users size={16} />
                 </button>
-                
-                <button 
-                  onClick={() => cancelarTurno(t.id, t.esBloqueo)}
-                  className="btn-accion-mini btn-eliminar"
-                  title={t.esBloqueo ? 'Liberar bloqueo' : 'Eliminar turno'}
-                >
+                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} className="btn-accion-mini btn-eliminar" title={t.esBloqueo ? 'Liberar bloqueo' : 'Eliminar turno'}>
                   <Ban size={16} />
                 </button>
               </div>
@@ -364,41 +397,10 @@ const DashboardAdmin = () => {
           ))}
         </div>
       </div>
-
-      {/* --- SECCIÓN 2: TURNOS JUGADOS --- */}
-      <div className="seccion-turnos">
-        <h3 className="titulo-seccion verde">
-          <CheckCircle size={20} /> Turnos Jugados de {mesActualNombre}
-        </h3>
-        <div className="turnos-lista">
-          {turnosPasados.length === 0 ? (
-            <p className="texto-ayuda">Todavía no hay turnos completados en este mes.</p>
-          ) : (
-            turnosPasados.map(t => (
-              <div key={t.id} className="turno-item pasado">
-                <div>
-                  <p className="turno-nombre">
-                    {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
-                  </p>
-                  <p className="turno-detalle">
-                    {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
-                  </p>
-                </div>
-                {!t.esBloqueo && (
-                  <div className="badge-ingreso">
-                    + ${t.precio}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 
   const PantallaMetricas = () => { 
-    // <-- NUEVO: Cálculo dinámico de datos del gráfico con useMemo
     const datosFiltrados = useMemo(() => {
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -407,13 +409,11 @@ const DashboardAdmin = () => {
       monday.setDate(now.getDate() - day + 1);
       const semanaStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
 
-      // Reiniciamos las ganancias de todas las canchas a 0
       const ganCancha = {};
-      canchas.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0 });
+      canchas.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0, cantidad: 0 });
 
-      // Filtramos sobre TODOS los turnos cargados
       turnosTotales.forEach(t => {
-        if (t.telefono_cliente === 'BLOQUEO') return; // No sumamos mantenimientos
+        if (t.telefono_cliente === 'BLOQUEO') return; 
         
         let cumpleFiltro = false;
         if (filtroTiempo === 'dia' && t.fecha === hoyStr) cumpleFiltro = true;
@@ -423,6 +423,7 @@ const DashboardAdmin = () => {
         if (cumpleFiltro && ganCancha[t.cancha_id]) {
           const c = canchas.find(x => x.id === t.cancha_id);
           ganCancha[t.cancha_id].ganancias += c ? Number(c.precio_hora) : 0;
+          ganCancha[t.cancha_id].cantidad += 1;
         }
       });
 
@@ -433,25 +434,63 @@ const DashboardAdmin = () => {
 
     return (
       <div>
-        <div className="metricas-header">
-          <h2>Análisis de Ingresos</h2>
-          <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="select-filtro">
+        <div className="general-header">
+          <div>
+            <h2>Reportes Financieros</h2>
+            <p className="subtitle-header">Análisis de ingresos y rendimiento</p>
+          </div>
+          <div className="acciones-header">
+            <button onClick={exportarPDF} className="btn-accion export-pdf">
+              <FileText size={18} /> Exportar PDF
+            </button>
+            <button onClick={exportarExcel} className="btn-accion export-excel">
+              <Download size={18} /> Exportar Excel
+            </button>
+          </div>
+        </div>
+
+        <div className="metricas-filtros-bar">
+          <span className="filtro-label">Filtrar por:</span>
+          <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="select-filtro-enterprise">
             <option value="dia">Hoy</option>
             <option value="semana">Esta Semana</option>
             <option value="mes">Este Mes</option>
           </select>
         </div>
-        <div className="grafico-container">
-          <h3 className="grafico-titulo">${totalCalculado} Recaudado</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={datosFiltrados}>
-              <CartesianGrid strokeDasharray="3 3"/>
-              <XAxis dataKey="nombre"/>
-              <YAxis/>
-              <Tooltip/>
-              <Bar dataKey="ganancias" fill="#3b82f6"/>
-            </BarChart>
-          </ResponsiveContainer>
+
+        <div className="metricas-charts-grid">
+          <div className="grafico-container">
+            <div className="grafico-header">
+              <h3 className="grafico-titulo">Ingresos por Cancha</h3>
+              <span className="grafico-total-badge">${totalCalculado.toLocaleString('es-AR')}</span>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={datosFiltrados} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0"/>
+                <XAxis dataKey="nombre" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(value) => `$${value}`} />
+                <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}/>
+                <Bar dataKey="ganancias" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grafico-container">
+            <div className="grafico-header">
+              <h3 className="grafico-titulo">Distribución de Turnos</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad">
+                  {datosFiltrados.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                <Legend verticalAlign="bottom" height={36}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     );
@@ -459,32 +498,46 @@ const DashboardAdmin = () => {
 
   const PantallaClientes = () => ( 
     <div className="clientes-wrapper">
-      <h2>Clientes Frecuentes</h2>
-      <table className="tabla-clientes">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Total Turnos</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clientes.map((c, i) => (
-            <tr key={i}>
-              <td>{c.nombre}</td>
-              <td>{c.telefono}</td>
-              <td><span className="badge-turnos">{c.cant} turnos</span></td>
+      <div className="general-header">
+        <div>
+          <h2>Base de Clientes</h2>
+          <p className="subtitle-header">Directorio de jugadores registrados</p>
+        </div>
+      </div>
+      <div className="tabla-container-enterprise">
+        <table className="tabla-clientes-enterprise">
+          <thead>
+            <tr>
+              <th>Nombre del Jugador</th>
+              <th>Teléfono de Contacto</th>
+              <th>Actividad</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {clientes.map((c, i) => (
+              <tr key={i}>
+                <td className="fw-bold text-slate-800">{c.nombre}</td>
+                <td>
+                  <a href={`https://wa.me/${c.telefono}`} target="_blank" rel="noopener noreferrer" className="link-whatsapp-tabla">
+                    {c.telefono}
+                  </a>
+                </td>
+                <td><span className="badge-turnos-enterprise">{c.cant} turnos</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
   const PantallaAjustes = () => ( 
     <div>
       <header className="content-header">
-        <h1>Mis Canchas</h1>
+        <div>
+          <h2>Gestión de Canchas</h2>
+          <p className="subtitle-header">Administrá instalaciones y precios</p>
+        </div>
         <button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}>
           <Plus size={18} /> Agregar Cancha
         </button>
@@ -492,15 +545,16 @@ const DashboardAdmin = () => {
       
       <div className="canchas-list">
         {canchas.map(c => (
-          <div key={c.id} className="cancha-card">
+          <div key={c.id} className="cancha-card-enterprise">
             <div className={`cancha-imagen-placeholder ${c.imagen_url ? 'con-imagen' : ''}`}>
-              {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImageIcon color="#9ca3af" size={32} />}
+              {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} /> : <ImageIcon color="#9ca3af" size={32} />}
             </div>
             <div className="cancha-info">
               <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
-              <p>${c.precio_hora} / hora • ⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
+              <p className="cancha-precio-badge">${c.precio_hora} / hora</p>
+              <p className="cancha-horario">⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
             </div>
-            <button className="btn-editar" onClick={() => abrirModalEditar(c)} title="Editar información">
+            <button className="btn-editar-enterprise" onClick={() => abrirModalEditar(c)} title="Editar información">
               <Edit size={20} />
             </button>
           </div>
@@ -514,27 +568,36 @@ const DashboardAdmin = () => {
 
   return (
     <div className="dashboard-container">
-      <aside className="sidebar">
+      <aside className="sidebar-enterprise">
         <div className="sidebar-header">
-          <h2>Panel Admin</h2>
-          {miClub && <p className="club-name">{miClub.nombre}</p>}
+          <div className="logo-empresa">
+            GridPlay<span className="dot-green">.</span>
+          </div>
+          {miClub && <p className="club-name-enterprise">{miClub.nombre}</p>}
         </div>
+        
         <nav className="sidebar-nav">
-          <button className={`nav-item ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => setVistaActual('general')}><LayoutDashboard size={20} /> General</button>
-          <button className={`nav-item ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}><BarChart3 size={20} /> Métricas</button>
-          <button className={`nav-item ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}><Users size={20} /> Clientes</button>
-          <button className={`nav-item ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}><Settings size={20} /> Canchas</button>
-          <button className={`nav-item ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => setVistaActual('perfil')}><Building size={20} /> Mi Club</button>
+          <span className="nav-section-title">MENÚ PRINCIPAL</span>
+          <button className={`nav-item-enterprise ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => setVistaActual('general')}><LayoutDashboard size={20} /> Vista General</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => setVistaActual('metricas')}><BarChart3 size={20} /> Reportes</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'clientes' ? 'active' : ''}`} onClick={() => setVistaActual('clientes')}><Users size={20} /> Clientes</button>
+          
+          <span className="nav-section-title mt-4">CONFIGURACIÓN</span>
+          <button className={`nav-item-enterprise ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => setVistaActual('ajustes')}><Settings size={20} /> Canchas</button>
+          <button className={`nav-item-enterprise ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => setVistaActual('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
-        <button className="btn-salir" onClick={cerrarSesion}><LogOut size={20} /> Salir</button>
+        
+        <button className="btn-salir-enterprise" onClick={cerrarSesion}><LogOut size={20} /> Cerrar Sesión</button>
       </aside>
 
-      <main className="main-content">
-        {vistaActual === 'general' && <PantallaGeneral />}
-        {vistaActual === 'metricas' && <PantallaMetricas />}
-        {vistaActual === 'clientes' && <PantallaClientes />}
-        {vistaActual === 'ajustes' && <PantallaAjustes />}
-        {vistaActual === 'perfil' && <PantallaPerfil />}
+      <main className="main-content-enterprise">
+        <div className="content-wrapper">
+          {vistaActual === 'general' && <PantallaGeneral />}
+          {vistaActual === 'metricas' && <PantallaMetricas />}
+          {vistaActual === 'clientes' && <PantallaClientes />}
+          {vistaActual === 'ajustes' && <PantallaAjustes />}
+          {vistaActual === 'perfil' && <PantallaPerfil />}
+        </div>
       </main>
 
       {/* --- MODALES --- */}
@@ -542,16 +605,14 @@ const DashboardAdmin = () => {
       {mostrarModalDetalles && turnoSeleccionado && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: '#0f172a' }}>
               <Users size={20} color="#2563eb" /> Detalles del Turno
             </h3>
             
-            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
+            <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '16px' }}>
               <div className="detalle-item">
                 <span className="detalle-label">Cliente:</span>
-                <span className="detalle-valor">
-                  {turnoSeleccionado.esBloqueo ? turnoSeleccionado.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:') : turnoSeleccionado.nombre_cliente}
-                </span>
+                <span className="detalle-valor">{turnoSeleccionado.esBloqueo ? turnoSeleccionado.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:') : turnoSeleccionado.nombre_cliente}</span>
               </div>
               <div className="detalle-item">
                 <span className="detalle-label">Teléfono:</span>
@@ -570,22 +631,17 @@ const DashboardAdmin = () => {
                 <span className="detalle-valor">{turnoSeleccionado.nombre_cancha}</span>
               </div>
               {!turnoSeleccionado.esBloqueo && (
-                <div className="detalle-item" style={{ borderTop: '2px solid #e2e8f0', marginTop: '8px', paddingTop: '12px' }}>
+                <div className="detalle-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px' }}>
                   <span className="detalle-label" style={{ color: '#16a34a' }}>Precio a cobrar:</span>
                   <span className="detalle-valor" style={{ color: '#16a34a', fontSize: '1.2rem', fontWeight: 'bold' }}>${turnoSeleccionado.precio}</span>
                 </div>
               )}
             </div>
 
-            <div className="modal-acciones" style={{ marginTop: '5px' }}>
-              <button onClick={() => setMostrarModalDetalles(false)} className="btn-modal secundario">
-                Cerrar
-              </button>
+            <div className="modal-acciones" style={{ marginTop: '16px' }}>
+              <button onClick={() => setMostrarModalDetalles(false)} className="btn-modal secundario">Cerrar</button>
               {!turnoSeleccionado.esBloqueo && (
-                <button 
-                  onClick={() => cancelarTurno(turnoSeleccionado.id, turnoSeleccionado.esBloqueo)} 
-                  className="btn-modal advertencia" style={{ backgroundColor: '#ef4444' }}
-                >
+                <button onClick={() => cancelarTurno(turnoSeleccionado.id, turnoSeleccionado.esBloqueo)} className="btn-modal advertencia" style={{ backgroundColor: '#ef4444' }}>
                   Cancelar Turno
                 </button>
               )}
@@ -598,16 +654,33 @@ const DashboardAdmin = () => {
         <div className="modal-overlay">
           <form onSubmit={crearTurnoManual} className="modal-content">
             <h3>Nuevo Turno Manual</h3>
-            <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} className="modal-input solo" />
-            <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} className="modal-input solo" />
-            <input type="text" placeholder="Nombre Cliente" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} className="modal-input solo" />
-            <input type="text" placeholder="Teléfono" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} className="modal-input solo" />
-            <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})} className="modal-input solo">
-              <option value="">Seleccionar cancha...</option>
-              {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-            <div className="modal-acciones">
-              <button type="submit" className="btn-modal primario">Guardar</button>
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Fecha</label>
+                <input type="date" required onChange={(e) => setFormTurno({...formTurno, fecha: e.target.value})} className="modal-input solo" />
+              </div>
+              <div className="modal-col">
+                <label className="modal-label">Hora</label>
+                <input type="time" required onChange={(e) => setFormTurno({...formTurno, hora_inicio: e.target.value})} className="modal-input solo" />
+              </div>
+            </div>
+            <div>
+              <label className="modal-label">Cancha</label>
+              <select required onChange={(e) => setFormTurno({...formTurno, cancha_id: e.target.value})} className="modal-input solo">
+                <option value="">Seleccionar cancha...</option>
+                {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="modal-label">Nombre del Cliente</label>
+              <input type="text" placeholder="Ej: Juan Pérez" required onChange={(e) => setFormTurno({...formTurno, nombre_cliente: e.target.value})} className="modal-input solo" />
+            </div>
+            <div>
+              <label className="modal-label">Teléfono</label>
+              <input type="text" placeholder="Ej: 3564123456" required onChange={(e) => setFormTurno({...formTurno, telefono_cliente: e.target.value})} className="modal-input solo" />
+            </div>
+            <div className="modal-acciones" style={{ marginTop: '20px' }}>
+              <button type="submit" className="btn-modal primario">Guardar Turno</button>
               <button type="button" onClick={() => setMostrarModal(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
@@ -618,20 +691,34 @@ const DashboardAdmin = () => {
         <div className="modal-overlay">
           <form onSubmit={crearBloqueo} className="modal-content">
             <h3 className="modal-header-bloqueo"><Ban size={20}/> Bloquear Horario</h3>
-            <p className="modal-desc">Usá esto para bloquear la cancha por mantenimiento o limpieza. Los clientes no podrán reservarla.</p>
+            <p className="modal-desc" style={{ marginBottom: '15px' }}>Impedí reservas en un horario específico por limpieza o mantenimiento.</p>
             
-            <input type="date" required onChange={(e) => setFormBloqueo({...formBloqueo, fecha: e.target.value})} className="modal-input solo" />
-            <input type="time" required onChange={(e) => setFormBloqueo({...formBloqueo, hora_inicio: e.target.value})} className="modal-input solo" />
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Fecha</label>
+                <input type="date" required onChange={(e) => setFormBloqueo({...formBloqueo, fecha: e.target.value})} className="modal-input solo" />
+              </div>
+              <div className="modal-col">
+                <label className="modal-label">Hora</label>
+                <input type="time" required onChange={(e) => setFormBloqueo({...formBloqueo, hora_inicio: e.target.value})} className="modal-input solo" />
+              </div>
+            </div>
             
-            <select required onChange={(e) => setFormBloqueo({...formBloqueo, cancha_id: e.target.value})} className="modal-input solo">
-              <option value="">Seleccionar cancha...</option>
-              {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
+            <div>
+              <label className="modal-label">Cancha a bloquear</label>
+              <select required onChange={(e) => setFormBloqueo({...formBloqueo, cancha_id: e.target.value})} className="modal-input solo">
+                <option value="">Seleccionar cancha...</option>
+                {canchas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
 
-            <input type="text" placeholder="Motivo (Ej: Mantenimiento)" onChange={(e) => setFormBloqueo({...formBloqueo, motivo: e.target.value})} className="modal-input solo" />
+            <div>
+              <label className="modal-label">Motivo (Opcional)</label>
+              <input type="text" placeholder="Ej: Mantenimiento de red" onChange={(e) => setFormBloqueo({...formBloqueo, motivo: e.target.value})} className="modal-input solo" />
+            </div>
             
-            <div className="modal-acciones">
-              <button type="submit" className="btn-modal advertencia">Bloquear</button>
+            <div className="modal-acciones" style={{ marginTop: '20px' }}>
+              <button type="submit" className="btn-modal advertencia">Aplicar Bloqueo</button>
               <button type="button" onClick={() => setMostrarModalBloqueo(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
@@ -641,52 +728,42 @@ const DashboardAdmin = () => {
       {mostrarModalCancha && (
         <div className="modal-overlay">
           <form onSubmit={crearCanchaManual} className="modal-content">
-            <h3>Crear Nueva Cancha</h3>
+            <h3>Nueva Cancha</h3>
             
             <div className="modal-row">
               <div className="modal-col">
                 <label className="modal-label">Nombre</label>
-                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} className="modal-input"/>
+                <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} className="modal-input solo"/>
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input"/>
+                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input solo"/>
               </div>
             </div>
 
             <div>
               <label className="modal-label">Precio por Hora ($)</label>
-              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input"/>
+              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input solo"/>
             </div>
 
             <div className="modal-row">
               <div className="modal-col">
                 <label className="modal-label">Apertura</label>
-                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} className="modal-input"/>
+                <input type="time" required value={formCancha.hora_apertura} onChange={(e) => setFormCancha({...formCancha, hora_apertura: e.target.value})} className="modal-input solo"/>
               </div>
               <div className="modal-col">
                 <label className="modal-label">Cierre</label>
-                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} className="modal-input"/>
+                <input type="time" required value={formCancha.hora_cierre} onChange={(e) => setFormCancha({...formCancha, hora_cierre: e.target.value})} className="modal-input solo"/>
               </div>
             </div>
 
-            <div className="modal-col" style={{ marginBottom: '15px' }}>
-              <label className="modal-label" style={{ marginBottom: '4px' }}>Foto de la Cancha (Opcional)</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setImagenCanchaFile(e.target.files[0]);
-                  }
-                }} 
-                className="modal-input solo"
-                style={{ padding: '8px' }}
-              />
+            <div>
+              <label className="modal-label">Foto de la Cancha (Opcional)</label>
+              <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setImagenCanchaFile(e.target.files[0]); }} className="modal-input solo" style={{ padding: '8px' }}/>
             </div>
 
-            <div className="modal-acciones">
-              <button type="submit" className="btn-modal primario">Crear Cancha</button>
+            <div className="modal-acciones" style={{ marginTop: '20px' }}>
+              <button type="submit" className="btn-modal primario">Guardar Cancha</button>
               <button type="button" onClick={() => setMostrarModalCancha(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
@@ -701,50 +778,40 @@ const DashboardAdmin = () => {
             <div className="modal-row">
               <div className="modal-col">
                 <label className="modal-label">Nombre</label>
-                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} className="modal-input"/>
+                <input type="text" required value={canchaEditando.nombre} onChange={(e) => setCanchaEditando({...canchaEditando, nombre: e.target.value})} className="modal-input solo"/>
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input"/>
+                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input solo"/>
               </div>
             </div>
 
             <div>
               <label className="modal-label">Precio por Hora ($)</label>
-              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} className="modal-input"/>
+              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} className="modal-input solo"/>
             </div>
 
             <div className="modal-row">
               <div className="modal-col">
                 <label className="modal-label">Apertura</label>
-                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} className="modal-input"/>
+                <input type="time" required value={canchaEditando.hora_apertura} onChange={(e) => setCanchaEditando({...canchaEditando, hora_apertura: e.target.value})} className="modal-input solo"/>
               </div>
               <div className="modal-col">
                 <label className="modal-label">Cierre</label>
-                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} className="modal-input"/>
+                <input type="time" required value={canchaEditando.hora_cierre} onChange={(e) => setCanchaEditando({...canchaEditando, hora_cierre: e.target.value})} className="modal-input solo"/>
               </div>
             </div>
 
-            <div className="modal-col" style={{ marginBottom: '15px' }}>
-              <label className="modal-label" style={{ marginBottom: '4px' }}>Cambiar Foto (Opcional)</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setImagenCanchaEditFile(e.target.files[0]);
-                  }
-                }} 
-                className="modal-input solo"
-                style={{ padding: '8px' }}
-              />
+            <div>
+              <label className="modal-label">Cambiar Foto (Opcional)</label>
+              <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setImagenCanchaEditFile(e.target.files[0]); }} className="modal-input solo" style={{ padding: '8px' }}/>
               {canchaEditando.imagen_url && !imagenCanchaEditFile && (
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Ya tiene una imagen cargada</p>
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imagen cargada previamente</p>
               )}
             </div>
 
-            <div className="modal-acciones">
-              <button type="submit" className="btn-modal primario">Guardar Cambios</button>
+            <div className="modal-acciones" style={{ marginTop: '20px' }}>
+              <button type="submit" className="btn-modal primario">Actualizar Cambios</button>
               <button type="button" onClick={() => setMostrarModalEditar(false)} className="btn-modal secundario">Cancelar</button>
             </div>
           </form>
