@@ -1,247 +1,421 @@
-.perfil-container {
-  font-family: var(--font-body);
-  background-color: var(--paper);
+/* =========================================
+   PerfilClub.css (Vista Cliente Premium)
+   ========================================= */
+
+.perfil-cliente-page {
   min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Inter', system-ui, sans-serif;
   padding-bottom: 60px;
-  position: relative;
 }
 
-/* ESTADOS DE CARGA Y ERROR */
-.perfil-loading, .perfil-error {
+.cargando-vista {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   height: 100vh;
-  background: var(--paper);
-  color: var(--ink);
+  font-size: 1.2rem;
+  color: #64748b;
+  font-weight: 600;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.btn-volver-error {
-  margin-top: 20px;
-  background: var(--ink);
+/* Header del Complejo */
+.perfil-header-banner {
+  background-color: #0f172a;
   color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+  padding: 40px 20px;
+  position: relative;
+  border-bottom: 4px solid #22c55e;
 }
 
-/* BOTÓN FLOTANTE */
-.btn-flotante-volver {
+.btn-volver-cliente {
   position: absolute;
-  top: 24px;
-  left: 32px;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  color: white;
+  top: 20px;
+  left: 20px;
+  background: rgba(255,255,255,0.1);
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  font-weight: 600;
+  transition: background 0.2s ease;
 }
 
-.btn-flotante-volver:hover {
-  background: rgba(0, 0, 0, 0.8);
+.btn-volver-cliente:hover {
+  background: rgba(255,255,255,0.2);
 }
 
-/* BANNER */
-.banner-club {
-  width: 100%;
-  height: 350px;
+.perfil-header-info {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.perfil-header-info h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+}
+
+.perfil-header-info p {
+  margin: 10px 0 0 0;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1.1rem;
+}
+
+/* Grilla de Canchas */
+.canchas-disponibles-container {
+  max-width: 1100px;
+  margin: 40px auto 0 auto;
+  padding: 0 20px;
+}
+
+.titulo-canchas {
+  font-family: 'Montserrat', sans-serif;
+  color: #0f172a;
+  font-size: 1.8rem;
+  font-weight: 800;
+  border-bottom: 3px solid #22c55e;
+  display: inline-block;
+  padding-bottom: 5px;
+  margin-bottom: 30px;
+}
+
+.canchas-galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Tarjeta de Cancha (Premium) */
+.cancha-tarjeta-premium {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.cancha-tarjeta-premium:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px -8px rgba(0,0,0,0.15);
+  border-color: #cbd5e1;
+}
+
+.cancha-tarjeta-img-box {
   position: relative;
+  height: 180px;
+  width: 100%;
+  background-color: #f1f5f9;
 }
 
-.banner-imagen {
+.cancha-tarjeta-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+.cancha-tarjeta-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, transparent 40%, var(--ink-dark) 100%);
-}
-
-/* INFO DEL CLUB (TARJETA FLOTANTE) */
-.info-club-wrapper {
-  max-width: 1000px;
-  margin: -80px auto 0;
-  padding: 0 32px;
-  position: relative;
-  z-index: 2;
-}
-
-.info-club-tarjeta {
-  background: white;
-  border-radius: 16px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.info-club-nombre {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-weight: 900;
-  font-style: italic;
-  color: var(--ink-dark);
-  margin: 0 0 20px;
-  letter-spacing: -1px;
-}
-
-.info-club-direccion, .info-club-telefono, .info-club-estacionamiento {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  margin-bottom: 12px;
+  justify-content: center;
 }
 
-.icono-margen {
-  color: var(--turf);
+.cancha-badge-deporte {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
 }
 
-.info-club-telefono a {
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.info-club-telefono a:hover {
-  color: var(--turf);
-}
-
-/* SECCIÓN CANCHAS */
-.canchas-seccion {
-  max-width: 1000px;
-  margin: 40px auto 0;
-  padding: 0 32px;
-}
-
-.canchas-titulo {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 900;
-  font-style: italic;
-  color: var(--ink-dark);
-  margin-bottom: 24px;
-  border-bottom: 3px solid var(--turf);
-  display: inline-block;
-  padding-bottom: 5px;
-}
-
-.canchas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.cancha-link {
-  text-decoration: none;
-  color: inherit;
-}
-
-.cancha-tarjeta {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.25s ease;
-  height: 100%;
+.cancha-tarjeta-body {
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
-.cancha-tarjeta:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-  border-color: var(--turf);
-}
-
-.cancha-header {
-  background: var(--paper);
-  padding: 20px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cancha-nombre {
-  margin: 0;
-  font-size: 1.2rem;
+.cancha-tarjeta-titulo {
+  margin: 0 0 10px 0;
+  color: #0f172a;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--ink-dark);
 }
 
-.cancha-tipo {
-  background: var(--turf-100);
-  color: var(--turf-700);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  text-transform: uppercase;
-}
-
-.cancha-body {
-  padding: 20px;
+.cancha-tarjeta-precio {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-grow: 1;
+  align-items: baseline;
+  margin-bottom: 20px;
+  color: #0f172a;
 }
 
-.cancha-precio {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--ink);
+.precio-numero {
+  font-size: 1.8rem;
+  font-weight: 900;
 }
 
-.cancha-precio-hora {
-  font-size: 0.9rem;
+.precio-texto {
+  color: #64748b;
+  margin-left: 4px;
   font-weight: 500;
-  color: var(--text-muted);
 }
 
-.btn-reservar-cancha {
-  background: var(--turf);
+.btn-ver-detalle {
+  width: 100%;
+  padding: 12px;
+  background-color: #f1f5f9;
+  color: #22c55e;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-top: auto;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cancha-tarjeta-premium:hover .btn-ver-detalle {
+  background-color: #22c55e;
   color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border-color: #22c55e;
+}
+
+/* =========================================
+   MODAL (Visor de Imágenes e Info)
+   ========================================= */
+.modal-cancha-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modal-cancha-content {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+  animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.btn-cerrar-modal {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.btn-cerrar-modal:hover { background: rgba(0,0,0,0.8); }
+
+/* Carrusel Box */
+.modal-carrusel-container {
+  width: 100%;
+  height: 280px;
+  background-color: #e2e8f0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carrusel-img-activa {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carrusel-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #64748b;
+  gap: 10px;
+}
+
+/* Controles Carrusel (Futuro) */
+.carrusel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.8);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #0f172a;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.carrusel-btn:hover { background: white; }
+.carrusel-btn.left { left: 10px; }
+.carrusel-btn.right { right: 10px; }
+
+.carrusel-indicadores {
+  position: absolute;
+  bottom: 15px;
+  display: flex;
+  gap: 6px;
+}
+.indicador-punto {
+  width: 8px; height: 8px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+}
+.indicador-punto.activo { background: white; transform: scale(1.2); }
+
+/* Info en Modal */
+.modal-cancha-info {
+  padding: 30px;
+}
+
+.modal-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-info-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.badge-deporte-grande {
+  background-color: #dcfce7;
+  color: #16a34a;
+  padding: 6px 14px;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 0.9rem;
 }
 
-.mensaje-sin-canchas {
-  background: white;
-  padding: 40px;
+.modal-info-detalles {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  text-align: center;
-  color: var(--text-muted);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.detalle-bloque {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detalle-bloque.divisor {
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.detalle-lbl {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.detalle-val {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.precio-destacado {
+  font-size: 1.4rem;
+  color: #16a34a;
+}
+.precio-destacado small { font-size: 0.9rem; color: #64748b; }
+
+.con-icono {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.txt-azul { color: #2563eb; }
+
+.btn-reservar-gigante {
+  width: 100%;
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
   font-size: 1.1rem;
-  border: 1px dashed var(--line);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-reservar-gigante:hover {
+  background-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+@media (max-width: 600px) {
+  .perfil-header-info h1 { font-size: 2rem; }
+  .canchas-galeria-grid { grid-template-columns: 1fr; }
+  .modal-cancha-content { max-height: 90vh; overflow-y: auto; }
 }
