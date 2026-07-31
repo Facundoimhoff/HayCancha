@@ -77,14 +77,23 @@ const PerfilClub = () => {
   return (
     <div className="perfil-cliente-page">
       
-      {/* HEADER DEL CLUB */}
-      <div className="perfil-header-banner">
+      {/* HEADER DEL CLUB DINÁMICO (COLOR Y LOGO) */}
+      <div 
+        className="perfil-header-banner" 
+        style={{ backgroundColor: club.color_primario || '#0f172a' }}
+      >
         <button onClick={() => navigate(-1)} className="btn-volver-cliente">
           <ArrowLeft size={20} /> Volver
         </button>
-        <div className="perfil-header-info">
-          <h1>{club.nombre}</h1>
-          <p><MapPin size={18} /> {club.ciudad}, {club.provincia}</p>
+        
+        <div className="perfil-header-info-con-logo">
+          {club.imagen_url && (
+            <img src={club.imagen_url} alt="Logo del Club" className="club-logo-redondo" />
+          )}
+          <div className="perfil-textos-header">
+            <h1>{club.nombre}</h1>
+            <p><MapPin size={18} /> {club.ciudad}, {club.provincia}</p>
+          </div>
         </div>
       </div>
 
@@ -102,7 +111,7 @@ const PerfilClub = () => {
                 {/* Foto Previa en la Tarjeta */}
                 <div className="cancha-tarjeta-img-box">
                   {cancha.imagen_url ? (
-                    <img src={cancha.imagen_url} alt={cancha.nombre} className="cancha-tarjeta-img" />
+                    <img src={cancha.imagen_url.split(',')[0]} alt={cancha.nombre} className="cancha-tarjeta-img" />
                   ) : (
                     <div className="cancha-tarjeta-placeholder">
                       <ImageIcon size={32} color="#94a3b8" />
@@ -139,17 +148,17 @@ const PerfilClub = () => {
 
             {/* ZONA SUPERIOR: CARRUSEL DE IMÁGENES */}
             <div className="modal-carrusel-container">
-              {/* Simulamos un array de imágenes. Si tuvieras varias, las mapearías acá */}
               {(() => {
+                // ACÁ SEPARAMOS LAS FOTOS POR COMA
                 const imagenes = canchaSeleccionada.imagen_url 
-                  ? [canchaSeleccionada.imagen_url] // Acá pondrías un array real si tuvieras varias
+                  ? canchaSeleccionada.imagen_url.split(',').filter(url => url.trim() !== '') 
                   : [];
 
                 if (imagenes.length === 0) {
                   return (
                     <div className="carrusel-placeholder">
                       <ImageIcon size={48} color="#94a3b8" />
-                      <p>Sin imagen disponible</p>
+                      <p>Sin fotos disponibles</p>
                     </div>
                   );
                 }
@@ -162,14 +171,13 @@ const PerfilClub = () => {
                       className="carrusel-img-activa"
                     />
                     
-                    {/* Controles del Carrusel (Solo se muestran si hay más de 1 foto) */}
                     {imagenes.length > 1 && (
                       <>
                         <button className="carrusel-btn left" onClick={() => retrocederImagen(imagenes)}>
-                          <ChevronLeft size={24} />
+                          <ChevronLeft size={24} color="#0f172a" />
                         </button>
                         <button className="carrusel-btn right" onClick={() => avanzarImagen(imagenes)}>
-                          <ChevronRight size={24} />
+                          <ChevronRight size={24} color="#0f172a" />
                         </button>
                         <div className="carrusel-indicadores">
                           {imagenes.map((_, idx) => (

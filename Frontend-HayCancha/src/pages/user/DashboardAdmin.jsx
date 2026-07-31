@@ -29,8 +29,8 @@ const DashboardAdmin = () => {
   const [turnosPasados, setTurnosPasados] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
-  const [imagenCanchaFile, setImagenCanchaFile] = useState(null);
-  const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState(null);
+  const [imagenCanchaFile, setImagenCanchaFile] = useState([]);
+  const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState([]);
 
   const [metricas, setMetricas] = useState({ ingresosDia: 0, ingresosSemana: 0, ingresosMes: 0, turnosMes: 0 });
 
@@ -151,27 +151,38 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
+  // NUEVA FUNCIÓN PARA SUBIR MÚLTIPLES IMÁGENES
+  const subirMultiplesImagenes = async (archivos) => {
+    const urls = [];
+    for (let i = 0; i < archivos.length; i++) {
+      const file = archivos[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `canchas/${Date.now()}_${i}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
+      urls.push(urlData.publicUrl);
+    }
+    return urls.join(','); // Las unimos con una coma
+  };
+
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
-      let logoUrl = formCancha.imagen_url;
-      if (imagenCanchaFile) {
-        const fileExt = imagenCanchaFile.name.split('.').pop();
-        const fileName = `canchas/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, imagenCanchaFile);
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-        logoUrl = urlData.publicUrl;
+      let finalUrls = formCancha.imagen_url;
+      if (imagenCanchaFiles && imagenCanchaFiles.length > 0) {
+        finalUrls = await subirMultiplesImagenes(imagenCanchaFiles);
       }
+
       const { error } = await supabase.from('canchas').insert([{ 
         club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
         precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre, imagen_url: logoUrl
+        hora_cierre: formCancha.hora_cierre, imagen_url: finalUrls
       }]);
       if (error) { alert("Error: " + error.message); return; }
       setMostrarModalCancha(false);
       setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
-      setImagenCanchaFile(null); 
+      setImagenCanchaFiles([]); 
       await cargarDatos(); 
     } catch (err) { alert("Error inesperado al guardar: " + err.message); }
   };
@@ -188,22 +199,19 @@ const DashboardAdmin = () => {
   const guardarEdicionCancha = async (e) => {
     e.preventDefault();
     try {
-      let logoUrl = canchaEditando.imagen_url;
-      if (imagenCanchaEditFile) {
-        const fileExt = imagenCanchaEditFile.name.split('.').pop();
-        const fileName = `canchas/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, imagenCanchaEditFile);
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-        logoUrl = urlData.publicUrl;
+      let finalUrls = canchaEditando.imagen_url || '';
+      if (imagenCanchaEditFiles && imagenCanchaEditFiles.length > 0) {
+        const nuevasUrls = await subirMultiplesImagenes(imagenCanchaEditFiles);
+        finalUrls = finalUrls ? `${finalUrls},${nuevasUrls}` : nuevasUrls;
       }
+
       const { error } = await supabase.from('canchas').update({
         nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
-        hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: logoUrl
+        hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: finalUrls
       }).eq('id', canchaEditando.id);
       if (error) { alert("Error al guardar: " + error.message); return; }
       setMostrarModalEditar(false);
-      setImagenCanchaEditFile(null);
+      setImagenCanchaEditFiles([]);
       await cargarDatos();
     } catch (err) { alert("Error inesperado al editar: " + err.message); }
   };
@@ -266,8 +274,14 @@ const DashboardAdmin = () => {
 
   /* ================= VISTAS DE PANTALLA ================= */
 
-  const PantallaPerfil = () => {
-    const [formPerfil, setFormPerfil] = useState({ nombre: miClub?.nombre || '', provincia: miClub?.provincia || '', ciudad: miClub?.ciudad || '' });
+const PantallaPerfil = () => {
+    // AGREGAMOS COLOR_PRIMARIO AL ESTADO
+    const [formPerfil, setFormPerfil] = useState({ 
+      nombre: miClub?.nombre || '', 
+      provincia: miClub?.provincia || '', 
+      ciudad: miClub?.ciudad || '',
+      color_primario: miClub?.color_primario || '#0f172a' 
+    });
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
     const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán", "Salta", "Neuquén", "Río Negro"];
@@ -277,7 +291,12 @@ const DashboardAdmin = () => {
       setGuardando(true);
       setMensaje({ texto: '', tipo: '' });
       try {
-        const { error } = await supabase.from('clubes').update({ nombre: formPerfil.nombre, provincia: formPerfil.provincia, ciudad: formPerfil.ciudad }).eq('id', miClub.id);
+        const { error } = await supabase.from('clubes').update({ 
+          nombre: formPerfil.nombre, 
+          provincia: formPerfil.provincia, 
+          ciudad: formPerfil.ciudad,
+          color_primario: formPerfil.color_primario // GUARDAMOS EL COLOR
+        }).eq('id', miClub.id);
         if (error) throw error;
         setMiClub({ ...miClub, ...formPerfil });
         setMensaje({ texto: '¡Datos actualizados correctamente!', tipo: 'exito' });
@@ -298,30 +317,22 @@ const DashboardAdmin = () => {
           </div>
         )}
         <form onSubmit={guardarPerfil} className="perfil-form">
-          <div>
-            <label className="form-label">Nombre del Club</label>
-            <div className="input-icon-wrapper">
-              <Building size={18} className="input-icon" />
-              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+          {/* ... (Acá van tus inputs normales de Nombre, Provincia y Ciudad) ... */}
+          
+          {/* NUEVO INPUT PARA EL COLOR DEL CLUB */}
+          <div style={{ marginTop: '15px' }}>
+            <label className="form-label">Color de tu marca (Banner principal)</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <input 
+                type="color" 
+                value={formPerfil.color_primario} 
+                onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
+                style={{ width: '50px', height: '50px', padding: '0', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+              />
+              <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
             </div>
           </div>
-          <div>
-            <label className="form-label">Provincia</label>
-            <div className="input-icon-wrapper">
-              <Map size={18} className="input-icon" />
-              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
-                <option value="">Seleccioná tu provincia</option>
-                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="form-label">Ciudad</label>
-            <div className="input-icon-wrapper">
-              <MapPin size={18} className="input-icon" />
-              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
-            </div>
-          </div>
+
           <button type="submit" disabled={guardando} className="btn-guardar">{guardando ? 'Guardando...' : 'Guardar Cambios'}</button>
         </form>
       </div>
@@ -781,8 +792,9 @@ const DashboardAdmin = () => {
             </div>
 
             <div>
-              <label className="modal-label">Foto de la Cancha (Opcional)</label>
-              <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setImagenCanchaFile(e.target.files[0]); }} className="modal-input solo" style={{ padding: '8px' }}/>
+              <label className="modal-label">Fotos de la Cancha (Opcional)</label>
+              <input type="file" multiple accept="image/*" onChange={(e) => { if (e.target.files) setImagenCanchaFiles(Array.from(e.target.files)); }} className="modal-input solo" style={{ padding: '8px' }}/>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Podés seleccionar varias imágenes a la vez.</p>
             </div>
 
             <div className="modal-acciones" style={{ marginTop: '20px' }}>
@@ -826,10 +838,12 @@ const DashboardAdmin = () => {
             </div>
 
             <div>
-              <label className="modal-label">Cambiar Foto (Opcional)</label>
-              <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setImagenCanchaEditFile(e.target.files[0]); }} className="modal-input solo" style={{ padding: '8px' }}/>
-              {canchaEditando.imagen_url && !imagenCanchaEditFile && (
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imagen cargada previamente</p>
+              <label className="modal-label">Cambiar Fotos (Opcional)</label>
+              <input type="file" multiple accept="image/*" onChange={(e) => { if (e.target.files) setImagenCanchaEditFiles(Array.from(e.target.files)); }} className="modal-input solo" style={{ padding: '8px' }}/>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Las fotos nuevas se sumarán a las que ya tenés.</p>
+              
+              {canchaEditando.imagen_url && (!imagenCanchaEditFiles || imagenCanchaEditFiles.length === 0) && (
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imágenes cargadas previamente</p>
               )}
             </div>
 

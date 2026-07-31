@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-// IMPORTANTE: Importamos nuestro CSS
+import { CheckCircle2, ImagePlus, MapPin, Lock, Mail, Building2, Car } from 'lucide-react';
 import './RegistroClub.css';
 
 const RegistroClub = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
   const [imagenFile, setImagenFile] = useState(null); 
+  const [previewLogo, setPreviewLogo] = useState(null); // NUEVO: Para ver la foto antes de subirla
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -30,7 +31,10 @@ const RegistroClub = () => {
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setImagenFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setImagenFile(file);
+      // Creamos una URL temporal para mostrar la vista previa
+      setPreviewLogo(URL.createObjectURL(file));
     }
   };
 
@@ -75,7 +79,7 @@ const RegistroClub = () => {
           {
             nombre: formData.nombre,
             descripcion: formData.descripcion, 
-            provincia: formData.provincia,     
+            provincia: formData.provincia,    
             ciudad: formData.ciudad,
             direccion: formData.direccion,
             estacionamiento: formData.estacionamiento,
@@ -101,61 +105,136 @@ const RegistroClub = () => {
     <div className="registro-club-container">
       <div className="registro-club-card">
         
+        {/* --- HEADER DE ÉXITO --- */}
         <div className="registro-header">
-          <h1 className="registro-titulo">¡Pago exitoso! 🎉</h1>
-          <p className="registro-subtitulo">Completá los datos de tu club para empezar a recibir reservas.</p>
+          <div className="icono-exito-wrapper">
+            <CheckCircle2 size={48} />
+          </div>
+          <h1 className="registro-titulo">¡Pago exitoso!</h1>
+          <p className="registro-subtitulo">Completá el perfil de tu complejo para empezar a recibir reservas.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="registro-form">
           
-          <div>
-            <h3 className="seccion-titulo">1. Datos del Club</h3>
+          {/* --- SECCIÓN 1: PERFIL DEL CLUB (LAYOUT DIVIDIDO) --- */}
+          <div className="registro-seccion">
+            <h3 className="seccion-titulo"><Building2 size={18}/> 1. Perfil del Club</h3>
             
-            <div className="flex-col">
-              <input type="text" name="nombre" placeholder="Nombre del Club" required onChange={handleChange} className="form-input" />
-              <textarea name="descripcion" placeholder="Descripción breve (Opcional)" onChange={handleChange} className="form-input form-textarea" />
-              
-              <div className="flex-row">
-                <input type="text" name="provincia" placeholder="Provincia" required onChange={handleChange} className="form-input half" />
-                <input type="text" name="ciudad" placeholder="Ciudad" required onChange={handleChange} className="form-input half" />
+            <div className="club-perfil-layout">
+              {/* IZQUIERDA: LOGO */}
+              <div className="logo-upload-col">
+                <label className="logo-upload-box" htmlFor="logo-upload">
+                  {previewLogo ? (
+                    <img src={previewLogo} alt="Preview Logo" className="logo-preview-img" />
+                  ) : (
+                    <div className="logo-upload-placeholder">
+                      <ImagePlus size={32} />
+                      <span>Subir Logo</span>
+                    </div>
+                  )}
+                  <input 
+                    id="logo-upload"
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange} 
+                    required 
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                <p className="logo-ayuda">Formato JPG o PNG.</p>
               </div>
-              
-              <input type="text" name="direccion" placeholder="Dirección exacta" required onChange={handleChange} className="form-input" />
-              
-              <div className="file-container">
-                <label className="file-label">Logo del Club (Imagen)</label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleImageChange} 
-                  required 
-                  className="form-input form-input-file" 
-                />
+
+              {/* DERECHA: NOMBRE Y DESCRIPCIÓN */}
+              <div className="texto-info-col">
+                <div className="input-group">
+                  <label>Nombre del Complejo</label>
+                  <input 
+                    type="text" 
+                    name="nombre" 
+                    placeholder="Ej: Sport Automóvil Club" 
+                    required 
+                    onChange={handleChange} 
+                    className="form-input-reg" 
+                  />
+                </div>
+                <div className="input-group" style={{ flex: 1 }}>
+                  <label>Descripción (Visible para los clientes)</label>
+                  <textarea 
+                    name="descripcion" 
+                    placeholder="Contale a los jugadores sobre tus instalaciones, iluminación, bar, etc..." 
+                    onChange={handleChange} 
+                    className="form-input-reg form-textarea-reg" 
+                  />
+                </div>
               </div>
-              
-              <label className="checkbox-container">
-                <input type="checkbox" name="estacionamiento" onChange={handleChange} className="checkbox-input" />
-                El club cuenta con estacionamiento privado
-              </label>
             </div>
           </div>
 
-          <div style={{ marginTop: '10px' }}>
-            <h3 className="seccion-titulo">2. Tu Cuenta de Administrador</h3>
-            <p className="seccion-descripcion">Con estos datos vas a entrar a tu panel para gestionar las canchas.</p>
+          {/* --- SECCIÓN 2: UBICACIÓN Y COMODIDADES --- */}
+          <div className="registro-seccion">
+            <h3 className="seccion-titulo"><MapPin size={18}/> 2. Ubicación y Servicios</h3>
             
-            <div className="flex-col">
-              <input type="email" name="email" placeholder="Correo electrónico" required onChange={handleChange} className="form-input" />
-              <input type="password" name="password" placeholder="Contraseña (mínimo 6 caracteres)" required minLength={6} onChange={handleChange} className="form-input" />
+            <div className="grid-2-col">
+              <div className="input-group">
+                <label>Provincia</label>
+                <input type="text" name="provincia" placeholder="Ej: Córdoba" required onChange={handleChange} className="form-input-reg" />
+              </div>
+              <div className="input-group">
+                <label>Ciudad</label>
+                <input type="text" name="ciudad" placeholder="Ej: San Francisco" required onChange={handleChange} className="form-input-reg" />
+              </div>
+            </div>
+            
+            <div className="input-group">
+              <label>Dirección Exacta</label>
+              <input type="text" name="direccion" placeholder="Ej: Av. Urquiza 332" required onChange={handleChange} className="form-input-reg" />
+            </div>
+
+            {/* TOGGLE ESTACIONAMIENTO */}
+            <label className="toggle-servicio-container">
+              <div className="toggle-info">
+                <Car size={20} className={formData.estacionamiento ? 'text-green' : 'text-gray'} />
+                <div>
+                  <strong>Estacionamiento Privado</strong>
+                  <p>Indicá si los jugadores tienen lugar para estacionar dentro del predio.</p>
+                </div>
+              </div>
+              <div className="toggle-switch">
+                <input type="checkbox" name="estacionamiento" onChange={handleChange} />
+                <span className="slider"></span>
+              </div>
+            </label>
+          </div>
+
+          {/* --- SECCIÓN 3: CUENTA ADMIN --- */}
+          <div className="registro-seccion cuenta-admin-seccion">
+            <h3 className="seccion-titulo"><Lock size={18}/> 3. Tu Cuenta de Administrador</h3>
+            <p className="seccion-descripcion">Con este correo y contraseña vas a ingresar a tu panel de control.</p>
+            
+            <div className="grid-2-col">
+              <div className="input-group">
+                <label>Correo electrónico</label>
+                <div className="input-con-icono">
+                  <Mail size={18} />
+                  <input type="email" name="email" placeholder="admin@tuclub.com" required onChange={handleChange} className="form-input-reg" />
+                </div>
+              </div>
+              <div className="input-group">
+                <label>Contraseña</label>
+                <div className="input-con-icono">
+                  <Lock size={18} />
+                  <input type="password" name="password" placeholder="Mínimo 6 caracteres" required minLength={6} onChange={handleChange} className="form-input-reg" />
+                </div>
+              </div>
             </div>
           </div>
 
           <button 
             type="submit" 
             disabled={cargando}
-            className={`btn-submit ${cargando ? 'cargando' : 'activo'}`}
+            className={`btn-submit-registro ${cargando ? 'cargando' : 'activo'}`}
           >
-            {cargando ? 'Subiendo imagen y creando...' : 'Finalizar Configuración'}
+            {cargando ? 'Configurando tu club...' : 'Finalizar Configuración'}
           </button>
 
         </form>
