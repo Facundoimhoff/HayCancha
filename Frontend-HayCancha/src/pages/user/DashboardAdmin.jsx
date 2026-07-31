@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -29,8 +29,9 @@ const DashboardAdmin = () => {
   const [turnosPasados, setTurnosPasados] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   
-  const [imagenCanchaFile, setImagenCanchaFile] = useState([]);
-  const [imagenCanchaEditFile, setImagenCanchaEditFile] = useState([]);
+  // ESTADOS PARA MÚLTIPLES IMÁGENES
+  const [imagenCanchaFiles, setImagenCanchaFiles] = useState([]);
+  const [imagenCanchaEditFiles, setImagenCanchaEditFiles] = useState([]);
 
   const [metricas, setMetricas] = useState({ ingresosDia: 0, ingresosSemana: 0, ingresosMes: 0, turnosMes: 0 });
 
@@ -116,6 +117,21 @@ const DashboardAdmin = () => {
 
   useEffect(() => { cargarDatos(); }, []);
 
+  // FUNCIÓN PARA SUBIR MÚLTIPLES FOTOS
+  const subirMultiplesImagenes = async (archivos) => {
+    const urls = [];
+    for (let i = 0; i < archivos.length; i++) {
+      const file = archivos[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `canchas/${Date.now()}_${i}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
+      urls.push(urlData.publicUrl);
+    }
+    return urls.join(','); 
+  };
+
   const cancelarTurno = async (id, esBloqueo) => { 
     const mensaje = esBloqueo ? "¿Liberar este horario bloqueado?" : "¿Estás seguro de cancelar este turno?";
     if(window.confirm(mensaje)) { 
@@ -151,21 +167,6 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  // NUEVA FUNCIÓN PARA SUBIR MÚLTIPLES IMÁGENES
-  const subirMultiplesImagenes = async (archivos) => {
-    const urls = [];
-    for (let i = 0; i < archivos.length; i++) {
-      const file = archivos[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `canchas/${Date.now()}_${i}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-      urls.push(urlData.publicUrl);
-    }
-    return urls.join(','); // Las unimos con una coma
-  };
-
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
@@ -179,12 +180,13 @@ const DashboardAdmin = () => {
         precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
         hora_cierre: formCancha.hora_cierre, imagen_url: finalUrls
       }]);
+      
       if (error) { alert("Error: " + error.message); return; }
       setMostrarModalCancha(false);
       setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
       setImagenCanchaFiles([]); 
       await cargarDatos(); 
-    } catch (err) { alert("Error inesperado al guardar: " + err.message); }
+    } catch (err) { alert("Error al guardar: " + err.message); }
   };
 
   const abrirModalEditar = (cancha) => {
@@ -192,7 +194,7 @@ const DashboardAdmin = () => {
       id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
       hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || ''
     });
-    setImagenCanchaEditFile(null); 
+    setImagenCanchaEditFiles([]); 
     setMostrarModalEditar(true);
   };
 
@@ -209,11 +211,12 @@ const DashboardAdmin = () => {
         nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
         hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: finalUrls
       }).eq('id', canchaEditando.id);
+      
       if (error) { alert("Error al guardar: " + error.message); return; }
       setMostrarModalEditar(false);
       setImagenCanchaEditFiles([]);
       await cargarDatos();
-    } catch (err) { alert("Error inesperado al editar: " + err.message); }
+    } catch (err) { alert("Error al editar: " + err.message); }
   };
 
   const exportarExcel = () => {
@@ -265,7 +268,7 @@ const DashboardAdmin = () => {
       body: tableData,
       startY: 35,
       theme: 'striped',
-      headStyles: { fillColor: [15, 23, 42] }, // Slate-900 (Color empresarial)
+      headStyles: { fillColor: [15, 23, 42] },
     });
 
     doc.save(`Reporte_${miClub?.nombre.replace(/\s+/g, '_')}_${new Date().toLocaleDateString()}.pdf`);
@@ -274,38 +277,70 @@ const DashboardAdmin = () => {
 
   /* ================= VISTAS DE PANTALLA ================= */
 
-const PantallaPerfil = () => {
-    // AGREGAMOS COLOR_PRIMARIO AL ESTADO
+  const PantallaPerfil = () => {
     const [formPerfil, setFormPerfil] = useState({ 
       nombre: miClub?.nombre || '', 
       provincia: miClub?.provincia || '', 
       ciudad: miClub?.ciudad || '',
-      color_primario: miClub?.color_primario || '#0f172a' 
+      color_primario: miClub?.color_primario || '#0f172a',
+      imagen_url: miClub?.imagen_url || ''
     });
+    const [nuevoLogo, setNuevoLogo] = useState(null);
+    const [previewLogo, setPreviewLogo] = useState(miClub?.imagen_url || null);
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-    const provincias = ["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Tucumán", "Salta", "Neuquén", "Río Negro"];
+    
+    const provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán", "Ciudad Autónoma de Buenos Aires"];
+
+    const handleLogoChange = (e) => {
+      if (e.target.files && e.target.files[0]) {
+        setNuevoLogo(e.target.files[0]);
+        setPreviewLogo(URL.createObjectURL(e.target.files[0]));
+      }
+    };
 
     const guardarPerfil = async (e) => {
       e.preventDefault();
       setGuardando(true);
       setMensaje({ texto: '', tipo: '' });
+      
       try {
+        let finalLogoUrl = formPerfil.imagen_url;
+
+        // Si subió un logo nuevo, lo guardamos en Storage
+        if (nuevoLogo) {
+          const fileExt = nuevoLogo.name.split('.').pop();
+          const fileName = `logos/${Date.now()}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, nuevoLogo);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
+          finalLogoUrl = urlData.publicUrl;
+        }
+
+        // Actualizamos la base de datos
         const { error } = await supabase.from('clubes').update({ 
           nombre: formPerfil.nombre, 
           provincia: formPerfil.provincia, 
           ciudad: formPerfil.ciudad,
-          color_primario: formPerfil.color_primario // GUARDAMOS EL COLOR
+          color_primario: formPerfil.color_primario,
+          imagen_url: finalLogoUrl
         }).eq('id', miClub.id);
+        
         if (error) throw error;
-        setMiClub({ ...miClub, ...formPerfil });
+        
+        setMiClub({ ...miClub, ...formPerfil, imagen_url: finalLogoUrl });
+        setFormPerfil(prev => ({ ...prev, imagen_url: finalLogoUrl }));
         setMensaje({ texto: '¡Datos actualizados correctamente!', tipo: 'exito' });
         setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
-      } catch (err) { setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' }); } finally { setGuardando(false); }
+      } catch (err) { 
+        setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' }); 
+      } finally { 
+        setGuardando(false); 
+      }
     };
 
     return (
-      <div className="perfil-wrapper">
+      <div className="perfil-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div className="perfil-header">
           <Building size={24} color="#2563eb" />
           <h2>Perfil de tu Club</h2>
@@ -316,10 +351,53 @@ const PantallaPerfil = () => {
             <strong>{mensaje.texto}</strong>
           </div>
         )}
+        
         <form onSubmit={guardarPerfil} className="perfil-form">
-          {/* ... (Acá van tus inputs normales de Nombre, Provincia y Ciudad) ... */}
           
-          {/* NUEVO INPUT PARA EL COLOR DEL CLUB */}
+          {/* Logo del Club */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
+            <label className="form-label">Logo del Club</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                {previewLogo ? (
+                  <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Building size={32} color="#94a3b8" />
+                )}
+              </div>
+              <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#475569', fontWeight: 'bold' }}>
+                <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Cambiar Logo
+                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="form-label">Nombre del Club</label>
+            <div className="input-icon-wrapper">
+              <Building size={18} className="input-icon" />
+              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+            </div>
+          </div>
+          <div>
+            <label className="form-label">Provincia</label>
+            <div className="input-icon-wrapper">
+              <Map size={18} className="input-icon" />
+              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
+                <option value="">Seleccioná tu provincia</option>
+                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="form-label">Ciudad</label>
+            <div className="input-icon-wrapper">
+              <MapPin size={18} className="input-icon" />
+              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
+            </div>
+          </div>
+          
           <div style={{ marginTop: '15px' }}>
             <label className="form-label">Color de tu marca (Banner principal)</label>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -327,7 +405,7 @@ const PantallaPerfil = () => {
                 type="color" 
                 value={formPerfil.color_primario} 
                 onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
-                style={{ width: '50px', height: '50px', padding: '0', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
               />
               <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
             </div>
@@ -412,7 +490,6 @@ const PantallaPerfil = () => {
   );
 
   const PantallaMetricas = () => { 
-    // ESTADO NUEVO: Controla si se muestra el mensaje de info del gráfico
     const [mostrarInfo, setMostrarInfo] = useState(false);
 
     const datosFiltrados = useMemo(() => {
@@ -491,8 +568,6 @@ const PantallaPerfil = () => {
 
           <div className="grafico-container relative">
             <div className="grafico-header">
-              
-              {/* ACÁ ESTÁ EL NUEVO BOTÓN DE INFO */}
               <h3 className="grafico-titulo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Distribución de Turnos
                 <button 
@@ -503,16 +578,12 @@ const PantallaPerfil = () => {
                   <Info size={18} />
                 </button>
               </h3>
-
             </div>
-
-            {/* CAJITA DE EXPLICACIÓN (Se muestra solo si tocaron el botón) */}
             {mostrarInfo && (
               <div className="info-grafico-box">
                 Este gráfico te muestra rápidamente cuál es tu <strong>cancha "estrella"</strong>. Te sirve para saber qué instalaciones se usan más, enfocar promociones o decidir dónde invertir en mantenimiento.
               </div>
             )}
-
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad">
@@ -578,21 +649,26 @@ const PantallaPerfil = () => {
       </header>
       
       <div className="canchas-list">
-        {canchas.map(c => (
-          <div key={c.id} className="cancha-card-enterprise">
-            <div className={`cancha-imagen-placeholder ${c.imagen_url ? 'con-imagen' : ''}`}>
-              {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} /> : <ImageIcon color="#9ca3af" size={32} />}
+        {canchas.map(c => {
+          // ACÁ EXTRAEMOS LA PRIMERA IMAGEN PARA MOSTRARLA EN LA TARJETITA SIN ROMPERSE
+          const primeraImagen = c.imagen_url ? c.imagen_url.split(',')[0] : null;
+
+          return (
+            <div key={c.id} className="cancha-card-enterprise">
+              <div className={`cancha-imagen-placeholder ${primeraImagen ? 'con-imagen' : ''}`}>
+                {primeraImagen ? <img src={primeraImagen} alt={c.nombre} /> : <ImageIcon color="#9ca3af" size={32} />}
+              </div>
+              <div className="cancha-info">
+                <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
+                <p className="cancha-precio-badge">${c.precio_hora} / hora</p>
+                <p className="cancha-horario">⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
+              </div>
+              <button className="btn-editar-enterprise" onClick={() => abrirModalEditar(c)} title="Editar información">
+                <Edit size={20} />
+              </button>
             </div>
-            <div className="cancha-info">
-              <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
-              <p className="cancha-precio-badge">${c.precio_hora} / hora</p>
-              <p className="cancha-horario">⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
-            </div>
-            <button className="btn-editar-enterprise" onClick={() => abrirModalEditar(c)} title="Editar información">
-              <Edit size={20} />
-            </button>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   );
@@ -791,9 +867,17 @@ const PantallaPerfil = () => {
               </div>
             </div>
 
+            {/* INPUT DE MÚLTIPLES FOTOS PARA NUEVA CANCHA */}
             <div>
               <label className="modal-label">Fotos de la Cancha (Opcional)</label>
-              <input type="file" multiple accept="image/*" onChange={(e) => { if (e.target.files) setImagenCanchaFiles(Array.from(e.target.files)); }} className="modal-input solo" style={{ padding: '8px' }}/>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={(e) => { if (e.target.files) setImagenCanchaFiles(Array.from(e.target.files)); }} 
+                className="modal-input solo" 
+                style={{ padding: '8px' }}
+              />
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Podés seleccionar varias imágenes a la vez.</p>
             </div>
 
@@ -837,9 +921,17 @@ const PantallaPerfil = () => {
               </div>
             </div>
 
+            {/* INPUT DE MÚLTIPLES FOTOS PARA EDITAR CANCHA */}
             <div>
               <label className="modal-label">Cambiar Fotos (Opcional)</label>
-              <input type="file" multiple accept="image/*" onChange={(e) => { if (e.target.files) setImagenCanchaEditFiles(Array.from(e.target.files)); }} className="modal-input solo" style={{ padding: '8px' }}/>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={(e) => { if (e.target.files) setImagenCanchaEditFiles(Array.from(e.target.files)); }} 
+                className="modal-input solo" 
+                style={{ padding: '8px' }}
+              />
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Las fotos nuevas se sumarán a las que ya tenés.</p>
               
               {canchaEditando.imagen_url && (!imagenCanchaEditFiles || imagenCanchaEditFiles.length === 0) && (
