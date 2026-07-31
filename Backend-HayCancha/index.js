@@ -12,6 +12,7 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN 
 });
 
+// --- RUTA DE PAGOS (MERCADO PAGO) ---
 app.post('/api/crear-suscripcion', async (req, res) => {
   const { plan, precio } = req.body; 
 
@@ -20,14 +21,14 @@ app.post('/api/crear-suscripcion', async (req, res) => {
     
     const response = await preApprovalPlan.create({
       body: {
-        reason: `Hay Cancha - Plan ${plan}`,
+        reason: `GridPlay - Plan ${plan}`, // Nombre de la marca corregido
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
           transaction_amount: precio,
           currency_id: 'ARS'
         },
-        // 2. Usamos una variable para que cambie según donde estés
+        // Usamos una variable para que cambie según donde estés
         back_url: process.env.FRONTEND_URL || 'http://localhost:5173/onboarding', 
       }
     });
@@ -40,6 +41,7 @@ app.post('/api/crear-suscripcion', async (req, res) => {
   }
 });
 
+// --- RUTA DE BÚSQUEDA ---
 app.get('/api/buscar', async (req, res) => {
   // 1. Atrapamos la palabra que el usuario buscó en el frontend (ej: "San Francisco")
   const palabraBuscada = req.query.q;
@@ -64,7 +66,7 @@ app.get('/api/buscar', async (req, res) => {
   res.json(respuesta);
 });
 
-// --- NUEVA RUTA: DETALLES Y HORARIOS DEL CLUB ---
+// --- RUTA: DETALLES Y HORARIOS DEL CLUB ---
 app.get('/api/clubes/:id', async (req, res) => {
   const clubId = parseInt(req.params.id);
 
@@ -72,7 +74,7 @@ app.get('/api/clubes/:id', async (req, res) => {
     // Simulamos la respuesta de la base de datos para ese club en específico
     const clubData = {
       id: clubId,
-      nombre: clubId === 1 ? "Sport Automovil Club" : "Grid Pádel Center",
+      nombre: clubId === 1 ? "Sport Automovil Club" : "GridPlay Pádel Center",
       ciudad: clubId === 1 ? "San Francisco" : "Córdoba Capital",
       direccion: "Av. Principal 1234",
       deporte: "Tenis y Pádel",
@@ -108,8 +110,8 @@ app.get('/api/clubes/:id', async (req, res) => {
   }
 });
 
-// 3. Render nos asigna el puerto automáticamente, por eso usamos process.env.PORT
+// 3. Render/Railway nos asigna el puerto automáticamente, por eso usamos process.env.PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Backend escuchando en puerto ${PORT}`);
+  console.log(`Backend de GridPlay escuchando en puerto ${PORT}`);
 });

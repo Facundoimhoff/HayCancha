@@ -9,8 +9,6 @@ export default function LandingPage() {
   const [enviado, setEnviado] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
-  
-  // ESTADO PARA EL BOTÓN FLOTANTE
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const provincias = [
@@ -83,10 +81,7 @@ export default function LandingPage() {
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('contacto')}>Contacto</button>
-            <button 
-              className="btn-nav btn-soy-admin" 
-              onClick={() => navigate('/login-admin')}
-            >
+            <button className="btn-nav btn-soy-admin" onClick={() => navigate('/login-admin')}>
               Soy Admin
             </button>
           </div>
@@ -97,13 +92,9 @@ export default function LandingPage() {
             <span className="dot-green"></span>
             Tu próximo partido empieza acá.
           </p>
-          
           <h1 className="hero-title">
-            La red que<br />
-            conecta<br />
-            <span className="text-green">complejos deportivos</span>
+            La red que<br />conecta<br /><span className="text-green">complejos deportivos</span>
           </h1>
-          
           <p className="hero-description">
             Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
@@ -126,7 +117,26 @@ export default function LandingPage() {
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
           <p className="section-subtitle">Seleccioná tu provincia para ver los clubes disponibles.</p>
           
-          <div className="selector-provincia-wrapper">
+          {/* ========================================== */}
+          {/* VISTA PC: GRILLA DE TARJETAS DE PROVINCIAS */}
+          {/* ========================================== */}
+          <div className="provincias-grid-desktop">
+            {provincias.map((prov) => (
+              <button 
+                key={prov} 
+                className="provincia-card-btn"
+                onClick={() => navigate(`/seleccionar-ubicacion/${encodeURIComponent(prov)}`)}
+              >
+                <MapPin size={20} className="provincia-icon" />
+                <span>{prov}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* ========================================== */}
+          {/* VISTA CELULAR: SELECTOR DESPLEGABLE        */}
+          {/* ========================================== */}
+          <div className="selector-provincia-wrapper mobile-only">
             <MapPin size={24} className="icono-pin-prov" />
             <select 
               className="select-provincia"
@@ -143,15 +153,14 @@ export default function LandingPage() {
               ))}
             </select>
           </div>
+
         </div>
       </main>
 
       <section className="sports-carousel-section">
         <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
-        
         <div className="carousel-container">
           <button onClick={prevSlide} className="carousel-btn left" type="button"><ChevronLeft size={28} /></button>
-          
           <div className="carousel-track-wrapper">
             <div className="carousel-track" style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
               {deportes.map((dep, idx) => (
@@ -162,7 +171,6 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-
           <button onClick={nextSlide} className="carousel-btn right" type="button"><ChevronRight size={28} /></button>
         </div>
       </section>
@@ -176,7 +184,6 @@ export default function LandingPage() {
               Dejanos tus datos, sugerencias o dudas y nuestro equipo se va a poner en contacto con vos para digitalizar tus reservas.
             </p>
           </div>
-
           <div className="contact-form-block">
             {enviado ? (
               <div className="contact-success">
@@ -228,30 +235,21 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ==================================================== */}
-      {/* MENÚ FLOTANTE (SPEED DIAL) DEVUELTO                  */}
-      {/* ==================================================== */}
+      {/* MENÚ FLOTANTE (SPEED DIAL) */}
       <div className="menu-flotante-container">
         <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
-          
           <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
             <span className="opcion-tooltip">Conocé los planes</span>
             <Zap size={22} />
           </button>
-
           <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="opcion-flotante btn-wp">
             <span className="opcion-tooltip">Escribinos al WhatsApp</span>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
               <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.183 1.603 6L.516 23.484l5.603-1.47c1.745.96 3.722 1.47 5.912 1.47 6.646 0 12.031-5.385 12.031-12.031C24 5.385 18.615 0 12.031 0zm3.625 17.156c-.156.44-1.281 1.094-1.844 1.156-.563.063-1.094.22-3.156-.562-2.47-1-4.063-3.625-4.188-3.781-.125-.156-1-1.344-1-2.563s.625-1.781.844-2.031c.219-.25.563-.312.75-.312.188 0 .375.031.531.406.188.438.625 1.563.688 1.688.063.125.125.312.031.5-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.25-.125.531.156.281.688 1.156 1.469 1.844.969.875 1.813 1.156 2.094 1.281.281.125.438.094.625-.094.188-.188.75-.875.938-1.188.188-.312.375-.25.625-.156.25.094 1.563.75 1.844.875.281.125.469.188.531.281.063.125.063.688-.094 1.125z"/>
             </svg>
           </a>
-          
         </div>
-
-        <button 
-          className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`}
-          onClick={() => setMenuAbierto(!menuAbierto)}
-        >
+        <button className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)}>
           {menuAbierto ? <X size={30} /> : <ChevronUp size={32} />}
         </button>
       </div>
