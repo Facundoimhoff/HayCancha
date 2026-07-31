@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Building2, Phone } from 'lucide-react';
+// IMPORTANTE: Agregamos ChevronUp y X para el nuevo botón menú
+import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Phone, Zap, ChevronUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
 
@@ -9,6 +10,9 @@ export default function LandingPage() {
   const [enviado, setEnviado] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
+  
+  // ESTADO PARA EL NUEVO BOTÓN FLOTANTE (Abierto/Cerrado)
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const provincias = [
     "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes",
@@ -65,7 +69,6 @@ export default function LandingPage() {
     }
   };
 
-  // Mensaje predeterminado para WhatsApp
   const numeroWhatsApp = "5493564609641"; 
   const mensajeWhatsApp = "Hola GridPlay! Tengo un complejo deportivo y me gustaría conocer más sobre el sistema para sumar mi club.";
   const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensajeWhatsApp)}`;
@@ -81,6 +84,13 @@ export default function LandingPage() {
           <div className="nav-buttons">
             <button className="btn-nav" onClick={() => scrollToSection('provincias')}>Explorar</button>
             <button className="btn-nav" onClick={() => scrollToSection('contacto')}>Contacto</button>
+            <button 
+              className="btn-nav" 
+              onClick={() => navigate('/login-admin')}
+              style={{ fontWeight: 'bold', border: '1px solid #22c55e', color: '#22c55e', borderRadius: '8px', padding: '8px 16px', marginLeft: '10px' }}
+            >
+              Soy Admin
+            </button>
           </div>
         </nav>
 
@@ -198,13 +208,13 @@ export default function LandingPage() {
           
           <div className="footer-contacto">
             <a href="https://instagram.com" target="_blank" rel="noreferrer" className="footer-link">
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-  </svg>
-  @gridplay.app
-</a>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              @gridplay.app
+            </a>
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
             </a>
@@ -218,22 +228,38 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* BURBUJA WHATSAPP (Izquierda) */}
-      <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="burbuja-whatsapp">
-        <div className="burbuja-icono-wp">
-          {/* SVG de WhatsApp Oficial */}
-          <svg viewBox="0 0 24 24" width="32" height="32" fill="white">
-            <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.183 1.603 6L.516 23.484l5.603-1.47c1.745.96 3.722 1.47 5.912 1.47 6.646 0 12.031-5.385 12.031-12.031C24 5.385 18.615 0 12.031 0zm3.625 17.156c-.156.44-1.281 1.094-1.844 1.156-.563.063-1.094.22-3.156-.562-2.47-1-4.063-3.625-4.188-3.781-.125-.156-1-1.344-1-2.563s.625-1.781.844-2.031c.219-.25.563-.312.75-.312.188 0 .375.031.531.406.188.438.625 1.563.688 1.688.063.125.125.312.031.5-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.25-.125.531.156.281.688 1.156 1.469 1.844.969.875 1.813 1.156 2.094 1.281.281.125.438.094.625-.094.188-.188.75-.875.938-1.188.188-.312.375-.25.625-.156.25.094 1.563.75 1.844.875.281.125.469.188.531.281.063.125.063.688-.094 1.125z"/>
-          </svg>
-        </div>
-      </a>
+      {/* ==================================================== */}
+      {/* NUEVO MENÚ FLOTANTE (SPEED DIAL)                     */}
+      {/* ==================================================== */}
+      <div className="menu-flotante-container">
+        
+        {/* Opciones (Se muestran solo si menuAbierto es true) */}
+        <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
+          
+          {/* Opción 1: Planes */}
+          <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
+            <span className="opcion-tooltip">Conocé los planes</span>
+            <Zap size={22} />
+          </button>
 
-      {/* BURBUJA ADMIN (Derecha) */}
-      <div className="burbuja-admin" onClick={() => navigate('/login-admin')}>
-        <span className="burbuja-texto">¿Tenés un club? Sumalo acá</span>
-        <div className="burbuja-icono">
-          <Building2 size={26} />
+          {/* Opción 2: WhatsApp */}
+          <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="opcion-flotante btn-wp">
+            <span className="opcion-tooltip">Escribinos al WhatsApp</span>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+              <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.183 1.603 6L.516 23.484l5.603-1.47c1.745.96 3.722 1.47 5.912 1.47 6.646 0 12.031-5.385 12.031-12.031C24 5.385 18.615 0 12.031 0zm3.625 17.156c-.156.44-1.281 1.094-1.844 1.156-.563.063-1.094.22-3.156-.562-2.47-1-4.063-3.625-4.188-3.781-.125-.156-1-1.344-1-2.563s.625-1.781.844-2.031c.219-.25.563-.312.75-.312.188 0 .375.031.531.406.188.438.625 1.563.688 1.688.063.125.125.312.031.5-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.25-.125.531.156.281.688 1.156 1.469 1.844.969.875 1.813 1.156 2.094 1.281.281.125.438.094.625-.094.188-.188.75-.875.938-1.188.188-.312.375-.25.625-.156.25.094 1.563.75 1.844.875.281.125.469.188.531.281.063.125.063.688-.094 1.125z"/>
+            </svg>
+          </a>
+          
         </div>
+
+        {/* Botón Principal (Cruza / Flecha Arriba) */}
+        <button 
+          className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`}
+          onClick={() => setMenuAbierto(!menuAbierto)}
+        >
+          {menuAbierto ? <X size={30} /> : <ChevronUp size={32} />}
+        </button>
+
       </div>
       
     </div>

@@ -916,3 +916,155 @@ Estos estilos solo se activan en pantallas chicas
     height: 55px;
   }
 }
+
+/* =========================================
+   Nuevo Menú Flotante (Speed Dial)
+   ========================================= */
+
+.menu-flotante-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.menu-flotante-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  opacity: 0;
+  pointer-events: none; /* Para no clickear si está cerrado */
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Cuando le damos clic y se abre */
+.menu-flotante-opciones.abierto {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.opcion-flotante {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  position: relative;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s;
+}
+
+.opcion-flotante:hover {
+  transform: scale(1.1);
+}
+
+.btn-planes {
+  background-color: #0f172a; /* Azul oscuro elegante */
+}
+
+.btn-planes:hover {
+  background-color: #1e293b;
+}
+
+.btn-wp {
+  background-color: #25D366; /* Verde WhatsApp */
+}
+
+.btn-wp:hover {
+  background-color: #20b858;
+}
+
+/* Los cartelitos blancos (Tooltips) */
+.opcion-tooltip {
+  position: absolute;
+  right: 65px; /* Se corren a la izquierda del botón */
+  background-color: white;
+  color: #0f172a;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+}
+
+/* Al abrir el menú, los cartelitos también se muestran automáticamente */
+.menu-flotante-opciones.abierto .opcion-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* El botón principal de la flecha/cruz */
+.menu-flotante-principal {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-flotante-principal:hover {
+  transform: scale(1.05);
+}
+
+/* Animación de pulso cuando está cerrado llamando la atención */
+.menu-flotante-principal:not(.abierto) {
+  animation: pulso-verde 2.5s infinite;
+}
+
+/* Cuando se abre, cambia de color a un oscuro elegante */
+.menu-flotante-principal.abierto {
+  background-color: #0f172a;
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.4);
+  transform: rotate(90deg); /* Pequeño giro al convertirse en cruz */
+}
+
+@keyframes pulso-verde {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@media (max-width: 768px) {
+  .menu-flotante-container {
+    bottom: 20px;
+    right: 20px;
+  }
+  .menu-flotante-principal {
+    width: 55px;
+    height: 55px;
+  }
+  .opcion-flotante {
+    width: 45px;
+    height: 45px;
+  }
+  /* En celulares achicamos los textos para que no se pisen */
+  .opcion-tooltip {
+    right: 55px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+}
