@@ -699,13 +699,15 @@ const DashboardAdmin = () => {
       {/* ==================================================== */}
       {/* 1. NUEVA BARRA SUPERIOR (SOLO PARA CELULARES)        */}
       {/* ==================================================== */}
+      {/* BARRA SUPERIOR MÓVIL (Hamburguesa a la izq y Logo nuevo) */}
       <div className="mobile-topbar-enterprise">
-        <div className="logo-empresa" style={{ fontSize: '1.4rem' }}>
-          GridPlay<span className="dot-green">.</span>
-        </div>
         <button className="btn-hamburguesa" onClick={() => setMenuMobileAbierto(true)}>
           <Menu size={28} />
         </button>
+        <div className="logo-empresa" style={{ fontSize: '1.4rem' }}>
+          GridPlay<span className="dot-green-circle"></span>
+        </div>
+        <div style={{ width: '28px' }}></div> {/* Espaciador invisible para centrar el logo */}
       </div>
 
       {/* FONDO OSCURO (Aparece cuando abrís el menú en el celu) */}
@@ -713,13 +715,12 @@ const DashboardAdmin = () => {
         <div className="sidebar-overlay" onClick={() => setMenuMobileAbierto(false)}></div>
       )}
 
-      {/* ==================================================== */}
-      {/* 2. SIDEBAR (CON LÓGICA PARA OCULTARSE EN MÓVIL)      */}
-      {/* ==================================================== */}
+      {/* SIDEBAR */}
       <aside className={`sidebar-enterprise ${menuMobileAbierto ? 'abierto' : ''}`}>
         <div className="sidebar-header">
+          {/* Logo nuevo en la versión PC también */}
           <div className="logo-empresa">
-            GridPlay<span className="dot-green">.</span>
+            GridPlay<span className="dot-green-circle"></span>
           </div>
           {miClub && <p className="club-name-enterprise">{miClub.nombre}</p>}
           

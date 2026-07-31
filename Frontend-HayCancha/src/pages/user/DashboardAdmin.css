@@ -777,6 +777,99 @@
 @media (max-width: 768px) {
   .dashboard-container { flex-direction: column; }
   
+  /* BARRA SUPERIOR FIJA (Menú a la izquierda) */
+  .mobile-topbar-enterprise {
+    display: flex;
+    justify-content: space-between; /* El menú, el logo y el espaciador se reparten el espacio */
+    align-items: center;
+    background-color: #0f172a;
+    padding: 16px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 900;
+    box-sizing: border-box;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+
+  .btn-hamburguesa {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* SIDEBAR OCULTO Y DESLIZABLE */
+  .sidebar-enterprise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-enterprise.abierto { transform: translateX(0); }
+
+  .btn-cerrar-sidebar-mobile {
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    padding: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 950;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .main-content-enterprise { padding: 100px 20px 20px 20px; }
+  .modal-content { max-width: 90%; padding: 24px; }
+
+  /* ==================================================== */
+  /* ARREGLO DE LOS BOTONES "BLOQUEAR" Y "NUEVO TURNO"    */
+  /* ==================================================== */
+  .general-header {
+    flex-direction: column; /* Apilamos textos arriba, botones abajo */
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .acciones-header {
+    width: 100%;
+    display: flex;
+    gap: 10px; /* Separación entre los dos botones */
+  }
+
+  .btn-accion {
+    flex: 1; /* Ocupan mitad y mitad de la pantalla */
+    justify-content: center;
+    font-size: 0.85rem;
+    padding: 12px 10px;
+  }
+}
+  
   /* BARRA SUPERIOR FIJA */
   .mobile-topbar-enterprise {
     display: flex;
@@ -859,5 +952,144 @@
   .modal-content { 
     max-width: 90%; 
     padding: 24px; 
+  }
+
+
+/* El puntito verde perfecto para el logo */
+.dot-green-circle {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  margin-left: 2px;
+}
+
+/* =========================================
+   Menú Flotante (Speed Dial) - Landing Page
+   ========================================= */
+.menu-flotante-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.menu-flotante-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-flotante-opciones.abierto {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.opcion-flotante {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  position: relative;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s;
+}
+
+.opcion-flotante:hover { transform: scale(1.1); }
+.btn-planes { background-color: #0f172a; }
+.btn-planes:hover { background-color: #1e293b; }
+.btn-wp { background-color: #25D366; }
+.btn-wp:hover { background-color: #20b858; }
+
+.opcion-tooltip {
+  position: absolute;
+  right: 65px;
+  background-color: white;
+  color: #0f172a;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+}
+
+.menu-flotante-opciones.abierto .opcion-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.menu-flotante-principal {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-flotante-principal:hover { transform: scale(1.05); }
+
+.menu-flotante-principal:not(.abierto) {
+  animation: pulso-verde 2.5s infinite;
+}
+
+.menu-flotante-principal.abierto {
+  background-color: #0f172a;
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.4);
+  transform: rotate(90deg);
+}
+
+@keyframes pulso-verde {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* AJUSTES DE BURBUJA PARA CELULARES */
+@media (max-width: 768px) {
+  .menu-flotante-container {
+    bottom: 20px;
+    right: 20px;
+  }
+  .menu-flotante-principal {
+    width: 55px;
+    height: 55px;
+  }
+  .opcion-flotante {
+    width: 45px;
+    height: 45px;
+  }
+  .opcion-tooltip {
+    right: 55px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
   }
 }

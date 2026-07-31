@@ -125,7 +125,6 @@ export default function LandingPage() {
       <main className="landing-main" id="provincias">
         <div className="provincias-container-modern">
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
-          <p className="section-subtitle">Seleccioná tu provincia para ver los clubes disponibles.</p>
           
           <div className="selector-provincia-wrapper">
             <MapPin size={24} className="icono-pin-prov" />
