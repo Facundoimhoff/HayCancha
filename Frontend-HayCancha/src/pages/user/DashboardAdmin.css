@@ -1,472 +1,762 @@
 /* =========================================
-   DashboardAdmin.css (Enterprise Edition)
+   DashboardAdmin.css (Enterprise Edition Completo)
    ========================================= */
 
-   .dashboard-container {
-    display: flex;
-    min-height: 100vh;
-    background-color: #f8fafc; /* Gris más claro y limpio */
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-  
-  /* --- ESTADOS --- */
-  .dashboard-mensaje, .dashboard-error {
-    padding: 40px;
-    text-align: center;
-    font-size: 1.2rem;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #475569;
-  }
-  
-  .dashboard-error { color: #ef4444; font-weight: bold; }
-  
-  /* --- SIDEBAR EMPRESARIAL --- */
-  .sidebar-enterprise {
-    width: 260px;
-    background-color: #0f172a; /* Slate 900 - Muy elegante */
-    color: #f8fafc;
-    display: flex;
-    flex-direction: column;
-    padding: 24px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    box-sizing: border-box;
-    border-right: 1px solid #1e293b;
-  }
-  
-  .sidebar-header { margin-bottom: 40px; }
-  
-  .logo-empresa {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.75rem;
-    font-weight: 900;
-    color: white;
-    letter-spacing: -0.5px;
-  }
-  
-  .dot-green { color: #22c55e; }
-  
-  .club-name-enterprise {
-    margin: 8px 0 0 0;
-    font-size: 0.85rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 600;
-  }
-  
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-  }
-  
-  .nav-section-title {
-    color: #475569;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin: 16px 0 8px 0;
-  }
-  
-  .mt-4 { margin-top: 16px; }
-  
-  .nav-item-enterprise {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: none;
-    border: none;
-    color: #cbd5e1;
-    padding: 12px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    text-align: left;
-    transition: all 0.2s ease;
-  }
-  
-  .nav-item-enterprise:hover {
-    background-color: #1e293b;
-    color: white;
-  }
-  
-  .nav-item-enterprise.active {
-    background-color: #2563eb;
-    color: white;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-  }
-  
-  .btn-salir-enterprise {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: none;
-    border: 1px solid #334155;
-    color: #f87171;
-    padding: 12px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    margin-top: auto;
-  }
-  
-  .btn-salir-enterprise:hover {
-    background-color: #7f1d1d;
-    color: white;
-    border-color: #7f1d1d;
-  }
-  
-  /* --- MAIN CONTENT --- */
-  .main-content-enterprise {
-    flex: 1;
-    padding: 40px;
-    overflow-y: auto;
-  }
-  
-  .content-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  /* --- HEADER SECCIONES --- */
-  .general-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-  }
-  
-  .general-header h2 {
-    margin: 0;
-    color: #0f172a;
-    font-size: 1.8rem;
-    font-weight: 800;
-    font-family: 'Montserrat', sans-serif;
-  }
-  
-  .subtitle-header {
-    color: #64748b;
-    margin: 4px 0 0 0;
-    font-size: 1rem;
-  }
-  
-  .acciones-header {
-    display: flex;
-    gap: 12px;
-  }
-  
-  .btn-accion {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .btn-accion:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-  .btn-accion:active { transform: scale(0.98); }
-  
-  .btn-accion.bloqueo { background-color: #f59e0b; }
-  .btn-accion.nuevo { background-color: #2563eb; }
-  
-  .export-pdf { background-color: #ef4444; }
-  .export-excel { background-color: #16a34a; }
-  
-  /* --- MÉTRICAS --- */
-  .metricas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
-    margin-bottom: 40px;
-  }
-  
-  .metrica-card {
-    background-color: #fff;
-    padding: 24px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
-  }
-  
-  .icono-box { padding: 16px; border-radius: 12px; }
-  .icono-box.verde { background-color: #f0fdf4; }
-  .icono-box.azul { background-color: #eff6ff; }
-  
-  .metrica-info p {
-    margin: 0;
-    color: #64748b;
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-  
-  .metrica-info h3 {
-    margin: 4px 0 0 0;
-    font-size: 2rem;
-    color: #0f172a;
-    font-weight: 800;
-  }
-  
-  /* Filtros en Reportes */
-  .metricas-filtros-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    background: white;
-    padding: 16px 24px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .filtro-label {
-    font-weight: 600;
-    color: #475569;
-  }
-  
-  .select-filtro-enterprise {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    font-family: inherit;
-    font-weight: 600;
-    color: #0f172a;
-    outline: none;
-    background-color: #f8fafc;
-    cursor: pointer;
-  }
-  
-  .metricas-charts-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-  }
-  
-  .grafico-container {
-    background-color: #fff;
-    padding: 24px;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-  }
-  
-  .grafico-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .grafico-titulo {
-    color: #0f172a;
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
-  
-  .grafico-total-badge {
-    background-color: #dcfce7;
-    color: #16a34a;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.9rem;
-  }
-  
-  /* --- CLIENTES Y TABLAS --- */
-  .tabla-container-enterprise {
-    background-color: #fff;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-    overflow: hidden;
-  }
-  
-  .tabla-clientes-enterprise {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-  }
-  
-  .tabla-clientes-enterprise th {
-    padding: 16px 24px;
-    background-color: #f8fafc;
-    color: #64748b;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  
-  .tabla-clientes-enterprise td {
-    padding: 16px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    font-size: 0.95rem;
-  }
-  
-  .tabla-clientes-enterprise tr:last-child td { border-bottom: none; }
-  .tabla-clientes-enterprise tr:hover td { background-color: #f8fafc; }
-  
-  .fw-bold { font-weight: 600; }
-  .text-slate-800 { color: #1e293b; }
-  
-  .link-whatsapp-tabla {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  
-  .link-whatsapp-tabla:hover { text-decoration: underline; }
-  
-  .badge-turnos-enterprise {
-    background-color: #eff6ff;
-    color: #2563eb;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 700;
-  }
-  
-  /* --- CANCHAS (AJUSTES) --- */
-  .canchas-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
-  }
-  
-  .cancha-card-enterprise {
-    background-color: white;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-    transition: all 0.2s ease;
-  }
-  
-  .cancha-card-enterprise:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-    border-color: #cbd5e1;
-  }
-  
-  .cancha-info h3 { margin: 0 0 8px 0; color: #0f172a; display: flex; align-items: center; font-size: 1.1rem; }
-  .cancha-deporte { font-size: 0.75rem; background-color: #f1f5f9; padding: 4px 10px; border-radius: 12px; margin-left: 10px; color: #64748b; font-weight: 600; }
-  
-  .cancha-precio-badge {
-    margin: 0;
-    color: #16a34a;
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-  
-  .cancha-horario {
-    margin: 4px 0 0 0;
-    color: #64748b;
-    font-size: 0.9rem;
-  }
-  
-  .btn-editar-enterprise {
-    margin-left: auto;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 10px;
-    border-radius: 10px;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .btn-editar-enterprise:hover {
-    color: #2563eb;
-    border-color: #2563eb;
-    background-color: #eff6ff;
-  }
-  
-  /* --- TURNOS --- */
-  .seccion-turnos {
-    background-color: #fff;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    padding: 24px;
-    margin-top: 32px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-  }
-  
-  .titulo-seccion {
-    margin: 0 0 20px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.15rem;
-    font-weight: 700;
-  }
-  
-  .titulo-seccion.azul { color: #0f172a; }
-  
-  .turno-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    transition: transform 0.2s ease;
-  }
-  
-  .turno-item.normal { background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; }
-  .turno-item.bloqueo { background-color: #fefce8; border: 1px solid #fef08a; border-left: 4px solid #f59e0b; }
-  
-  .turno-nombre { margin: 0; font-weight: 700; font-size: 1.05rem; }
-  .turno-item.normal .turno-nombre { color: #0f172a; }
-  
-  .turno-detalle { margin: 6px 0 0 0; font-size: 0.9rem; color: #64748b; font-weight: 500; }
-  
-  .turno-acciones-triple { display: flex; gap: 8px; }
-  
-  .btn-accion-mini {
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  
-  .btn-accion-mini:hover { background-color: #f8fafc; transform: translateY(-2px); }
-  
-  /* --- MODALES Y PERFIL (Mantenidos de tu versión con mejoras de bordes) --- */
-  .modal-content { border-radius: 16px; padding: 32px; max-width: 420px; }
-  .modal-input { border-radius: 10px; padding: 12px; }
-  .btn-modal { border-radius: 10px; padding: 12px; }
-  .perfil-wrapper { border-radius: 16px; border: 1px solid #e2e8f0; padding: 32px; }
-  .form-input-icon { border-radius: 10px; padding: 12px 12px 12px 42px; }
-  
-  @media (max-width: 900px) {
-    .metricas-charts-grid { grid-template-columns: 1fr; }
-  }
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* --- ESTADOS --- */
+.dashboard-mensaje, .dashboard-error {
+  padding: 40px;
+  text-align: center;
+  font-size: 1.2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #475569;
+}
+
+.dashboard-error { color: #ef4444; font-weight: bold; }
+
+/* --- SIDEBAR EMPRESARIAL --- */
+.sidebar-enterprise {
+  width: 260px;
+  background-color: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
+  border-right: 1px solid #1e293b;
+  z-index: 10;
+}
+
+.sidebar-header { margin-bottom: 40px; }
+
+.logo-empresa {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.dot-green { color: #22c55e; }
+
+.club-name-enterprise {
+  margin: 8px 0 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.nav-section-title {
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 16px 0 8px 0;
+}
+
+.mt-4 { margin-top: 16px; }
+
+.nav-item-enterprise {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.nav-item-enterprise:hover {
+  background-color: #1e293b;
+  color: white;
+}
+
+.nav-item-enterprise.active {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-salir-enterprise {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: 1px solid #334155;
+  color: #f87171;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.btn-salir-enterprise:hover {
+  background-color: #7f1d1d;
+  color: white;
+  border-color: #7f1d1d;
+}
+
+/* --- MAIN CONTENT --- */
+.main-content-enterprise {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --- HEADER SECCIONES --- */
+.general-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.general-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.subtitle-header {
+  color: #64748b;
+  margin: 4px 0 0 0;
+  font-size: 1rem;
+}
+
+.acciones-header {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-accion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-accion:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.btn-accion:active { transform: scale(0.98); }
+
+.btn-accion.bloqueo { background-color: #f59e0b; }
+.btn-accion.nuevo { background-color: #2563eb; }
+
+.export-pdf { background-color: #ef4444; }
+.export-excel { background-color: #16a34a; }
+
+/* --- MÉTRICAS --- */
+.metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.metrica-card {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+}
+
+.icono-box { padding: 16px; border-radius: 12px; }
+.icono-box.verde { background-color: #f0fdf4; }
+.icono-box.azul { background-color: #eff6ff; }
+
+.metrica-info p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.metrica-info h3 {
+  margin: 4px 0 0 0;
+  font-size: 2rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.metricas-filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.filtro-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.select-filtro-enterprise {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  background-color: #f8fafc;
+  cursor: pointer;
+}
+
+.metricas-charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.grafico-container {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.grafico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.grafico-titulo {
+  color: #0f172a;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.grafico-total-badge {
+  background-color: #dcfce7;
+  color: #16a34a;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* --- CLIENTES Y TABLAS --- */
+.tabla-container-enterprise {
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.tabla-clientes-enterprise {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabla-clientes-enterprise th {
+  padding: 16px 24px;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-clientes-enterprise td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.tabla-clientes-enterprise tr:last-child td { border-bottom: none; }
+.tabla-clientes-enterprise tr:hover td { background-color: #f8fafc; }
+
+.fw-bold { font-weight: 600; }
+.text-slate-800 { color: #1e293b; }
+
+.link-whatsapp-tabla {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-whatsapp-tabla:hover { text-decoration: underline; }
+
+.badge-turnos-enterprise {
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* --- CANCHAS (AJUSTES) Y CARGA DE IMÁGENES --- */
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-agregar:hover { background-color: #059669; }
+
+.canchas-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.cancha-card-enterprise {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+}
+
+.cancha-card-enterprise:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+  border-color: #cbd5e1;
+}
+
+/* Mejora espectacular para las fotos de las canchas */
+.cancha-imagen-placeholder {
+  width: 80px;
+  height: 80px;
+  background-color: #f1f5f9;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed #cbd5e1;
+  flex-shrink: 0;
+  overflow: hidden; /* Clave para que la foto no se salga */
+}
+
+.cancha-imagen-placeholder.con-imagen {
+  border: none;
+}
+
+.cancha-imagen-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Clave para que las fotos se vean perfectas sin deformarse */
+}
+
+.cancha-info h3 { margin: 0 0 8px 0; color: #0f172a; display: flex; align-items: center; font-size: 1.1rem; }
+.cancha-deporte { font-size: 0.75rem; background-color: #f1f5f9; padding: 4px 10px; border-radius: 12px; margin-left: 10px; color: #64748b; font-weight: 600; }
+
+.cancha-precio-badge {
+  margin: 0;
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cancha-horario {
+  margin: 4px 0 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.btn-editar-enterprise {
+  margin-left: auto;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 10px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-editar-enterprise:hover {
+  color: #2563eb;
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+/* --- TURNOS --- */
+.seccion-turnos {
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  margin-top: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.titulo-seccion {
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.titulo-seccion.azul { color: #0f172a; }
+
+.turno-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: transform 0.2s ease;
+}
+
+.turno-item.normal { background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; }
+.turno-item.bloqueo { background-color: #fefce8; border: 1px solid #fef08a; border-left: 4px solid #f59e0b; }
+
+.turno-nombre { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.turno-item.normal .turno-nombre { color: #0f172a; }
+
+.turno-detalle { margin: 6px 0 0 0; font-size: 0.9rem; color: #64748b; font-weight: 500; }
+
+.turno-acciones-triple { display: flex; gap: 8px; }
+
+.btn-accion-mini {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-accion-mini:hover { background-color: #f8fafc; transform: translateY(-2px); }
+
+/* =========================================
+   PERFIL DEL CLUB
+   ========================================= */
+.perfil-wrapper { 
+  background-color: white;
+  border-radius: 16px; 
+  border: 1px solid #e2e8f0; 
+  padding: 32px; 
+  max-width: 600px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.perfil-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.perfil-header h2 { margin: 0; color: #0f172a; font-size: 1.5rem; }
+
+.perfil-alerta {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.perfil-alerta.exito { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.perfil-alerta.error { background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.input-icon-wrapper { position: relative; }
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.form-input-icon { 
+  width: 100%;
+  border-radius: 10px; 
+  padding: 12px 12px 12px 42px; 
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  color: #1e293b;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+}
+
+.form-input-icon:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.btn-guardar {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+.btn-guardar:hover:not(:disabled) { background-color: #1d4ed8; }
+.btn-guardar:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* =========================================
+   MODALES Y POPUPS (Solución del error visual)
+   ========================================= */
+.modal-overlay {
+  position: fixed; /* Esto es clave para que flote sobre toda la pantalla */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6); /* Fondo oscurecido */
+  backdrop-filter: blur(4px); /* Efecto borroso elegante */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content { 
+  background-color: white;
+  border-radius: 20px; 
+  padding: 32px; 
+  width: 100%;
+  max-width: 450px; 
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalEntrada 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalEntrada {
+  0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-content h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.modal-row {
+  display: flex;
+  gap: 16px;
+}
+
+.modal-col {
+  flex: 1;
+}
+
+.modal-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.modal-input { 
+  width: 100%;
+  border-radius: 10px; 
+  padding: 12px; 
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  font-size: 0.95rem;
+  color: #1e293b;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: white;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-modal { 
+  flex: 1;
+  border-radius: 10px; 
+  padding: 14px; 
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-modal.primario { background-color: #2563eb; color: white; }
+.btn-modal.primario:hover { background-color: #1d4ed8; }
+
+.btn-modal.secundario { background-color: #f1f5f9; color: #475569; }
+.btn-modal.secundario:hover { background-color: #e2e8f0; color: #0f172a; }
+
+.btn-modal.advertencia { background-color: #f59e0b; color: white; }
+.btn-modal.advertencia:hover { background-color: #d97706; }
+
+@media (max-width: 900px) {
+  .metricas-charts-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { flex-direction: column; }
+  .sidebar-enterprise { width: 100%; height: auto; position: static; }
+  .main-content-enterprise { padding: 20px; }
+  .modal-content { max-width: 90%; padding: 24px; }
+}
+
+/* =========================================
+   Botón de Información (Gráficos)
+   ========================================= */
+.btn-info-grafico {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.btn-info-grafico:hover {
+  color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.btn-info-grafico.activo {
+  color: #2563eb;
+  background-color: #dbeafe;
+}
+
+.info-grafico-box {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  animation: deslizarAbajo 0.3s ease;
+}
+
+@keyframes deslizarAbajo {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

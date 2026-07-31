@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -401,6 +401,9 @@ const DashboardAdmin = () => {
   );
 
   const PantallaMetricas = () => { 
+    // ESTADO NUEVO: Controla si se muestra el mensaje de info del gráfico
+    const [mostrarInfo, setMostrarInfo] = useState(false);
+
     const datosFiltrados = useMemo(() => {
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -475,10 +478,30 @@ const DashboardAdmin = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grafico-container">
+          <div className="grafico-container relative">
             <div className="grafico-header">
-              <h3 className="grafico-titulo">Distribución de Turnos</h3>
+              
+              {/* ACÁ ESTÁ EL NUEVO BOTÓN DE INFO */}
+              <h3 className="grafico-titulo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Distribución de Turnos
+                <button 
+                  onClick={() => setMostrarInfo(!mostrarInfo)} 
+                  className={`btn-info-grafico ${mostrarInfo ? 'activo' : ''}`}
+                  title="¿Qué significa este gráfico?"
+                >
+                  <Info size={18} />
+                </button>
+              </h3>
+
             </div>
+
+            {/* CAJITA DE EXPLICACIÓN (Se muestra solo si tocaron el botón) */}
+            {mostrarInfo && (
+              <div className="info-grafico-box">
+                Este gráfico te muestra rápidamente cuál es tu <strong>cancha "estrella"</strong>. Te sirve para saber qué instalaciones se usan más, enfocar promociones o decidir dónde invertir en mantenimiento.
+              </div>
+            )}
+
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad">
