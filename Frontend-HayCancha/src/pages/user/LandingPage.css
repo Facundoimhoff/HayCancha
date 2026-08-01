@@ -1448,3 +1448,117 @@ Estos estilos solo se activan en pantallas chicas
     margin-top: 4px;
   }
 }
+
+/* =========================================
+   1. HEADER FIJO, NEGRO Y CENTRADO (PC)
+   ========================================= */
+.navbar {
+  position: fixed; /* Hace que te siga al bajar */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #0a0a0a !important; /* Negro bien puro/elegante */
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Clavamos el logo exactamente en el centro de la pantalla */
+.navbar .logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+}
+
+/* =========================================
+   2. FONDO GRIS MÁS LARGO (PARA EL BUSCADOR)
+   ========================================= */
+.hero-section {
+  padding-top: 120px; /* Compensa el header fijo para que no tape el texto */
+  padding-bottom: 120px !important; /* ESTO HACE BAJAR EL GRIS PARA ABRAZAR EL BUSCADOR */
+}
+
+
+/* =========================================
+   3. SECCIÓN PROVINCIAS (MEJORADA PARA PC)
+   ========================================= */
+.provincias-container-modern {
+  text-align: left; /* Títulos a la izquierda en la compu */
+  padding: 80px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-subtitle {
+  margin: 10px 0 40px 0 !important; /* Alineamos el margen a la izq */
+}
+
+/* Acomodamos la grilla para que entren bien las tarjetas */
+.provincias-grid-desktop {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+/* Tarjetas de provincias hiper-modernas */
+.provincia-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1.5px solid #f1f5f9; /* Borde súper sutil */
+  padding: 20px 24px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+}
+
+/* Efecto premium al pasar el mouse por la provincia */
+.provincia-card-btn:hover {
+  border-color: #22c55e;
+  background-color: #f0fdf4; /* Fondito apenas verde */
+  transform: translateY(-5px); /* Salta un poquito para arriba */
+  box-shadow: 0 12px 20px -8px rgba(34, 197, 94, 0.3);
+}
+
+/* ¡MATA EL MENÚ DESPLEGABLE EN LA COMPU! */
+@media (min-width: 769px) {
+  .provincias-dropdown-mobile {
+    display: none !important;
+  }
+}
+
+
+/* =========================================
+   4. CORRECCIONES PARA QUE NO SE ROMPA EL CELU
+   ========================================= */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 20px;
+  }
+  
+  /* En el celular rompemos el centrado absoluto del logo para que vaya a la derecha */
+  .navbar .logo {
+    position: static; 
+    transform: none;
+  }
+
+  /* En el celular los títulos de ubicación vuelven al centro */
+  .provincias-container-modern {
+    text-align: center; 
+    padding: 60px 20px;
+  }
+  
+  .section-subtitle {
+    margin: -15px auto 30px auto !important; 
+  }
+}
