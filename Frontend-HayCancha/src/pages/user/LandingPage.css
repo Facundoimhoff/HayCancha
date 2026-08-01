@@ -1289,3 +1289,162 @@ Estos estilos solo se activan en pantallas chicas
     padding: 40px 20px;
   }
 }
+
+/* =========================================
+   SIDEBAR MÓVIL (ESTILO APP NATIVA)
+   ========================================= */
+
+/* Por defecto (en PC) ocultamos todo lo del menú móvil */
+.btn-hamburguesa-landing { display: none; }
+.sidebar-overlay-landing { display: none; }
+.sidebar-landing { display: none; }
+
+@media (max-width: 768px) {
+  /* 1. NAVBAR MÓVIL: Hamburguesa a la izquierda, Logo a la derecha */
+  .navbar {
+    display: flex;
+    justify-content: space-between !important;
+    align-items: center;
+    padding: 15px 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .nav-buttons {
+    display: none !important; /* Escondemos todos los botones viejos */
+  }
+
+  .btn-hamburguesa-landing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: white; /* Color del ícono hamburguesa */
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* 2. OVERLAY OSCURO (Fondo borroso) */
+  .sidebar-overlay-landing {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9998;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* 3. PANEL LATERAL (Sidebar) */
+  .sidebar-landing {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: #1e293b; /* Fondo oscuro elegante */
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+  }
+
+  .sidebar-landing.abierto {
+    transform: translateX(0);
+  }
+
+  /* Enlaces del menú */
+  .sidebar-landing-links {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    margin-top: 30px;
+  }
+
+  .sidebar-landing-links button {
+    background: none;
+    border: none;
+    text-align: left;
+    color: #f8fafc;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 20px 24px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Botón de ADMIN Verde en el menú */
+  .sidebar-landing-footer {
+    margin-top: 20px;
+    padding: 0 24px;
+  }
+
+  .btn-soy-admin-sidebar {
+    width: 100%;
+    background-color: #22c55e; /* VERDE GRIDPLAY */
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+  }
+}
+
+/* =========================================
+   ARREGLOS FINALES: SUBTÍTULOS Y BUSCADOR (MÓVIL)
+   ========================================= */
+
+/* 1. Subtítulo tranquilo y prolijo */
+.section-subtitle {
+  color: #64748b !important; /* Gris oscuro sutil */
+  font-size: 1rem !important; /* Tamaño normal de lectura */
+  font-weight: 500 !important; /* Sin negrita pesada */
+  font-style: normal !important; /* Le sacamos la cursiva */
+  font-family: 'Inter', system-ui, sans-serif !important; /* Tipografía limpia */
+  text-transform: none !important; /* Sin mayúsculas forzadas */
+  letter-spacing: normal !important;
+  margin: -15px auto 30px auto !important;
+  max-width: 90%;
+  line-height: 1.5;
+}
+
+/* 2. Arreglo de la Lupa en el celular */
+@media (max-width: 768px) {
+  .search-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .search-icon {
+    position: absolute !important;
+    top: 31px !important; /* Centrado perfectamente con el input */
+    left: 32px !important;
+    color: #22c55e;
+    margin: 0 !important;
+  }
+
+  .search-box input {
+    width: 100%;
+    /* El 48px de la izquierda es vital: deja el hueco para que entre la lupa */
+    padding: 14px 14px 14px 48px !important; 
+    background-color: #f8fafc; /* Gris super clarito para el fondo del input */
+    border: 1px solid #e2e8f0; /* Bordecito sutil */
+    border-radius: 12px;
+    box-sizing: border-box;
+    font-size: 1rem;
+  }
+
+  .btn-search {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
