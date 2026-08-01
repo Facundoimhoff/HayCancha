@@ -127,19 +127,71 @@
   line-height: 1.4;
 }
 
-/* Imagen contextual */
-.planes-imagen-contexto {
+/* --- NUEVO CARRUSEL CONTEXTUAL --- */
+.planes-carousel-contexto {
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  height: 250px;
+  height: 280px;
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
 }
 
-.planes-imagen-contexto img {
+.planes-img-carousel {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.planes-car-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.planes-car-btn:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+  transform: translateY(-50%) scale(1.1);
+}
+.planes-car-btn.left { left: 12px; }
+.planes-car-btn.right { right: 12px; }
+
+/* Puntitos del Carrusel */
+.planes-car-dots {
+  position: absolute;
+  bottom: 80px; /* Por encima del texto negro abajo */
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.car-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.car-dot.active {
+  background: #22c55e;
+  width: 24px;
+  border-radius: 4px;
 }
 
 .overlay-imagen {
@@ -298,7 +350,7 @@
   margin-top: 16px;
 }
 
-/* Responsive (Celulares y Tablets) */
+/* Responsive (Celulares y Tablets) - Tu código original pero adaptado a los nuevos estilos */
 @media (max-width: 992px) {
   .planes-layout {
     flex-direction: column;
@@ -324,12 +376,15 @@
   }
 }
 
-/* Sección de Dudas (Formulario abajo) */
-.planes-dudas-section {
-  background-color: white;
-  padding: 60px 20px;
-  border-top: 1px solid #e2e8f0;
+/* =========================================
+   FORMULARIO MODO OSCURO (SUPER PREMIUM)
+   ========================================= */
+.planes-dudas-section.oscuro {
+  background-color: #0f172a; /* Azul oscuro elegante/negro */
+  border-top: 4px solid #22c55e;
+  padding: 80px 20px;
   margin-top: 40px;
+  color: white;
 }
 
 .planes-dudas-container {
@@ -339,19 +394,25 @@
 }
 
 .dudas-header {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+}
+
+.icon-duda {
+  filter: drop-shadow(0 0 10px rgba(34,197,94,0.3)); /* Resplandor al ícono */
+  margin-bottom: 10px;
 }
 
 .dudas-header h2 {
   font-family: 'Montserrat', sans-serif;
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  color: #0f172a;
-  margin: 16px 0 8px 0;
+  color: white; /* Texto blanco en vez del original */
+  margin: 16px 0 12px 0;
+  letter-spacing: -1px;
 }
 
 .dudas-header p {
-  color: #64748b;
+  color: #94a3b8; /* Gris claro */
   font-size: 1.1rem;
   line-height: 1.5;
 }
@@ -368,62 +429,71 @@
   gap: 16px;
 }
 
+/* Inputs en modo oscuro */
 .duda-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 16px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.15); /* Borde sutil blanco */
   font-size: 1rem;
   outline: none;
-  background-color: #f8fafc;
-  transition: all 0.2s ease;
+  background-color: rgba(255,255,255,0.05); /* Transparente blanco */
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.duda-input::placeholder {
+  color: #64748b;
 }
 
 .duda-input:focus {
   border-color: #22c55e;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  background-color: rgba(0,0,0,0.3);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.15); /* Resplandor verde al foco */
 }
 
 .duda-textarea {
   resize: vertical;
+  min-height: 120px;
 }
 
 .btn-enviar-duda {
-  padding: 16px;
-  background-color: #0f172a;
+  padding: 18px;
+  background-color: #22c55e; /* VERDE PLANES */
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(34,197,94,0.2);
 }
 
 .btn-enviar-duda:hover {
-  background-color: #1e293b;
+  background-color: #16a34a;
+  transform: translateY(-2px);
 }
 
 .dudas-exito {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background-color: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
   padding: 40px 20px;
   border-radius: 16px;
 }
 
 .dudas-exito h3 {
-  color: #16a34a;
+  color: #22c55e;
   margin: 16px 0 8px 0;
   font-size: 1.5rem;
 }
 
 .dudas-exito p {
-  color: #15803d;
+  color: #dcfce7;
   margin: 0;
 }
 
@@ -434,8 +504,7 @@
 }
 
 /* =========================================
-   AJUSTES RESPONSIVE (CELULARES) PARA PLANES
-   Magia CRO (Optimización de Conversión)
+   AJUSTES RESPONSIVE (CELULARES) - CRO MAGIA
    ========================================= */
 @media (max-width: 768px) {
   
@@ -470,7 +539,7 @@
   }
 
   .plan-card-premium:hover {
-    transform: scale(1.02); /* Pequeño salto al tocarla */
+    transform: scale(1.02);
   }
 
   /* Acomodamos los textos descriptivos que ahora están abajo */
@@ -490,24 +559,22 @@
     gap: 16px;
   }
 
-  /* Ajustes para la foto de la cancha de padel */
-  .planes-imagen-contexto {
+  /* Ajustes para el carrusel de fotos en celu */
+  .planes-carousel-contexto {
     height: 250px;
     margin-top: 30px;
   }
+  .planes-car-dots {
+    bottom: 60px; /* Sube un poco para que no lo tape el texto */
+  }
 
-  /* El formulario de Dudas más encuadrado */
-  .planes-dudas-section {
-    padding: 40px 15px;
+  /* El formulario de Dudas Oscuro más encuadrado */
+  .planes-dudas-section.oscuro {
+    padding: 50px 15px;
   }
 
   .dudas-header h2 {
     font-size: 1.8rem;
-  }
-
-  .dudas-inputs-row {
-    flex-direction: column; /* Inputs de contacto apilados */
-    gap: 12px;
   }
 
   .btn-enviar-duda {

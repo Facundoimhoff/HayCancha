@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send } from 'lucide-react';
+import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import './Planes.css';
 
@@ -10,6 +10,18 @@ const Planes = () => {
   
   // Estados para el formulario de contacto
   const [enviado, setEnviado] = useState(false);
+
+  // NUEVO: Estados para el carrusel de imágenes
+  const [imagenIndex, setImagenIndex] = useState(0);
+  const imagenes = [
+    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop", // Padel (Original tuya)
+    "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop", // Tenis
+    "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop"  // Fútbol
+  ];
+
+  // Funciones para pasar las fotos
+  const nextImg = () => setImagenIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
+  const prevImg = () => setImagenIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
 
   const iniciarPago = async () => {
     setCargando(true);
@@ -109,11 +121,23 @@ const Planes = () => {
             </div>
           </div>
 
-          <div className="planes-imagen-contexto">
+          {/* NUEVO: CARRUSEL DE IMÁGENES EN LUGAR DE FOTO ESTÁTICA */}
+          <div className="planes-carousel-contexto">
+            <button onClick={prevImg} className="planes-car-btn left" type="button"><ChevronLeft size={24}/></button>
             <img 
-              src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop" 
-              alt="Cancha de Padel" 
+              src={imagenes[imagenIndex]} 
+              alt="Canchas" 
+              className="planes-img-carousel"
             />
+            <button onClick={nextImg} className="planes-car-btn right" type="button"><ChevronRight size={24}/></button>
+            
+            {/* Indicadores (Puntitos) */}
+            <div className="planes-car-dots">
+              {imagenes.map((_, i) => (
+                <span key={i} className={`car-dot ${i === imagenIndex ? 'active' : ''}`} onClick={() => setImagenIndex(i)}></span>
+              ))}
+            </div>
+
             <div className="overlay-imagen">
               <p>Sumate a los clubes que ya modernizaron su gestión.</p>
             </div>
@@ -169,11 +193,11 @@ const Planes = () => {
         </div>
       </div>
 
-      {/* NUEVA SECCIÓN: FORMULARIO DE DUDAS ABAJO */}
-      <div className="planes-dudas-section">
+      {/* SECCIÓN FORMULARIO DE DUDAS (AHORA MODO OSCURO) */}
+      <div className="planes-dudas-section oscuro">
         <div className="planes-dudas-container">
           <div className="dudas-header">
-            <MessageCircleQuestion size={40} className="text-green" />
+            <MessageCircleQuestion size={48} className="icon-duda text-green" />
             <h2>¿Tenés dudas antes de sumarte?</h2>
             <p>Dejanos tu consulta o tu teléfono y nuestro equipo se contactará con vos para asesorarte sin compromiso.</p>
           </div>
