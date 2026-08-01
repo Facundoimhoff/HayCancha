@@ -1562,3 +1562,144 @@ Estos estilos solo se activan en pantallas chicas
     margin: -15px auto 30px auto !important; 
   }
 }
+
+/* =========================================
+   1. HEADER FIJO Y LOGO CENTRADO (PC Y MÓVIL)
+   ========================================= */
+.navbar {
+  position: fixed !important;
+  top: 0; 
+  left: 0; 
+  width: 100%;
+  background-color: #000000 !important; /* NEGRO PURO */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 15px 40px;
+  box-sizing: border-box;
+}
+
+/* Logo clavado en el medio geométrico SIEMPRE */
+.navbar .logo {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important; 
+  margin: 0 !important;
+}
+
+/* Botones normales de PC a la derecha */
+.nav-buttons {
+  margin-left: auto !important; /* Empuja los botones a la derecha */
+  display: flex !important;
+  gap: 15px;
+  align-items: center;
+}
+
+/* Ocultamos el botón hamburguesa en la PC */
+.btn-hamburguesa-landing {
+  display: none !important;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+}
+
+
+/* =========================================
+   2. FONDO NEGRO PARA EL MENÚ LATERAL (MÓVIL)
+   ========================================= */
+.sidebar-landing {
+  background-color: #000000 !important; /* ANTES ERA AZUL MARINO, AHORA ES NEGRO */
+}
+
+
+/* =========================================
+   3. ALINEACIÓN A LA IZQUIERDA (UBICACIÓN Y DEPORTE)
+   ========================================= */
+.provincias-container-modern,
+.sports-carousel-section {
+  text-align: left !important;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title, .section-subtitle {
+  text-align: left !important;
+  margin-left: 0 !important;
+}
+
+
+/* =========================================
+   4. TARJETAS DE PROVINCIAS (¡SOLO PC!)
+   ========================================= */
+.provincias-grid-desktop {
+  display: grid !important; /* MOSTRAMOS LAS TARJETAS EN PC */
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 40px;
+}
+
+/* Diseño base de la tarjeta */
+.provincia-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 6px solid transparent; /* ESPACIO INVISIBLE PARA LA LÍNEA VERDE */
+  padding: 20px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* EL "FLASH VERDE" AL PASAR EL MOUSE (Solo PC) */
+.provincia-card-btn:hover {
+  border-left-color: #22c55e !important; /* LÍNEA VERDE GRUESA */
+  background-color: #f0fdf4 !important; /* Fondo apenas verde */
+  transform: translateX(8px); /* Se mueve un poquito hacia la derecha */
+  box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.25);
+}
+
+/* EN PC, EL MENÚ DESPLEGABLE DE CELULAR NO EXISTE */
+.provincias-dropdown-mobile {
+  display: none !important;
+}
+
+
+/* =========================================
+   5. REGLAS ESTRICTAS PARA EL CELULAR
+   ========================================= */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 20px;
+  }
+
+  /* APARECE LA HAMBURGUESA */
+  .btn-hamburguesa-landing {
+    display: flex !important; 
+  }
+
+  /* DESAPARECEN LOS BOTONES DE PC */
+  .nav-buttons {
+    display: none !important; 
+  }
+
+  /* DESAPARECEN LAS TARJETITAS DE PROVINCIAS */
+  .provincias-grid-desktop {
+    display: none !important; 
+  }
+
+  /* APARECE SOLO EL MENÚ DESPLEGABLE */
+  .provincias-dropdown-mobile {
+    display: block !important;
+    margin-top: 30px;
+  }
+}
