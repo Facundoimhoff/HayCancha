@@ -13,6 +13,9 @@ import 'jspdf-autotable';
 import '../../index.css';
 import './DashboardAdmin.css';
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // <-- Importación moderna y segura
+
 const COLORES_GRAFICO = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const DashboardAdmin = () => {
@@ -247,14 +250,27 @@ const DashboardAdmin = () => {
   };
 
   const exportarPDF = () => {
+    // 1. Evitamos el crasheo si los datos de la base tardaron en llegar
+    if (!turnosTotales || !canchas) {
+      alert("Cargando datos, por favor aguardá un segundo...");
+      return;
+    }
+
     const doc = new jsPDF();
+    
+    // Si miClub no cargó, le ponemos un nombre genérico para que no tire error
+    const nombreClub = miClub?.nombre || 'Mi_Complejo'; 
+    
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text(`Reporte de Ingresos - ${miClub?.nombre}`, 14, 20);
+    doc.text(`Reporte de Ingresos - ${nombreClub}`, 14, 20);
     
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 14, 28);
+    
+    // Guardamos la fecha en una variable (Ej: 03/08/2026)
+    const fechaTexto = new Date().toLocaleDateString();
+    doc.text(`Generado el: ${fechaTexto}`, 14, 28);
 
     const tableData = turnosTotales
       .filter(t => t.telefono_cliente !== 'BLOQUEO')
@@ -263,21 +279,26 @@ const DashboardAdmin = () => {
         return [
           t.fecha.split('-').reverse().join('/'),
           t.hora_inicio,
-          t.nombre_cliente,
+          t.nombre_cliente || 'Sin nombre',
           canchaInfo?.nombre || 'Desconocida',
           `$${canchaInfo?.precio_hora || 0}`
         ];
       });
 
-    doc.autoTable({
+    // 2. Usamos autoTable pasándole el 'doc' por parámetro (sintaxis a prueba de fallos)
+    autoTable(doc, {
       head: [['Fecha', 'Hora', 'Cliente', 'Cancha', 'Ingreso']],
       body: tableData,
       startY: 35,
       theme: 'striped',
-      headStyles: { fillColor: [15, 23, 42] },
+      headStyles: { fillColor: [15, 23, 42] }, // Ese azul oscuro queda espectacular
     });
 
-    doc.save(`Reporte_${miClub?.nombre.replace(/\s+/g, '_')}_${new Date().toLocaleDateString()}.pdf`);
+    // 3. Arreglamos las barras de la fecha reemplazándolas por guiones (03-08-2026)
+    const fechaArchivo = fechaTexto.replace(/\//g, '-');
+    const nombreLimpio = nombreClub.replace(/\s+/g, '_'); // Cambia espacios por guiones bajos
+
+    doc.save(`Reporte_${nombreLimpio}_${fechaArchivo}.pdf`);
   };
 
 

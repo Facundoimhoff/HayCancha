@@ -5,7 +5,6 @@ import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  
   const [enviado, setEnviado] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
@@ -112,12 +111,19 @@ export default function LandingPage() {
             GridPlay<span className="text-green">.</span>
           </div>
 
+          {/* 👇 ACÁ PEGAMOS EL NUEVO BUSCADOR DE PC 👇 */}
+          <div 
+            className="buscador-desktop-flotante" 
+            onClick={() => navigate('/buscar')}
+          >
+            <Search size={20} className="icono-lupa" />
+            <span className="texto-buscador">Buscar provincia, club, ciudad...</span>
+          </div>
+          {/* 👆 FIN DEL BUSCADOR DE PC 👆 */}
+
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
-            
-            {/* 👇 NUEVO BOTÓN PLANES EN PC 👇 */}
             <button className="btn-nav ocultar-movil" onClick={() => navigate('/planes')}>Planes</button>
-            
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('contacto')}>Contacto</button>
             <button className="btn-nav btn-soy-admin ocultar-movil" onClick={() => navigate('/login-admin')}>
               Soy Admin

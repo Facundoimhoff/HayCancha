@@ -1093,3 +1093,30 @@
     padding: 6px 12px;
   }
 }
+
+/* =========================================
+   COMPORTAMIENTO EN PC (Pantallas grandes)
+   ========================================= */
+@media (min-width: 1024px) {
+  /* 1. Ocultar el botón hamburguesa */
+  .btn-menu-hamburguesa {
+    display: none !important;
+  }
+
+  /* 2. Dejar el menú lateral (sidebar) SIEMPRE visible y fijo */
+  .sidebar-admin {
+    transform: translateX(0) !important; /* Fuerza a que esté visible */
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px; /* El ancho que tenga tu menú */
+    z-index: 100;
+  }
+
+  /* 3. Empujar el contenido principal hacia la derecha para que el menú no lo tape */
+  .dashboard-content {
+    margin-left: 250px; /* Tiene que ser igual al ancho del sidebar */
+    width: calc(100% - 250px);
+  }
+}

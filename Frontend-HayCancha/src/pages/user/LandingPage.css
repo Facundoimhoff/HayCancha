@@ -1110,3 +1110,45 @@
     line-height: 1.5;
   }
 }
+
+/* =========================================
+   BUSCADOR DE PC (Oculto en celulares)
+   ========================================= */
+
+/* 1. Por defecto (en celulares), NO EXISTE. Queda todo igual. */
+.buscador-desktop-flotante {
+  display: none; 
+}
+
+/* 2. Si la pantalla es grande (PC), lo mostramos con estilo */
+@media (min-width: 1024px) {
+  .buscador-desktop-flotante {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    border-radius: 50px; /* Acá están los extremos bien redondeados */
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    width: 400px; /* Podés achicarlo o agrandarlo según te guste */
+  }
+
+  /* Efecto al pasar el mouse por encima */
+  .buscador-desktop-flotante:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+    border-color: #22c55e; /* Borde verde GridPlay al pasar el mouse */
+  }
+
+  .icono-lupa {
+    color: #22c55e; /* Lupa verde */
+  }
+
+  .texto-buscador {
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
