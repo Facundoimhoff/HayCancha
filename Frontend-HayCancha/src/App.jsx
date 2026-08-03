@@ -17,53 +17,55 @@ import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 import LoginAdmin from './pages/user/LoginAdmin';
 import Privacidad from './pages/user/Privacidad'; 
 import Terminos from './pages/user/Terminos';
+import CookieBanner from './components/CookieBanner';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* La puerta de entrada principal */}
-        <Route path="/" element={<LandingPage />} />
-        
-        {/* La vista para el cliente que solo quiere reservar */}
-        <Route path="/explorar/:provincia/:ciudad" element={<HomeUsuario />} /> 
-        
-        {/* Las rutas que ya tenías funcionando */}
-        <Route path="/club/:id" element={<PerfilClub />} />
+      <CookieBanner />
+        <Routes>
+          {/* La puerta de entrada principal */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* La vista para el cliente que solo quiere reservar */}
+          <Route path="/explorar/:provincia/:ciudad" element={<HomeUsuario />} /> 
+          
+          {/* Las rutas que ya tenías funcionando */}
+          <Route path="/club/:id" element={<PerfilClub />} />
 
-        <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
-        
-        {/* Dashboard temporal para comprobar que el Login funciona */}
-        <Route path="/panel" element={<DashboardAdmin />} />
+          <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
+          
+          {/* Dashboard temporal para comprobar que el Login funciona */}
+          <Route path="/panel" element={<DashboardAdmin />} />
 
-        <Route path="/mis-reservas" element={<MisReservas />} />
+          <Route path="/mis-reservas" element={<MisReservas />} />
 
-        <Route path="/planes" element={<Planes />} />
+          <Route path="/planes" element={<Planes />} />
 
-        <Route path="/onboarding" element={<RegistroClub />} />
+          <Route path="/onboarding" element={<RegistroClub />} />
 
-        <Route path="/contacto" element={<FormularioContacto />} />
+          <Route path="/contacto" element={<FormularioContacto />} />
 
-        <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
-        <Route path="/seleccionar-ubicacion/:provincia" element={<SeleccionUbicacion />} />
+          <Route path="/seleccionar-ubicacion" element={<SeleccionUbicacion />} />
+          <Route path="/seleccionar-ubicacion/:provincia" element={<SeleccionUbicacion />} />
 
-        <Route path="/registro-club" element={<RegistroClub />} />
+          <Route path="/registro-club" element={<RegistroClub />} />
 
-        <Route path="/actualizar-password" element={<ActualizarPassword />} />
+          <Route path="/actualizar-password" element={<ActualizarPassword />} />
 
-        <Route path="/login-cliente" element={<LoginCliente />} />
+          <Route path="/login-cliente" element={<LoginCliente />} />
 
-        <Route path="/buscar" element={<Buscar />} />
+          <Route path="/buscar" element={<Buscar />} />
 
-        <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
+          <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
 
-        <Route path="/login-admin" element={<LoginAdmin />} />
+          <Route path="/login-admin" element={<LoginAdmin />} />
 
-        <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/privacidad" element={<Privacidad />} />
 
-        <Route path="/terminos" element={<Terminos />} />
+          <Route path="/terminos" element={<Terminos />} />
 
-      </Routes>
+        </Routes>
     </BrowserRouter>
   );
 }
