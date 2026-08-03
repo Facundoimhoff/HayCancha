@@ -1,12 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,800;0,900;1,900&display=swap');
+
 /* =========================================
-   RegistroClub.css (Onboarding Premium)
+   RegistroClub.css (Onboarding Premium GridPlay)
    ========================================= */
 
 .registro-club-container {
   min-height: 100vh;
-  background-color: #f1f5f9; /* Gris muy sutil */
+  background-color: #f8fafc; /* Gris super sutil (mismo que Planes) */
   padding: 60px 20px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -14,11 +16,11 @@
 
 .registro-club-card {
   width: 100%;
-  max-width: 750px; /* Más ancho para que entre bien el diseño de 2 columnas */
+  max-width: 750px; 
   background-color: white;
   padding: 48px;
   border-radius: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); /* Sombra premium suave */
   border: 1px solid #e2e8f0;
 }
 
@@ -29,9 +31,10 @@
 }
 
 .icono-exito-wrapper {
-  color: #22c55e;
+  color: #22c55e; /* Verde GridPlay */
   margin-bottom: 16px;
   animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0 4px 10px rgba(34, 197, 94, 0.2));
 }
 
 @keyframes scaleIn {
@@ -43,14 +46,17 @@
   color: #0f172a;
   font-family: 'Montserrat', sans-serif;
   font-size: 2.2rem;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: -1px;
   margin: 0 0 12px 0;
 }
 
 .registro-subtitulo {
   color: #64748b;
   font-size: 1.1rem;
+  font-weight: 500;
   margin: 0;
+  line-height: 1.5;
 }
 
 /* --- SECCIONES --- */
@@ -79,14 +85,14 @@
   gap: 10px;
   color: #0f172a;
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   border-bottom: 2px solid #f1f5f9;
   padding-bottom: 12px;
 }
 
 .seccion-descripcion {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #64748b;
   margin: -10px 0 10px 0;
 }
@@ -118,9 +124,10 @@
   transition: all 0.2s ease;
 }
 
+/* Hover con Verde Oficial, chau azul por defecto */
 .logo-upload-box:hover {
-  border-color: #2563eb;
-  background-color: #eff6ff;
+  border-color: #22c55e;
+  background-color: #f0fdf4; 
 }
 
 .logo-upload-placeholder {
@@ -131,6 +138,11 @@
   color: #64748b;
   font-weight: 600;
   font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.logo-upload-box:hover .logo-upload-placeholder {
+  color: #16a34a; /* Se tiñe de verde al pasar el mouse */
 }
 
 .logo-preview-img {
@@ -168,7 +180,7 @@
 
 .input-group label {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #334155;
 }
 
@@ -176,19 +188,25 @@
   width: 100%;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #e2e8f0;
   font-size: 1rem;
-  color: #1e293b;
-  background-color: white;
+  color: #0f172a;
+  background-color: #f8fafc; /* Fondo grisecito suave para contrastar con el blanco de la tarjeta */
   box-sizing: border-box;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
+/* Foco Verde GridPlay */
 .form-input-reg:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #22c55e;
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+
+.form-input-reg::placeholder {
+  color: #94a3b8;
 }
 
 .form-textarea-reg {
@@ -207,6 +225,12 @@
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  transition: color 0.3s ease;
+}
+
+/* Que el ícono se pinte de verde al hacer foco */
+.input-con-icono:focus-within svg {
+  color: #22c55e;
 }
 
 .input-con-icono .form-input-reg {
@@ -221,14 +245,15 @@
   padding: 16px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background-color: white;
+  background-color: #f8fafc;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   margin-top: 8px;
 }
 
 .toggle-servicio-container:hover {
   border-color: #cbd5e1;
+  background-color: white;
 }
 
 .toggle-info {
@@ -244,6 +269,7 @@
   display: block;
   color: #0f172a;
   font-size: 1rem;
+  font-weight: 700;
 }
 
 .toggle-info p {
@@ -252,7 +278,7 @@
   font-size: 0.85rem;
 }
 
-/* Switch estilo iOS */
+/* Switch estilo iOS/GridPlay */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -271,7 +297,7 @@
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #cbd5e1;
+  background-color: #e2e8f0;
   transition: .3s;
   border-radius: 34px;
 }
@@ -297,18 +323,19 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
-/* --- BOTÓN SUBMIT --- */
+/* --- BOTÓN SUBMIT PREMIUM (Verde) --- */
 .btn-submit-registro {
   width: 100%;
-  background-color: #0f172a;
+  background-color: #22c55e;
   color: white;
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 12px;
   font-size: 1.1rem;
   font-weight: 800;
   border: none;
   transition: all 0.2s ease;
   margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .btn-submit-registro.activo {
@@ -316,9 +343,9 @@ input:checked + .slider:before {
 }
 
 .btn-submit-registro.activo:hover {
-  background-color: #1e293b;
+  background-color: #16a34a;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.4);
+  box-shadow: 0 8px 20px -6px rgba(34, 197, 94, 0.4);
 }
 
 .btn-submit-registro.activo:active {
@@ -328,13 +355,56 @@ input:checked + .slider:before {
 .btn-submit-registro.cargando {
   background-color: #94a3b8;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* RESPONSIVE */
+
+/* =========================================
+   RESPONSIVE (MAGIA CRO PARA MÓVILES)
+   ========================================= */
 @media (max-width: 768px) {
-  .registro-club-card { padding: 30px 20px; }
-  .club-perfil-layout { flex-direction: column; align-items: center; }
-  .logo-upload-col { flex: 0 0 auto; margin-bottom: 10px; }
-  .grid-2-col { grid-template-columns: 1fr; }
-  .toggle-info { flex-direction: column; align-items: flex-start; gap: 8px; }
+  
+  .registro-club-container {
+    padding: 20px 10px;
+  }
+
+  .registro-club-card { 
+    padding: 30px 20px; 
+    border-radius: 20px;
+  }
+
+  .registro-titulo {
+    font-size: 1.8rem;
+  }
+
+  .club-perfil-layout { 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 20px;
+  }
+
+  .logo-upload-col { 
+    flex: 0 0 auto; 
+    width: 100%;
+  }
+
+  /* El input de descripción se encoge en móvil en lugar de heredar altura del logo */
+  .form-textarea-reg {
+    min-height: 120px; 
+  }
+
+  .grid-2-col { 
+    grid-template-columns: 1fr; 
+    gap: 16px;
+  }
+
+  .toggle-info { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 8px; 
+  }
+
+  .cuenta-admin-seccion {
+    padding: 20px 16px;
+  }
 }

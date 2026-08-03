@@ -21,15 +21,15 @@ app.post('/api/crear-suscripcion', async (req, res) => {
     
     const response = await preApprovalPlan.create({
       body: {
-        reason: `GridPlay - Plan ${plan}`, // Nombre de la marca corregido
+        reason: `GridPlay - Plan ${plan}`, 
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
           transaction_amount: precio,
           currency_id: 'ARS'
         },
-        // Usamos una variable para que cambie según donde estés
-        back_url: process.env.FRONTEND_URL || 'http://localhost:5173/onboarding', 
+        // 👇 ACÁ ESTÁ EL CAMBIO DE TU NUEVA URL 👇
+        back_url: process.env.FRONTEND_URL || 'https://gridplay-x.vercel.app/onboarding', 
       }
     });
 

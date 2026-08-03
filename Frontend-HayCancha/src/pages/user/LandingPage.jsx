@@ -11,7 +11,6 @@ export default function LandingPage() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(false);
   
-  // ESTADO PARA EL MENÚ HAMBURGUESA LATERAL
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
   const provincias = [
@@ -63,7 +62,7 @@ export default function LandingPage() {
   };
 
   const scrollToSection = (id) => {
-    setSidebarAbierto(false); // Cierra el menú al tocar una opción
+    setSidebarAbierto(false); 
     if (id === 'top') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -81,9 +80,6 @@ export default function LandingPage() {
   return (
     <div className="landing-desktop">
       
-      {/* ==================================================== */}
-      {/* SIDEBAR MÓVIL (Menú Hamburguesa)                     */}
-      {/* ==================================================== */}
       {sidebarAbierto && (
         <div className="sidebar-overlay-landing" onClick={() => setSidebarAbierto(false)}></div>
       )}
@@ -92,6 +88,10 @@ export default function LandingPage() {
         <div className="sidebar-landing-links">
           <button onClick={() => scrollToSection('top')}>Buscar cancha</button>
           <button onClick={() => scrollToSection('provincias')}>Explorar</button>
+          
+          {/* 👇 NUEVO BOTÓN PLANES EN MÓVIL 👇 */}
+          <button onClick={() => { setSidebarAbierto(false); navigate('/planes'); }}>Planes</button>
+          
           <button onClick={() => scrollToSection('contacto')}>Contacto</button>
         </div>
         
@@ -102,10 +102,8 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Le agregamos el id="top" para que el botón del menú "Buscar cancha" te lleve acá arriba */}
       <section className="hero-section" id="top">
         <nav className="navbar">
-          {/* Botón hamburguesa (Solo visible en celular) */}
           <button className="btn-hamburguesa-landing" onClick={() => setSidebarAbierto(true)}>
             <Menu size={28} />
           </button>
@@ -116,6 +114,10 @@ export default function LandingPage() {
 
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
+            
+            {/* 👇 NUEVO BOTÓN PLANES EN PC 👇 */}
+            <button className="btn-nav ocultar-movil" onClick={() => navigate('/planes')}>Planes</button>
+            
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('contacto')}>Contacto</button>
             <button className="btn-nav btn-soy-admin ocultar-movil" onClick={() => navigate('/login-admin')}>
               Soy Admin
@@ -153,9 +155,6 @@ export default function LandingPage() {
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
           <p className="section-subtitle">Seleccioná tu provincia para ver los clubes disponibles.</p>
           
-          {/* ========================================== */}
-          {/* VISTA PC: GRILLA DE TARJETAS DE PROVINCIAS */}
-          {/* ========================================== */}
           <div className="provincias-grid-desktop">
             {provincias.map((prov) => (
               <button 
@@ -164,7 +163,7 @@ export default function LandingPage() {
                 onClick={() => navigate(`/seleccionar-ubicacion/${encodeURIComponent(prov)}`)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <MapPin size={20} className="text-green" />
+                  <MapPin size={20} className="provincia-icon" />
                   <span>{prov}</span>
                 </div>
                 <ArrowRight size={18} className="arrow-icon" />
@@ -172,9 +171,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* ========================================== */}
-          {/* VISTA CELULAR: SELECTOR DESPLEGABLE        */}
-          {/* ========================================== */}
           <div className="selector-provincia-wrapper provincias-dropdown-mobile">
             <MapPin size={24} className="icono-pin-prov" />
             <select 
@@ -274,7 +270,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* MENÚ FLOTANTE (SPEED DIAL) */}
       <div className="menu-flotante-container">
         <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
           <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
