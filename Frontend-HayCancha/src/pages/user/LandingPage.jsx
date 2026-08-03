@@ -193,7 +193,7 @@ export default function LandingPage() {
       </main>
 
       <section className="sports-carousel-section">
-        <h2 className="section-title">¿QUÉ DEPORTE JUGÁS?</h2>
+        <h2 className="section-title">¿QUÉ DEPORTE VAS A JUGAR?</h2>
         <div className="carousel-container">
           <button onClick={prevSlide} className="carousel-btn left" type="button"><ChevronLeft size={28} /></button>
           <div className="carousel-track-wrapper">

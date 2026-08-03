@@ -23,19 +23,31 @@ const Planes = () => {
   const nextImg = () => setImagenIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   const prevImg = () => setImagenIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
 
-  const iniciarPago = async () => {
+ const iniciarPago = async () => {
     setCargando(true);
     try {
-      const { data, error } = await supabase.functions.invoke('crear-pago');
-      if (error) throw error;
-      if (data && data.init_point) {
-        window.location.href = data.init_point; 
+      // 👇 ACÁ CONECTAMOS CON TU BACKEND DE RENDER 👇
+      // OJO: Cambiá la URL por la de tu proyecto real de Render
+      const response = await fetch('https://haycancha.onrender.com/api/crear-suscripcion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: 'Full', precio: 15000 })
+      });
+
+      const data = await response.json();
+      
+      if (data && data.linkPago) {
+        // Redirigimos a Mercado Pago
+        window.location.href = data.linkPago; 
       } else {
         throw new Error("No se recibió el link de pago");
       }
     } catch (error) {
       console.error("Error al iniciar el pago:", error);
       alert("Hubo un error al conectar con Mercado Pago.");
+    } finally {
       setCargando(false); 
     }
   };
