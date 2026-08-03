@@ -264,8 +264,13 @@ export default function LandingPage() {
           </div>
           
           <div className="footer-divisor"></div>
-          <div className="footer-copyright">
-            <p>© 2026 GridPlay. Todos los derechos reservados.</p>
+          <div className="footer-copyright" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div className="enlaces-legales" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a href="/terminos" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.85rem' }}>Términos y Condiciones</a>
+              <a href="/privacidad" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.85rem' }}>Política de Privacidad</a>
+              <a href="/defensa-consumidor" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.85rem' }}>Defensa de las y los Consumidores</a>
+            </div>
+            <p style={{ margin: 0 }}>© 2026 GridPlay. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>
