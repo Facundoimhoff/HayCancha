@@ -6,7 +6,7 @@ import LandingPage from './pages/user/LandingPage';
 import DashboardAdmin from './pages/user/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
-import OnboardingClub from './pages/user/OnboardingClub';
+import RegistroClub from './pages/user/RegistroClub';
 import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import RegistroClub from './pages/user/RegistroClub';
@@ -16,6 +16,8 @@ import HeaderCliente from './pages/user/HeaderCliente';
 import Buscar from './pages/user/Buscar';
 import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 import LoginAdmin from './pages/user/LoginAdmin';
+import Privacidad from './pages/user/Privacidad'; 
+import Terminos from './pages/user/Terminos';
 
 function App() {
   return (
@@ -39,7 +41,7 @@ function App() {
 
         <Route path="/planes" element={<Planes />} />
 
-        <Route path="/onboarding" element={<OnboardingClub />} />
+        <Route path="/onboarding" element={<RegistroClub />} />
 
         <Route path="/contacto" element={<FormularioContacto />} />
 
@@ -57,6 +59,10 @@ function App() {
         <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
 
         <Route path="/login-admin" element={<LoginAdmin />} />
+
+        <Route path="/privacidad" element={<Privacidad />} />
+
+        <Route path="/terminos" element={<Terminos />} />
 
       </Routes>
     </BrowserRouter>

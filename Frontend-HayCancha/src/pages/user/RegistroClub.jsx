@@ -8,7 +8,10 @@ const RegistroClub = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
   const [imagenFile, setImagenFile] = useState(null); 
-  const [previewLogo, setPreviewLogo] = useState(null); // NUEVO: Para ver la foto antes de subirla
+  const [previewLogo, setPreviewLogo] = useState(null);
+  
+  // NUEVO: Estado para el checkbox legal
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -33,7 +36,6 @@ const RegistroClub = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImagenFile(file);
-      // Creamos una URL temporal para mostrar la vista previa
       setPreviewLogo(URL.createObjectURL(file));
     }
   };
@@ -105,7 +107,6 @@ const RegistroClub = () => {
     <div className="registro-club-container">
       <div className="registro-club-card">
         
-        {/* --- HEADER DE ÉXITO --- */}
         <div className="registro-header">
           <div className="icono-exito-wrapper">
             <CheckCircle2 size={48} />
@@ -116,12 +117,10 @@ const RegistroClub = () => {
 
         <form onSubmit={handleSubmit} className="registro-form">
           
-          {/* --- SECCIÓN 1: PERFIL DEL CLUB (LAYOUT DIVIDIDO) --- */}
+          {/* --- SECCIÓN 1: PERFIL DEL CLUB --- */}
           <div className="registro-seccion">
             <h3 className="seccion-titulo"><Building2 size={18}/> 1. Perfil del Club</h3>
-            
             <div className="club-perfil-layout">
-              {/* IZQUIERDA: LOGO */}
               <div className="logo-upload-col">
                 <label className="logo-upload-box" htmlFor="logo-upload">
                   {previewLogo ? (
@@ -144,27 +143,14 @@ const RegistroClub = () => {
                 <p className="logo-ayuda">Formato JPG o PNG.</p>
               </div>
 
-              {/* DERECHA: NOMBRE Y DESCRIPCIÓN */}
               <div className="texto-info-col">
                 <div className="input-group">
                   <label>Nombre del Complejo</label>
-                  <input 
-                    type="text" 
-                    name="nombre" 
-                    placeholder="Ej: Sport Automóvil Club" 
-                    required 
-                    onChange={handleChange} 
-                    className="form-input-reg" 
-                  />
+                  <input type="text" name="nombre" placeholder="Ej: Sport Automóvil Club" required onChange={handleChange} className="form-input-reg" />
                 </div>
                 <div className="input-group" style={{ flex: 1 }}>
                   <label>Descripción (Visible para los clientes)</label>
-                  <textarea 
-                    name="descripcion" 
-                    placeholder="Contale a los jugadores sobre tus instalaciones, iluminación, bar, etc..." 
-                    onChange={handleChange} 
-                    className="form-input-reg form-textarea-reg" 
-                  />
+                  <textarea name="descripcion" placeholder="Contale a los jugadores sobre tus instalaciones, iluminación, bar, etc..." onChange={handleChange} className="form-input-reg form-textarea-reg" />
                 </div>
               </div>
             </div>
@@ -190,7 +176,6 @@ const RegistroClub = () => {
               <input type="text" name="direccion" placeholder="Ej: Av. Urquiza 332" required onChange={handleChange} className="form-input-reg" />
             </div>
 
-            {/* TOGGLE ESTACIONAMIENTO */}
             <label className="toggle-servicio-container">
               <div className="toggle-info">
                 <Car size={20} className={formData.estacionamiento ? 'text-green' : 'text-gray'} />
@@ -229,10 +214,24 @@ const RegistroClub = () => {
             </div>
           </div>
 
+          {/* --- CHECKBOX LEGAL OBLIGATORIO --- */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '10px', backgroundColor: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+            <input 
+              type="checkbox" 
+              id="terminos" 
+              checked={aceptaTerminos}
+              onChange={(e) => setAceptaTerminos(e.target.checked)}
+              style={{ marginTop: '4px', width: '18px', height: '18px', cursor: 'pointer', accentColor: '#22c55e' }}
+            />
+            <label htmlFor="terminos" style={{ fontSize: '0.95rem', color: '#334155', cursor: 'pointer', lineHeight: '1.4' }}>
+              He leído y acepto los <a href="/terminos" target="_blank" style={{ color: '#16a34a', fontWeight: '600' }}>Términos y Condiciones</a> y la <a href="/privacidad" target="_blank" style={{ color: '#16a34a', fontWeight: '600' }}>Política de Privacidad</a> de GridPlay. Entiendo mis derechos como consumidor.
+            </label>
+          </div>
+
           <button 
             type="submit" 
-            disabled={cargando}
-            className={`btn-submit-registro ${cargando ? 'cargando' : 'activo'}`}
+            disabled={cargando || !aceptaTerminos}
+            className={`btn-submit-registro ${(cargando || !aceptaTerminos) ? 'cargando' : 'activo'}`}
           >
             {cargando ? 'Configurando tu club...' : 'Finalizar Configuración'}
           </button>

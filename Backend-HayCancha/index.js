@@ -28,8 +28,8 @@ app.post('/api/crear-suscripcion', async (req, res) => {
           transaction_amount: precio,
           currency_id: 'ARS'
         },
-        // 👇 ACÁ ESTÁ EL CAMBIO DE TU NUEVA URL 👇
-        back_url: process.env.FRONTEND_URL || 'https://gridplay-x.vercel.app/onboarding', 
+        // Forzamos la URL exacta para evitar que una variable de entorno nos mande a otro lado
+        back_url: 'https://gridplay-x.vercel.app/onboarding', 
       }
     });
 
