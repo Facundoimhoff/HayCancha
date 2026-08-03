@@ -17,7 +17,7 @@ import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 import LoginAdmin from './pages/user/LoginAdmin';
 import Privacidad from './pages/user/Privacidad'; 
 import Terminos from './pages/user/Terminos';
-import CookieBanner from './components/CookieBanner';
+import CookieBanner from './pages/user/CookieBanner';
 
 function App() {
   return (
