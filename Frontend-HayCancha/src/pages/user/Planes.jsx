@@ -33,7 +33,7 @@ const Planes = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan: 'Full', precio: 15000 })
+        body: JSON.stringify({ plan: 'Full', precio: 50000 })
       });
 
       const data = await response.json();
@@ -168,7 +168,7 @@ const Planes = () => {
               <h2 className="plan-nombre">Suscripción Mensual</h2>
               <div className="plan-precio-wrapper">
                 <span className="plan-moneda">$</span>
-                <span className="plan-monto">15</span>
+                <span className="plan-monto">50000</span>
                 <span className="plan-periodo">/mes</span>
               </div>
               <p className="plan-sub-precio">Facturación mensual. Cancelá cuando quieras.</p>
