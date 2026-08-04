@@ -137,6 +137,32 @@ export default function LandingPage() {
           </div>
         </nav>
 
+        <div className="hero-content">
+          <p className="hero-subtitle">
+            <span className="dot-green"></span>
+            Tu próximo partido empieza acá.
+          </p>
+          <h1 className="hero-title">
+            La red que<br />conecta<br /><span className="text-green">complejos deportivos</span>
+          </h1>
+          <p className="hero-description">
+            Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
+          </p>
+
+          {/* 👇 BUSCADOR EXCLUSIVO PARA MÓVIL 👇 */}
+          <form className="search-box-mobile" onSubmit={manejarBusqueda}>
+            <Search className="search-icon-mobile" size={20} />
+            <input 
+              type="text" 
+              placeholder="Buscar club, ciudad..." 
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+            <button type="submit" className="btn-search-mobile">BUSCAR</button>
+          </form>
+          {/* 👆 FIN BUSCADOR MÓVIL 👆 */}
+        </div>
+
       </section>
 
       <main className="landing-main" id="provincias">

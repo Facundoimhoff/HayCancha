@@ -1162,3 +1162,123 @@
     color: #94a3b8; /* Placeholder color ceniza */
   }
 }
+
+/* =========================================
+   1. MENÚ LATERAL MÓVIL (HAMBURGUESA)
+   ========================================= */
+.sidebar-overlay-landing {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+}
+
+.sidebar-landing {
+  position: fixed;
+  top: 0;
+  left: -100%; /* Arranca oculto a la izquierda */
+  width: 260px;
+  height: 100vh;
+  background-color: #1e293b; /* Azul marino oscuro */
+  z-index: 1000;
+  transition: left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 0;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+}
+
+.sidebar-landing.abierto {
+  left: 0; /* Aparece cuando se toca la hamburguesa */
+}
+
+.sidebar-landing-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px;
+}
+
+.sidebar-landing-links button {
+  background: none;
+  border: none;
+  color: #f8fafc;
+  text-align: left;
+  font-size: 1.1rem;
+  padding: 12px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #334155;
+}
+
+.sidebar-landing-footer {
+  margin-top: auto;
+  padding: 20px;
+}
+
+.btn-hamburguesa-landing {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex; 
+  align-items: center;
+}
+
+/* =========================================
+   2. BUSCADOR MÓVIL (En el centro)
+   ========================================= */
+.search-box-mobile {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 5px 5px 5px 15px;
+  border-radius: 50px;
+  margin-top: 25px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-icon-mobile {
+  color: #94a3b8;
+  margin-right: 10px;
+}
+
+.search-box-mobile input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: transparent;
+  color: #1e293b;
+  width: 100%;
+}
+
+.btn-search-mobile {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* =========================================
+   3. REGLAS PARA PC (Ocultar lo de móvil)
+   ========================================= */
+@media (min-width: 1024px) {
+  .btn-hamburguesa-landing {
+    display: none !important; /* Oculta el botón hamburguesa */
+  }
+  
+  .sidebar-landing, .sidebar-overlay-landing {
+    display: none !important; /* Oculta el menú lateral por las dudas */
+  }
+
+  .search-box-mobile {
+    display: none !important; /* Oculta el buscador central gigante */
+  }
+}
