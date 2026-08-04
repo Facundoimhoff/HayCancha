@@ -111,15 +111,21 @@ export default function LandingPage() {
             GridPlay<span className="text-green">.</span>
           </div>
 
-          {/* 👇 ACÁ PEGAMOS EL NUEVO BUSCADOR DE PC 👇 */}
-          <div 
+          {/* 👇 NUEVO BUSCADOR FUNCIONAL 👇 */}
+          <form 
             className="buscador-desktop-flotante" 
-            onClick={() => navigate('/buscar')}
+            onSubmit={manejarBusqueda}
           >
             <Search size={20} className="icono-lupa" />
-            <span className="texto-buscador">Buscar provincia, club, ciudad...</span>
-          </div>
-          {/* 👆 FIN DEL BUSCADOR DE PC 👆 */}
+            <input 
+              type="text"
+              placeholder="Buscar provincia, ciudad o club..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="input-buscador-header"
+            />
+          </form>
+          {/* 👆 FIN DEL BUSCADOR 👆 */}
 
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
@@ -131,29 +137,6 @@ export default function LandingPage() {
           </div>
         </nav>
 
-        <div className="hero-content">
-          <p className="hero-subtitle">
-            <span className="dot-green"></span>
-            Tu próximo partido empieza acá.
-          </p>
-          <h1 className="hero-title">
-            La red que<br />conecta<br /><span className="text-green">complejos deportivos</span>
-          </h1>
-          <p className="hero-description">
-            Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
-          </p>
-
-          <form className="search-box" onSubmit={manejarBusqueda}>
-            <Search className="search-icon" size={24} />
-            <input 
-              type="text" 
-              placeholder="Barrio, ciudad o club..." 
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-            <button type="submit" className="btn-search">BUSCAR</button>
-          </form>
-        </div>
       </section>
 
       <main className="landing-main" id="provincias">
