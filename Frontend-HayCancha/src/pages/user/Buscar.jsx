@@ -30,7 +30,7 @@ export default function Buscar() {
         const { data, error: sbError } = await supabase
           .from('clubes')
           .select('*')
-          .or(`nombre.ilike.%${query}%,ciudad.ilike.%${query}%`);
+          .or(`nombre.ilike.%${query}%,ciudad.ilike.%${query}%,provincia.ilike.%${query}%`);
 
         if (sbError) throw sbError;
         

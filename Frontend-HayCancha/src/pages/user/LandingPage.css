@@ -798,6 +798,753 @@
 
 .btn-planes { background-color: #0f172a; }
 .btn-planes:hover { background-color: #1e293b; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Montserrat:ital,wght@0,700;0,800;0,900;1,800;1,900&display=swap');
+
+/* 
+======================================================
+1. VARIABLES Y ANIMACIONES
+====================================================== 
+*/
+:root {
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Montserrat', sans-serif; 
+  --font-mono: 'Inter', monospace;
+  
+  --paper: #f8fafc; 
+  --ink: #475162; 
+  --ink-dark: #1e293b; 
+  --paper-card: #ffffff; 
+  --line: #e2e8f0; 
+  
+  --turf: #22c55e;
+  --turf-100: #dcfce7;
+  --turf-600: #16a34a;
+  --turf-700: #15803d;
+  --flash: #84cc16;
+  
+  --text-muted: #64748b;
+  --text-soft: #94a3b8;
+  
+  --radius-pill: 9999px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --ease: ease-in-out;
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes hc-fade-up {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hc-pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* 
+======================================================
+2. ESTILOS DE LA PÁGINA
+====================================================== 
+*/
+
+.landing-desktop {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .landing-desktop { display: block; }
+}
+
+/* --- BLOQUE SUPERIOR (HERO OSCURO) --- */
+.hero-section {
+  position: relative;
+  min-height: 600px;
+  background-color: var(--ink);
+  overflow: hidden;
+  padding-top: 100px; 
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 900px 500px at 15% 0%, rgba(31, 173, 92, 0.28), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 2px,
+    transparent 2px,
+    transparent 70px
+  );
+  pointer-events: none;
+}
+
+/* HEADER FIJO NEGRO */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #000000;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  padding: 15px 40px;
+  box-sizing: border-box;
+}
+
+/* LOGO CLAVADO EN EL CENTRO */
+.logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -1px;
+  cursor: pointer;
+  font-style: italic;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.btn-nav {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-family: var(--font-body);
+}
+
+.btn-nav:hover {
+  color: white;
+}
+
+.btn-admin {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  font-family: var(--font-body);
+}
+
+.btn-admin:hover {
+  color: white;
+  border-color: var(--turf);
+  background: rgba(31, 173, 92, 0.12);
+  transform: translateY(-1px);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 32px 0;
+}
+
+.hero-subtitle {
+  color: var(--turf);
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.dot-green {
+  background-color: var(--turf);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: hc-pulse-dot 2s infinite;
+  flex-shrink: 0;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 5.2rem;
+  font-weight: 900;
+  font-style: italic;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  line-height: 0.92;
+  margin: 0 0 26px 0;
+}
+
+.text-green { color: var(--turf); }
+
+.hero-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.15rem;
+  font-weight: 500;
+  max-width: 560px;
+  margin-bottom: 42px;
+  line-height: 1.5;
+}
+
+/* --- BUSCADOR CENTRAL (Original) --- */
+.search-box {
+  background: white;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  max-width: 700px;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid transparent;
+  transition: border-color 0.25s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--turf);
+}
+
+.search-icon { color: var(--turf); margin: 0 14px; flex-shrink: 0; }
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 16px 8px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: var(--text-soft);
+}
+
+.btn-search {
+  background-color: var(--turf);
+  color: white;
+  border: none;
+  padding: 16px 38px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.btn-search:hover {
+  background-color: var(--turf-600);
+  transform: translateY(-1px);
+}
+
+.btn-search:active {
+  transform: scale(0.97);
+}
+
+/* --- BLOQUE INFERIOR (PROVINCIAS ANTIGUO) --- */
+.landing-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 70px 32px 90px;
+}
+
+.section-title {
+  font-family: var(--font-display); 
+  font-size: 2.3rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  margin: 0 0 8px 0;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--turf), var(--flash));
+  margin-top: 14px;
+  margin-bottom: 36px;
+}
+
+/* 
+======================================================
+3. CONTACTO / NEWSLETTER
+====================================================== 
+*/
+.contact-section {
+  background-color: var(--ink-dark);
+  border-top: 6px solid var(--turf);
+  padding: 100px 32px;
+  color: white;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.contact-title {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -1.5px;
+  line-height: 0.9;
+  margin: 0;
+}
+
+.contact-description {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 24px;
+  line-height: 1.6;
+  max-width: 450px;
+}
+
+.contact-form-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 40px;
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(10px);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group { width: 100%; }
+
+.sport-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 16px 20px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all 0.3s var(--ease);
+  box-sizing: border-box;
+}
+
+.sport-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+.sport-input:focus {
+  border-color: var(--turf);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
+}
+
+.sport-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.btn-submit-sport {
+  background-color: var(--turf);
+  color: var(--ink-dark);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  transition: all 0.2s var(--ease);
+}
+
+.btn-submit-sport:hover {
+  background-color: var(--flash);
+  transform: translateY(-2px);
+}
+
+.btn-submit-sport:active { transform: scale(0.98); }
+
+.contact-success {
+  text-align: center;
+  padding: 60px 20px;
+  animation: hc-fade-up 0.5s ease;
+}
+
+.contact-success h3 {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-style: italic;
+  color: white;
+  margin: 20px 0 10px;
+}
+
+.contact-success p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* 
+======================================================
+4. RESPONSIVE (MÓVIL GENERAL)
+====================================================== 
+*/
+@media (max-width: 768px) {
+  .landing-desktop { display: block !important; }
+  .navbar { padding: 20px 16px; }
+  
+  .btn-admin {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+  }
+
+  .hero-content { padding: 50px 16px 20px; }
+  .hero-title {
+    font-size: 3.2rem; 
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .hero-description {
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+
+  .landing-main { padding: 50px 16px 60px; }
+  .section-title { font-size: 1.8rem; }
+
+  .contact-section { padding: 60px 16px; }
+  .contact-container {
+    grid-template-columns: 1fr; 
+    gap: 40px;
+  }
+  .contact-title { font-size: 2.8rem; }
+  .contact-description { font-size: 1rem; }
+  .contact-form-block { padding: 24px 16px; }
+
+  .sports-carousel-section { padding: 0 16px 60px; }
+  .carousel-slide { height: 300px; }
+  .slide-overlay { padding: 24px; }
+  .slide-overlay h3 { font-size: 2.2rem; }
+  .carousel-btn { width: 44px; height: 44px; }
+  .carousel-btn.left { left: 12px; }
+  .carousel-btn.right { right: 12px; }
+}
+
+/* 
+======================================================
+5. CARRUSEL DE DEPORTES
+====================================================== 
+*/
+.sports-carousel-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+  text-align: left; 
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background-color: var(--ink);
+}
+
+.carousel-track-wrapper {
+  overflow: hidden;
+  width: 100%;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-slide {
+  min-width: 100%;
+  height: 450px;
+  position: relative;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slide-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(30, 41, 59, 0.95) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  padding: 40px 50px;
+}
+
+.slide-overlay h3 {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 900;
+  font-style: italic;
+  color: white;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -1.5px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s var(--ease);
+}
+
+.carousel-btn:hover {
+  background: var(--turf);
+  border-color: var(--turf);
+  color: var(--ink-dark);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.left { left: 24px; }
+.carousel-btn.right { right: 24px; }
+
+/* =========================================
+   Footer Institucional
+   ========================================= */
+.landing-footer {
+  background-color: #0f172a;
+  padding: 60px 20px 40px 20px;
+  color: white;
+  text-align: center;
+  border-top: 1px solid #1e293b;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.footer-tagline {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.footer-contacto {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  text-decoration: none;
+  background-color: #1e293b;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.footer-link:hover {
+  background-color: #22c55e;
+  transform: translateY(-2px);
+}
+
+.footer-divisor {
+  width: 100%;
+  height: 1px;
+  background-color: #1e293b;
+  margin-bottom: 24px;
+}
+
+.footer-copyright {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   Burbuja WhatsApp Flotante
+   ========================================= */
+.burbuja-whatsapp {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1000;
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.burbuja-whatsapp:hover {
+  transform: translateY(-5px) scale(1.05);
+}
+
+.burbuja-icono-wp {
+  background-color: #25D366; 
+  color: white;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(37, 211, 102, 0.4);
+}
+
+@media (max-width: 768px) {
+  .footer-contacto {
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+  .footer-link {
+    justify-content: center;
+    width: 100%;
+  }
+  .burbuja-whatsapp {
+    bottom: 20px;
+    left: 20px;
+  }
+  .burbuja-icono-wp {
+    width: 55px;
+    height: 55px;
+  }
+}
+
+/* =========================================
+   Nuevo Menú Flotante (Speed Dial)
+   ========================================= */
+.menu-flotante-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.menu-flotante-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  opacity: 0;
+  pointer-events: none; 
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-flotante-opciones.abierto {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.opcion-flotante {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  position: relative;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s;
+}
+
+.opcion-flotante:hover { transform: scale(1.1); }
+.btn-planes { background-color: #0f172a; }
+.btn-planes:hover { background-color: #1e293b; }
 .btn-wp { background-color: #25D366; }
 .btn-wp:hover { background-color: #20b858; }
 
@@ -839,9 +1586,7 @@
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.menu-flotante-principal:hover {
-  transform: scale(1.05);
-}
+.menu-flotante-principal:hover { transform: scale(1.05); }
 
 .menu-flotante-principal:not(.abierto) {
   animation: pulso-verde 2.5s infinite;
@@ -897,7 +1642,7 @@
    Grilla de Provincias (Vista Escritorio/PC)
    ========================================= */
 .provincias-container-modern {
-  text-align: left; /* Alineado a la izquierda en PC */
+  text-align: left; 
   padding: 60px 20px;
   max-width: 1200px; 
   margin: 0 auto;
@@ -913,7 +1658,7 @@
 .provincia-card-btn {
   background-color: white;
   border: 1px solid #e2e8f0;
-  border-left: 6px solid transparent; /* PREPARAMOS EL HUECO PARA LA LÍNEA VERDE */
+  border-left: 6px solid transparent; 
   border-radius: 12px;
   padding: 16px 20px;
   display: flex;
@@ -929,9 +1674,9 @@
 }
 
 .provincia-card-btn:hover {
-  border-left-color: #22c55e; /* FLASH VERDE A LA IZQUIERDA */
+  border-left-color: #22c55e; 
   background-color: #f0fdf4;
-  transform: translateX(6px); /* SE MUEVE UN POQUITO A LA DERECHA */
+  transform: translateX(6px); 
   box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.15);
 }
 
@@ -940,22 +1685,20 @@
   flex-shrink: 0;
 }
 
-/* Ocultamos el selector desplegable en PC */
 .mobile-only, .provincias-dropdown-mobile {
   display: none !important;
 }
 
 /* =========================================
-   SIDEBAR MÓVIL (ESTILO APP NATIVA)
+   SIDEBAR MÓVIL Y BUSCADOR PC (CONTROLES GLOBALES)
    ========================================= */
-
-/* Por defecto (en PC) ocultamos todo lo del menú móvil */
 .btn-hamburguesa-landing { display: none; }
 .sidebar-overlay-landing { display: none; }
 .sidebar-landing { display: none; }
+.buscador-desktop-flotante { display: none; }
 
 /* =========================================
-   AJUSTES RESPONSIVE (CELULARES) - ENCUADRE
+   AJUSTES RESPONSIVE (CELULARES) - ENCUADRE ORIGINAL Y PERFECTO
    ========================================= */
 @media (max-width: 768px) {
   
@@ -971,8 +1714,8 @@
     padding: 0;
   }
   
-  /* OCULTA BOTONES PC */
-  .nav-buttons, .ocultar-movil {
+  /* OCULTA BOTONES PC Y BUSCADOR PC */
+  .nav-buttons, .ocultar-movil, .buscador-desktop-flotante {
     display: none !important;
   }
 
@@ -986,7 +1729,7 @@
     animation: fadeIn 0.3s ease;
   }
 
-  /* PANEL LATERAL NEGRO */
+  /* PANEL LATERAL NEGRO PURO (TU DISEÑO ORIGINAL) */
   .sidebar-landing {
     display: flex;
     flex-direction: column;
@@ -995,7 +1738,7 @@
     left: 0;
     width: 280px;
     height: 100vh;
-    background-color: #000000; /* NEGRO PURO */
+    background-color: #000000; 
     z-index: 9999;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1044,7 +1787,7 @@
     box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
   }
 
-  /* CENTRADO DE TEXTOS DE PROVINCIAS EN MÓVIL */
+  /* CENTRADO DE TEXTOS */
   .provincias-container-modern,
   .sports-carousel-section {
     text-align: center !important; 
@@ -1054,23 +1797,23 @@
     text-align: center !important; 
   }
 
-  /* APAGAMOS TARJETAS DE PROVINCIA EN CELU */
   .provincias-grid-desktop {
     display: none !important;
   }
 
-  /* PRENDEMOS SELECTOR EN CELU */
   .mobile-only, .provincias-dropdown-mobile {
     display: block !important;
   }
 
-  /* LUPA EN BUSCADOR */
+  /* LUPA Y BUSCADOR ORIGINAL PARA CELULAR */
   .search-box {
     position: relative;
     display: flex;
     flex-direction: column;
     padding: 16px;
     gap: 12px;
+    background: transparent;
+    box-shadow: none;
   }
 
   .search-icon {
@@ -1084,7 +1827,7 @@
   .search-box input {
     width: 100%;
     padding: 14px 14px 14px 48px !important; 
-    background-color: #f8fafc; 
+    background-color: #f8fafc !important; 
     border: 1px solid #e2e8f0; 
     border-radius: 12px;
     box-sizing: border-box;
@@ -1096,7 +1839,6 @@
     margin-top: 4px;
   }
 
-  /* SUBTÍTULOS MÁS TRANQUILOS */
   .section-subtitle {
     color: #64748b !important; 
     font-size: 1rem !important; 
@@ -1112,39 +1854,32 @@
 }
 
 /* =========================================
-   BUSCADOR DE PC (Oculto en celulares)
+   BUSCADOR DE PC (Estilos para pantallas grandes)
    ========================================= */
-
-.buscador-desktop-flotante {
-  display: none; 
-}
-
 @media (min-width: 1024px) {
   .buscador-desktop-flotante {
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: #334155; /* Gris oscuro mate (combina con tu header) */
-    border: 1px solid #475569; /* Borde sutil */
+    background-color: #334155; 
+    border: 1px solid #475569; 
     padding: 10px 20px;
     border-radius: 50px;
     width: 380px;
     transition: all 0.3s ease;
   }
 
-  /* Efecto GLOW cuando hacés clic para escribir */
   .buscador-desktop-flotante:focus-within {
     border-color: #22c55e;
     box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
   }
 
   .icono-lupa {
-    color: #94a3b8; /* Gris clarito */
+    color: #94a3b8; 
     flex-shrink: 0;
     transition: color 0.3s ease;
   }
 
-  /* La lupa se pone verde cuando escribís */
   .buscador-desktop-flotante:focus-within .icono-lupa {
     color: #22c55e; 
   }
@@ -1153,132 +1888,12 @@
     background: transparent;
     border: none;
     outline: none;
-    color: #f8fafc; /* Texto blanco brillante */
+    color: #f8fafc; 
     width: 100%;
     font-size: 0.95rem;
   }
 
   .input-buscador-header::placeholder {
-    color: #94a3b8; /* Placeholder color ceniza */
-  }
-}
-
-/* =========================================
-   1. MENÚ LATERAL MÓVIL (HAMBURGUESA)
-   ========================================= */
-.sidebar-overlay-landing {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-}
-
-.sidebar-landing {
-  position: fixed;
-  top: 0;
-  left: -100%; /* Arranca oculto a la izquierda */
-  width: 260px;
-  height: 100vh;
-  background-color: #1e293b; /* Azul marino oscuro */
-  z-index: 1000;
-  transition: left 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  padding: 30px 0;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
-}
-
-.sidebar-landing.abierto {
-  left: 0; /* Aparece cuando se toca la hamburguesa */
-}
-
-.sidebar-landing-links {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 0 20px;
-}
-
-.sidebar-landing-links button {
-  background: none;
-  border: none;
-  color: #f8fafc;
-  text-align: left;
-  font-size: 1.1rem;
-  padding: 12px 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #334155;
-}
-
-.sidebar-landing-footer {
-  margin-top: auto;
-  padding: 20px;
-}
-
-.btn-hamburguesa-landing {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex; 
-  align-items: center;
-}
-
-/* =========================================
-   2. BUSCADOR MÓVIL (En el centro)
-   ========================================= */
-.search-box-mobile {
-  display: flex;
-  align-items: center;
-  background: white;
-  padding: 5px 5px 5px 15px;
-  border-radius: 50px;
-  margin-top: 25px;
-  width: 100%;
-  max-width: 400px;
-}
-
-.search-icon-mobile {
-  color: #94a3b8;
-  margin-right: 10px;
-}
-
-.search-box-mobile input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  background: transparent;
-  color: #1e293b;
-  width: 100%;
-}
-
-.btn-search-mobile {
-  background-color: #22c55e;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 50px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* =========================================
-   3. REGLAS PARA PC (Ocultar lo de móvil)
-   ========================================= */
-@media (min-width: 1024px) {
-  .btn-hamburguesa-landing {
-    display: none !important; /* Oculta el botón hamburguesa */
-  }
-  
-  .sidebar-landing, .sidebar-overlay-landing {
-    display: none !important; /* Oculta el menú lateral por las dudas */
-  }
-
-  .search-box-mobile {
-    display: none !important; /* Oculta el buscador central gigante */
+    color: #94a3b8; 
   }
 }
