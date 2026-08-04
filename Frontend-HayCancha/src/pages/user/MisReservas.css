@@ -181,29 +181,30 @@
   font-size: 0.95rem;
 }
 
-/* --- BOTÓN CANCELAR MEJORADO --- */
 .btn-cancelar {
-  background-color: #fff;
-  color: #ef4444;
+  background-color: #ef4444; /* Rojo sólido */
+  color: #ffffff; /* Texto blanco */
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid #fca5a5;
+  border: none;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  display: flex;
+  
+  /* Estas 3 líneas evitan que el botón se estire a lo largo */
+  display: inline-flex; 
   align-items: center;
+  width: fit-content; 
+  
   gap: 6px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); /* Sombra roja sutil */
 }
 
 .btn-cancelar:hover {
-  background-color: #ef4444;
-  color: #fff;
-  border-color: #ef4444;
-  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+  background-color: #dc2626; /* Rojo un poco más oscuro al pasar el mouse */
   transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4);
 }
 
 .btn-cancelar:active {

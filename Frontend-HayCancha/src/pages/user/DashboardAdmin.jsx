@@ -762,7 +762,7 @@ const DashboardAdmin = () => {
           </button>
         </div>
         
-        <nav className="sidebar-nav">
+<nav className="sidebar-nav">
           <span className="nav-section-title">MENÚ PRINCIPAL</span>
           <button className={`nav-item-enterprise ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => cambiarVista('general')}><LayoutDashboard size={20} /> Vista General</button>
           <button className={`nav-item-enterprise ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => cambiarVista('metricas')}><BarChart3 size={20} /> Reportes</button>
@@ -770,6 +770,10 @@ const DashboardAdmin = () => {
           
           <span className="nav-section-title mt-4">CONFIGURACIÓN</span>
           <button className={`nav-item-enterprise ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => cambiarVista('ajustes')}><Settings size={20} /> Canchas</button>
+          
+          {/* 👇 ACÁ ESTÁ EL BOTÓN NUEVO QUE FALTABA 👇 */}
+          <button className={`nav-item-enterprise ${vistaActual === 'kiosco' ? 'active' : ''}`} onClick={() => cambiarVista('kiosco')}><Store size={20} /> Kiosco y Extras</button>
+          
           <button className={`nav-item-enterprise ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => cambiarVista('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
         
@@ -782,6 +786,10 @@ const DashboardAdmin = () => {
           {vistaActual === 'metricas' && <PantallaMetricas />}
           {vistaActual === 'clientes' && <PantallaClientes />}
           {vistaActual === 'ajustes' && <PantallaAjustes />}
+          
+          {/* 👇 ACÁ LE DECIMOS A REACT QUE MUESTRE LA PANTALLA 👇 */}
+          {vistaActual === 'kiosco' && <PantallaKiosco />} 
+          
           {vistaActual === 'perfil' && <PantallaPerfil />}
         </div>
       </main>
