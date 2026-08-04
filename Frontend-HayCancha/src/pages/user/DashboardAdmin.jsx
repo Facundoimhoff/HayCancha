@@ -4,8 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X, Store
-} from 'lucide-react';
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X, Store, MoreVertical} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
 import '../../index.css';
@@ -31,6 +30,7 @@ const DashboardAdmin = () => {
   const [turnosPasados, setTurnosPasados] = useState([]);
   const [filtroTiempo, setFiltroTiempo] = useState('mes');
   const [menuMobileAbierto, setMenuMobileAbierto] = useState(false);
+  const [menuAbiertoId, setMenuAbiertoId] = useState(null);
 
   const cambiarVista = (vista) => {
     setVistaActual(vista);
@@ -482,8 +482,14 @@ const DashboardAdmin = () => {
           <Clock size={20} /> Turnos Próximos
         </h3>
         <div className="turnos-lista">
-          {proximosTurnos.length === 0 ? <p className="texto-ayuda">No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => (
-            <div key={t.id} className={`turno-item ${t.esBloqueo ? 'bloqueo' : 'normal'}`}>
+          {proximosTurnos.length === 0 ? <p className="texto-ayuda">No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => {
+            
+            // Calculamos el total (cancha + extras) para mostrarlo rápido en la tarjeta
+            const totalExtras = t.extras ? t.extras.reduce((acc, item) => acc + item.subtotal, 0) : 0;
+            const totalTurno = t.precio + totalExtras;
+
+            return (
+            <div key={t.id} className={`turno-item ${t.esBloqueo ? 'bloqueo' : 'normal'}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
               <div>
                 <p className="turno-nombre">
                   {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
@@ -492,24 +498,66 @@ const DashboardAdmin = () => {
                   {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
                 </p>
               </div>
-              <div className="turno-acciones-triple">
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                
+                {/* 👇 PRECIO AL COSTADO 👇 */}
                 {!t.esBloqueo && (
-                  <a 
-                    href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} 
-                    target="_blank" rel="noopener noreferrer" className="btn-accion-mini btn-recordatorio" title="Enviar recordatorio"
-                  >
-                    <CheckCircle size={16} />
-                  </a>
+                  <span style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '1.1rem' }}>
+                    ${totalTurno}
+                  </span>
                 )}
-                <button onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); }} className="btn-accion-mini btn-detalles" title="Ver detalles">
-                  <Users size={16} />
+
+                {/* 👇 BOTÓN DE 3 PUNTITOS 👇 */}
+                <button 
+                  onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#64748b' }}
+                >
+                  <MoreVertical size={20} />
                 </button>
-                <button onClick={() => cancelarTurno(t.id, t.esBloqueo)} className="btn-accion-mini btn-eliminar" title={t.esBloqueo ? 'Liberar bloqueo' : 'Eliminar turno'}>
-                  <Ban size={16} />
-                </button>
+
+                {/* 👇 MENÚ DESPLEGABLE FLOTANTE 👇 */}
+                {menuAbiertoId === t.id && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    right: '0', 
+                    top: '100%', 
+                    background: 'white', 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: '8px', 
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', 
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: '160px',
+                    overflow: 'hidden'
+                  }}>
+                    {!t.esBloqueo && (
+                      <a 
+                        href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} 
+                        target="_blank" rel="noopener noreferrer" 
+                        style={{ padding: '12px 15px', textDecoration: 'none', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem', fontWeight: '500' }}
+                      >
+                        <CheckCircle size={16} color="#16a34a" /> Enviar WhatsApp
+                      </a>
+                    )}
+                    <button 
+                      onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} 
+                      style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}
+                    >
+                      <Users size={16} color="#2563eb" /> Ver detalles
+                    </button>
+                    <button 
+                      onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} 
+                      style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}
+                    >
+                      <Ban size={16} /> {t.esBloqueo ? 'Liberar horario' : 'Cancelar turno'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </div>

@@ -230,7 +230,7 @@ const ReservaCancha = () => {
       const extrasArray = Object.entries(extrasSeleccionados)
         .filter(([_, cantidad]) => cantidad > 0)
         .map(([idProd, cantidad]) => {
-          const prodInfo = productosClub.find(p => p.id === idProd);
+          const prodInfo = productosClub.find(p => p.id == idProd);
           return {
             id: idProd,
             nombre: prodInfo?.nombre || 'Producto',
