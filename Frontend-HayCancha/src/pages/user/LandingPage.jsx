@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Phone, Zap, MapPin, ChevronUp, X, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
@@ -9,8 +9,15 @@ export default function LandingPage() {
   const [busqueda, setBusqueda] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(false);
-  
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
+
+  // --- NUEVO: autosugerencias del buscador de header (desktop) ---
+  const [sugerenciasHeader, setSugerenciasHeader] = useState([]);
+  const [mostrarSugerenciasHeader, setMostrarSugerenciasHeader] = useState(false);
+  const headerBuscadorRef = useRef(null);
+
+  // --- NUEVO: buscador de provincias en mobile (reemplaza al <select>) ---
+  const [busquedaProvinciaMobile, setBusquedaProvinciaMobile] = useState('');
 
   const provincias = [
     "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes",
@@ -28,15 +35,56 @@ export default function LandingPage() {
     { nombre: "BEACH VÓLEY", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" }
   ];
 
+  // Lista de provincias ya filtrada para el buscador de mobile (se recalcula en cada render, es liviano)
+  const provinciasFiltradasMobile = provincias.filter((p) =>
+    p.toLowerCase().includes(busquedaProvinciaMobile.trim().toLowerCase())
+  );
+
   const nextSlide = () => setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
   const prevSlide = () => setSlideIndex((prev) => (prev === 0 ? deportes.length - 1 : prev - 1));
 
   const manejarBusqueda = (e) => {
     e.preventDefault(); 
     if (busqueda.trim() !== '') {
+      setMostrarSugerenciasHeader(false);
       navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
     }
   };
+
+  // Filtra sugerencias a medida que se escribe en el buscador del header.
+  // TODO: cuando tengas un endpoint de búsqueda de clubes/ciudades, reemplazá
+  // este filtro local por esa llamada (fetch/axios) y usá su resultado acá.
+  const manejarCambioBusquedaHeader = (valor) => {
+    setBusqueda(valor);
+    if (valor.trim().length > 0) {
+      const filtradas = provincias.filter((p) =>
+        p.toLowerCase().includes(valor.trim().toLowerCase())
+      );
+      setSugerenciasHeader(filtradas);
+      setMostrarSugerenciasHeader(true);
+    } else {
+      setSugerenciasHeader([]);
+      setMostrarSugerenciasHeader(false);
+    }
+  };
+
+  const seleccionarSugerenciaHeader = (provincia) => {
+    setBusqueda('');
+    setSugerenciasHeader([]);
+    setMostrarSugerenciasHeader(false);
+    navigate(`/seleccionar-ubicacion/${encodeURIComponent(provincia)}`);
+  };
+
+  // Cierra el dropdown de sugerencias si se hace click afuera
+  useEffect(() => {
+    const manejarClickAfuera = (e) => {
+      if (headerBuscadorRef.current && !headerBuscadorRef.current.contains(e.target)) {
+        setMostrarSugerenciasHeader(false);
+      }
+    };
+    document.addEventListener('mousedown', manejarClickAfuera);
+    return () => document.removeEventListener('mousedown', manejarClickAfuera);
+  }, []);
 
   const manejarEnvio = async (e) => {
     e.preventDefault();
@@ -87,10 +135,7 @@ export default function LandingPage() {
         <div className="sidebar-landing-links">
           <button onClick={() => scrollToSection('top')}>Buscar cancha</button>
           <button onClick={() => scrollToSection('provincias')}>Explorar</button>
-          
-          {/* 👇 NUEVO BOTÓN PLANES EN MÓVIL 👇 */}
           <button onClick={() => { setSidebarAbierto(false); navigate('/planes'); }}>Planes</button>
-          
           <button onClick={() => scrollToSection('contacto')}>Contacto</button>
         </div>
         
@@ -111,21 +156,40 @@ export default function LandingPage() {
             GridPlay<span className="text-green">.</span>
           </div>
 
-          {/* 👇 NUEVO BUSCADOR FUNCIONAL 👇 */}
-          <form 
-            className="buscador-desktop-flotante" 
-            onSubmit={manejarBusqueda}
-          >
-            <Search size={20} className="icono-lupa" />
-            <input 
-              type="text"
-              placeholder="Buscar provincia, ciudad o club..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="input-buscador-header"
-            />
-          </form>
-          {/* 👆 FIN DEL BUSCADOR 👆 */}
+          {/* BUSCADOR DE HEADER (SOLO DESKTOP, ≥1024px) — con autosugerencias */}
+          <div className="buscador-desktop-wrapper" ref={headerBuscadorRef}>
+            <form className="buscador-desktop-flotante" onSubmit={manejarBusqueda}>
+              <Search size={20} className="icono-lupa" />
+              <input 
+                type="text"
+                placeholder="Buscar provincia, ciudad o club..."
+                value={busqueda}
+                onChange={(e) => manejarCambioBusquedaHeader(e.target.value)}
+                onFocus={() => { if (sugerenciasHeader.length > 0) setMostrarSugerenciasHeader(true); }}
+                className="input-buscador-header"
+              />
+            </form>
+
+            {mostrarSugerenciasHeader && (
+              <div className="dropdown-sugerencias-header">
+                {sugerenciasHeader.length > 0 ? (
+                  sugerenciasHeader.map((prov) => (
+                    <button
+                      key={prov}
+                      type="button"
+                      className="sugerencia-item"
+                      onClick={() => seleccionarSugerenciaHeader(prov)}
+                    >
+                      <MapPin size={15} />
+                      <span>{prov}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="sugerencia-vacia">Sin resultados para "{busqueda}"</p>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
@@ -149,10 +213,10 @@ export default function LandingPage() {
             Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
 
-          {/* 👇 BUSCADOR CENTRAL (SOLO MÓVIL) 👇 */}
+          {/* BUSCADOR CENTRAL (SOLO MÓVIL/TABLET, <1024px) */}
           <form className="search-box-mobile" onSubmit={manejarBusqueda}>
             <div className="input-wrapper-mobile">
-              <Search className="search-icon-mobile" size={22} />
+              <Search className="search-icon-mobile" size={20} />
               <input 
                 type="text" 
                 placeholder="Buscar club, ciudad..." 
@@ -162,7 +226,6 @@ export default function LandingPage() {
             </div>
             <button type="submit" className="btn-search-mobile">BUSCAR</button>
           </form>
-          {/* 👆 FIN BUSCADOR MÓVIL 👆 */}
         </div>
 
       </section>
@@ -172,6 +235,7 @@ export default function LandingPage() {
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
           <p className="section-subtitle">Seleccioná tu provincia para ver los clubes disponibles.</p>
           
+          {/* GRILLA DE PROVINCIAS — SOLO DESKTOP (≥1024px) */}
           <div className="provincias-grid-desktop">
             {provincias.map((prov) => (
               <button 
@@ -188,22 +252,34 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="selector-provincia-wrapper provincias-dropdown-mobile">
-            <MapPin size={24} className="icono-pin-prov" />
-            <select 
-              className="select-provincia"
-              onChange={(e) => {
-                if (e.target.value) {
-                  navigate(`/seleccionar-ubicacion/${encodeURIComponent(e.target.value)}`);
-                }
-              }}
-              defaultValue=""
-            >
-              <option value="" disabled>Tocá acá para elegir tu provincia...</option>
-              {provincias.map((provincia) => (
-                <option key={provincia} value={provincia}>{provincia}</option>
-              ))}
-            </select>
+          {/* BUSCADOR DE PROVINCIAS — SOLO MÓVIL/TABLET (<1024px), reemplaza al <select> */}
+          <div className="buscador-provincia-mobile-wrapper provincias-dropdown-mobile">
+            <div className="input-buscar-provincia">
+              <MapPin size={20} className="icono-pin-prov" />
+              <input
+                type="text"
+                placeholder="Buscar tu provincia..."
+                value={busquedaProvinciaMobile}
+                onChange={(e) => setBusquedaProvinciaMobile(e.target.value)}
+              />
+            </div>
+
+            <div className="lista-provincias-mobile">
+              {provinciasFiltradasMobile.length > 0 ? (
+                provinciasFiltradasMobile.map((provincia) => (
+                  <button
+                    key={provincia}
+                    className="provincia-item-mobile"
+                    onClick={() => navigate(`/seleccionar-ubicacion/${encodeURIComponent(provincia)}`)}
+                  >
+                    <span>{provincia}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                ))
+              ) : (
+                <p className="provincia-sin-resultados">No encontramos "{busquedaProvinciaMobile}"</p>
+              )}
+            </div>
           </div>
 
         </div>
@@ -283,12 +359,8 @@ export default function LandingPage() {
          <div className="footer-divisor"></div>
           <div className="footer-copyright" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             <div className="enlaces-legales" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              
-              {/* Cambiamos las etiquetas <a> por botones invisibles usando navigate */}
               <button onClick={() => navigate('/terminos')} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', cursor: 'pointer' }}>Términos y Condiciones</button>
-              
               <button onClick={() => navigate('/privacidad')} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', cursor: 'pointer' }}>Política de Privacidad</button>
-              
             </div>
             <p style={{ margin: 0 }}>© 2026 GridPlay. Todos los derechos reservados.</p>
           </div>

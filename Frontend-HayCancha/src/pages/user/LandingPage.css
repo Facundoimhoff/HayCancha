@@ -119,7 +119,10 @@
   letter-spacing: -1px;
   cursor: pointer;
   font-style: italic;
+  pointer-events: none; /* deja pasar los clicks al buscador que está debajo en el centro en anchos chicos */
 }
+
+.logo, .logo * { pointer-events: auto; } /* pero el logo en sí sigue siendo clickeable */
 
 .nav-buttons {
   display: flex;
@@ -217,64 +220,7 @@
   line-height: 1.5;
 }
 
-/* --- BUSCADOR CENTRAL (Original) --- */
-.search-box {
-  background: white;
-  padding: 8px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  max-width: 700px;
-  box-shadow: var(--shadow-lg);
-  border: 2px solid transparent;
-  transition: border-color 0.25s ease;
-}
-
-.search-box:focus-within {
-  border-color: var(--turf);
-}
-
-.search-icon { color: var(--turf); margin: 0 14px; flex-shrink: 0; }
-
-.search-box input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 16px 8px;
-  font-size: 1.05rem;
-  font-weight: 500;
-  font-family: var(--font-body);
-  color: var(--ink);
-  background: transparent;
-}
-
-.search-box input::placeholder {
-  color: var(--text-soft);
-}
-
-.btn-search {
-  background-color: var(--turf);
-  color: white;
-  border: none;
-  padding: 16px 38px;
-  border-radius: var(--radius-sm);
-  font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all 0.2s var(--ease);
-}
-
-.btn-search:hover {
-  background-color: var(--turf-600);
-  transform: translateY(-1px);
-}
-
-.btn-search:active {
-  transform: scale(0.97);
-}
-
-/* --- BLOQUE INFERIOR (PROVINCIAS ANTIGUO) --- */
+/* --- BLOQUE INFERIOR (PROVINCIAS) --- */
 .landing-main {
   max-width: 1200px;
   margin: 0 auto;
@@ -439,11 +385,10 @@
 
 /* 
 ======================================================
-4. RESPONSIVE (MÓVIL GENERAL)
+4. RESPONSIVE (MÓVIL GENERAL — SOLO AJUSTES TIPOGRÁFICOS)
 ====================================================== 
 */
 @media (max-width: 768px) {
-  .landing-desktop { display: block !important; }
   .navbar { padding: 20px 16px; }
   
   .btn-admin {
@@ -645,37 +590,6 @@
   font-size: 0.9rem;
 }
 
-/* =========================================
-   Burbuja WhatsApp Flotante
-   ========================================= */
-.burbuja-whatsapp {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  z-index: 1000;
-  text-decoration: none;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.burbuja-whatsapp:hover {
-  transform: translateY(-5px) scale(1.05);
-}
-
-.burbuja-icono-wp {
-  background-color: #25D366; 
-  color: white;
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 25px -5px rgba(37, 211, 102, 0.4);
-}
-
 @media (max-width: 768px) {
   .footer-contacto {
     flex-direction: column;
@@ -685,14 +599,6 @@
   .footer-link {
     justify-content: center;
     width: 100%;
-  }
-  .burbuja-whatsapp {
-    bottom: 20px;
-    left: 20px;
-  }
-  .burbuja-icono-wp {
-    width: 55px;
-    height: 55px;
   }
 }
 
@@ -885,24 +791,184 @@
   flex-shrink: 0;
 }
 
-.mobile-only, .provincias-dropdown-mobile {
-  display: none !important;
+/* =========================================
+   ⭐ NUEVO: dropdown de autosugerencias
+   del buscador del header (desktop)
+   ========================================= */
+.buscador-desktop-wrapper {
+  position: relative;
+  display: none; /* se activa a partir de 1024px, junto con .buscador-desktop-flotante */
+}
+
+.dropdown-sugerencias-header {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  max-height: 280px;
+  z-index: 3000;
+  animation: hc-fade-up 0.2s ease;
+  border: 1px solid var(--line);
+}
+
+.sugerencia-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sugerencia-item:last-child { border-bottom: none; }
+
+.sugerencia-item svg {
+  color: var(--turf);
+  flex-shrink: 0;
+}
+
+.sugerencia-item:hover {
+  background-color: var(--turf-100);
+  color: var(--turf-700);
+}
+
+.sugerencia-vacia {
+  padding: 18px 16px;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
 }
 
 /* =========================================
-   SIDEBAR MÓVIL Y BUSCADOR PC (CONTROLES GLOBALES)
+   ⭐ NUEVO: buscador de provincias en mobile
+   (reemplaza al <select> nativo)
+   ========================================= */
+.buscador-provincia-mobile-wrapper {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.input-buscar-provincia {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 4px 16px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.input-buscar-provincia:focus-within {
+  border-color: var(--turf);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+.input-buscar-provincia .icono-pin-prov {
+  color: var(--turf);
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.input-buscar-provincia input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 15px 0;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--ink-dark);
+  background: transparent;
+}
+
+.input-buscar-provincia input::placeholder {
+  color: var(--text-soft);
+}
+
+.lista-provincias-mobile {
+  margin-top: 14px;
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 2px;
+}
+
+.provincia-item-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 15px 18px;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.provincia-item-mobile:hover,
+.provincia-item-mobile:active {
+  border-color: var(--turf);
+  background-color: var(--turf-100);
+  color: var(--turf-700);
+}
+
+.provincia-item-mobile svg {
+  color: var(--turf);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.provincia-sin-resultados {
+  text-align: center;
+  color: var(--text-soft);
+  padding: 24px;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.mobile-only, .provincias-dropdown-mobile {
+  display: block;
+}
+
+/* =========================================
+   SIDEBAR MÓVIL (fuera de 1024px sigue igual)
    ========================================= */
 .btn-hamburguesa-landing { display: none; }
 .sidebar-overlay-landing { display: none; }
 .sidebar-landing { display: none; }
 .buscador-desktop-flotante { display: none; }
 
-/* =========================================
-   AJUSTES RESPONSIVE (CELULARES) - ENCUADRE ORIGINAL Y PERFECTO
-   ========================================= */
-@media (max-width: 768px) {
-  
-  /* MENU HAMBURGUESA */
+/* =========================================================
+   ⭐ ÚNICO BREAKPOINT MOBILE/DESKTOP PARA BÚSQUEDA Y UBICACIÓN
+   Todo lo relacionado a "buscador header vs buscador mobile"
+   y "grilla de provincias vs buscador de provincias" se
+   decide acá, en un solo lugar, para que no se pisen entre sí.
+   ========================================================= */
+
+/* --- HASTA 1023px: vista mobile/tablet --- */
+@media (max-width: 1023px) {
+
   .btn-hamburguesa-landing {
     display: flex !important;
     align-items: center;
@@ -913,13 +979,11 @@
     cursor: pointer;
     padding: 0;
   }
-  
-  /* OCULTA BOTONES PC Y BUSCADOR PC */
-  .nav-buttons, .ocultar-movil, .buscador-desktop-flotante {
+
+  .nav-buttons, .ocultar-movil, .buscador-desktop-wrapper {
     display: none !important;
   }
 
-  /* OVERLAY OSCURO */
   .sidebar-overlay-landing {
     display: block;
     position: fixed;
@@ -929,7 +993,6 @@
     animation: fadeIn 0.3s ease;
   }
 
-  /* PANEL LATERAL NEGRO PURO (TU DISEÑO ORIGINAL) */
   .sidebar-landing {
     display: flex;
     flex-direction: column;
@@ -987,7 +1050,6 @@
     box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
   }
 
-  /* CENTRADO DE TEXTOS */
   .provincias-container-modern,
   .sports-carousel-section {
     text-align: center !important; 
@@ -997,46 +1059,12 @@
     text-align: center !important; 
   }
 
+  /* grilla de escritorio oculta, buscador de provincias visible */
   .provincias-grid-desktop {
     display: none !important;
   }
-
-  .mobile-only, .provincias-dropdown-mobile {
+  .buscador-provincia-mobile-wrapper {
     display: block !important;
-  }
-
-  /* LUPA Y BUSCADOR ORIGINAL PARA CELULAR */
-  .search-box {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .search-icon {
-    position: absolute !important;
-    top: 31px !important; 
-    left: 32px !important;
-    color: #22c55e;
-    margin: 0 !important;
-  }
-
-  .search-box input {
-    width: 100%;
-    padding: 14px 14px 14px 48px !important; 
-    background-color: #f8fafc !important; 
-    border: 1px solid #e2e8f0; 
-    border-radius: 12px;
-    box-sizing: border-box;
-    font-size: 1rem;
-  }
-
-  .btn-search {
-    width: 100%;
-    margin-top: 4px;
   }
 
   .section-subtitle {
@@ -1051,12 +1079,79 @@
     max-width: 90%;
     line-height: 1.5;
   }
+
+  /* --- buscador central bajo el hero, mejorado --- */
+  .search-box-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  .input-wrapper-mobile {
+    position: relative;
+    width: 100%;
+    background: white;
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .search-icon-mobile {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--turf);
+  }
+
+  .search-box-mobile input {
+    width: 100%;
+    padding: 16px 16px 16px 48px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    font-size: 1.05rem;
+    background-color: #ffffff;
+    color: var(--ink-dark);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+
+  .search-box-mobile input:focus {
+    border-color: var(--turf);
+  }
+
+  .btn-search-mobile {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    background-color: var(--turf);
+    color: white;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+    transition: background-color 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-search-mobile:hover { background-color: var(--turf-600); }
+  .btn-search-mobile:active { transform: scale(0.98); }
 }
 
-/* =========================================
-   BUSCADOR DE PC (Estilos para pantallas grandes)
-   ========================================= */
+/* --- DESDE 1024px: vista desktop --- */
 @media (min-width: 1024px) {
+  .search-box-mobile,
+  .buscador-provincia-mobile-wrapper {
+    display: none !important;
+  }
+
+  .buscador-desktop-wrapper {
+    display: block;
+    width: 380px;
+  }
+
   .buscador-desktop-flotante {
     display: flex;
     align-items: center;
@@ -1065,7 +1160,8 @@
     border: 1px solid #475569; 
     padding: 10px 20px;
     border-radius: 50px;
-    width: 380px;
+    width: 100%;
+    box-sizing: border-box;
     transition: all 0.3s ease;
   }
 
