@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import HeaderCliente from './HeaderCliente'; // 1. Importar el header
+import HeaderCliente from './HeaderCliente';
 import './ReservaCancha.css';
 
 const ReservaCancha = () => {
@@ -31,8 +31,9 @@ const ReservaCancha = () => {
 
   const [turnosOcupados, setTurnosOcupados] = useState([]);
 
-  const [productosClub, setProductosClub] = useState([]); // Lista de productos del club
-  const [extrasSeleccionados, setExtrasSeleccionados] = useState({}); // Lo que va eligiendo el usuario { productoId: cantidad }
+  // Estados del Kiosco
+  const [productosClub, setProductosClub] = useState([]); 
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState({}); 
 
   const generarProximosDias = () => {
     const dias = [];
@@ -56,7 +57,7 @@ const ReservaCancha = () => {
   const diasSemana = generarProximosDias();
   const hoyBD = diasSemana[0].fechaBD; 
 
-useEffect(() => {
+  useEffect(() => {
     const cargarDatos = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -76,17 +77,17 @@ useEffect(() => {
         if (errorCancha) throw errorCancha;
         setCancha(dataCancha);
 
+        // BUSCAMOS LOS DATOS DEL CLUB Y SUS PRODUCTOS
         if (dataCancha?.club_id) {
           const { data: dataClub, error: errorClub } = await supabase
             .from('clubes')
-            .select('*') // Traemos todo para tener provincia, ciudad e id del club
+            .select('*')
             .eq('id', dataCancha.club_id)
             .single();
             
           if (!errorClub && dataClub) {
             setClub(dataClub);
 
-            // 👇 BUSCAMOS LOS PRODUCTOS DEL KIOSCO DE ESTE CLUB 👇
             const { data: dataProductos } = await supabase
               .from('productos')
               .select('*')
@@ -94,7 +95,6 @@ useEffect(() => {
               .eq('activo', true);
             
             setProductosClub(dataProductos || []);
-            // 👆 FIN DE LA BÚSQUEDA DE PRODUCTOS 👆
           }
         }
 
@@ -220,7 +220,6 @@ useEffect(() => {
 
   const horariosBase = cancha ? generarHorariosDisponibles(cancha.hora_apertura, cancha.hora_cierre) : [];
 
-  // Confirmar reserva adaptada estrictamente a tus columnas de Supabase
   const confirmarReserva = async (e) => {
     e.preventDefault();
     try {
@@ -228,7 +227,7 @@ useEffect(() => {
       
       const nombreClienteFinal = nombre || user?.user_metadata?.full_name || user?.email || 'Cliente';
 
-      // 🛒 CONVERTIMOS LOS EXTRAS SELECCIONADOS A UN FORMATO LIMPIO PARA GUARDAR EN JSONB
+      // 🛒 PREPARAMOS LOS EXTRAS PARA GUARDARLOS EN LA BASE
       const extrasArray = Object.entries(extrasSeleccionados)
         .filter(([_, cantidad]) => cantidad > 0)
         .map(([idProd, cantidad]) => {
@@ -250,7 +249,7 @@ useEffect(() => {
           hora_inicio: horaSeleccionada,
           nombre_cliente: nombreClienteFinal,
           telefono_cliente: telefono,
-          extras: extrasArray.length > 0 ? extrasArray : null // Guardamos el JSON acá
+          extras: extrasArray.length > 0 ? extrasArray : null 
         }]);
 
       if (error) throw error;
@@ -280,7 +279,6 @@ useEffect(() => {
 
   return (
     <div className="reserva-container">
-      
       <div className="header-reserva">
         <button onClick={() => navigate(-1)} className="btn-volver-reserva">
           <ArrowLeft size={24} />
@@ -525,7 +523,7 @@ useEffect(() => {
                 />
               </div>
 
-              {/* 👇 SECCIÓN DEL KIOSCO / EXTRAS QUE SE AGREGA ACÁ 👇 */}
+              {/* SECCIÓN DEL KIOSCO / EXTRAS */}
               {productosClub.length > 0 && (
                 <div style={{ margin: '20px 0', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem', color: '#0f172a' }}>¿Te falta algo para el partido? 🥤</h4>
@@ -563,7 +561,6 @@ useEffect(() => {
                   </div>
                 </div>
               )}
-              {/* 👆 FIN DE LA SECCIÓN DEL KIOSCO 👆 */}
 
               <div className="btn-group" style={{marginTop: '20px'}}>
                 <button type="button" onClick={() => setPaso(1)} className="btn-atras">

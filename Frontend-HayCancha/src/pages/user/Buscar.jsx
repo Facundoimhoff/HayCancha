@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import HeaderCliente from './HeaderCliente'; // 1. Importar el header
+import HeaderCliente from './HeaderCliente'; 
 import './Buscar.css';
 
 export default function Buscar() {
@@ -15,11 +15,11 @@ export default function Buscar() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  // Nuevos estados para los filtros
+  // Estados para los filtros
   const [filtroDeporte, setFiltroDeporte] = useState('');
   const [filtroJugadores, setFiltroJugadores] = useState('');
   const [filtroTechada, setFiltroTechada] = useState(false);
-  const [ordenPrecio, setOrdenPrecio] = useState(''); // 'menor' o 'mayor'
+  const [ordenPrecio, setOrdenPrecio] = useState(''); 
 
   useEffect(() => {
     const buscarEnSupabase = async () => {
@@ -32,7 +32,6 @@ export default function Buscar() {
       setError(null);
 
       try {
-        // Buscamos en la tabla 'clubes' donde el nombre O la ciudad incluyan lo que se buscó
         const { data, error: sbError } = await supabase
           .from('clubes')
           .select('*')
@@ -60,7 +59,7 @@ export default function Buscar() {
     }
   };
 
-  // Aplicamos los filtros a la lista de clubes original
+  // Aplicamos los filtros a la lista original
   let clubesFiltrados = [...clubes];
 
   if (filtroDeporte) {
@@ -75,7 +74,7 @@ export default function Buscar() {
     clubesFiltrados = clubesFiltrados.filter(c => c.techada === true);
   }
 
-  // Lógica de ordenamiento por precio
+  // Ordenamiento por precio
   if (ordenPrecio === 'menor') {
     clubesFiltrados.sort((a, b) => (a.precio_hora || 0) - (b.precio_hora || 0));
   } else if (ordenPrecio === 'mayor') {
@@ -173,29 +172,34 @@ export default function Buscar() {
             <h2>NO ENCONTRAMOS RESULTADOS</h2>
             <p>Intentá buscar con otra palabra, nombre de ciudad o club.</p>
           </div>
+        ) : clubesFiltrados.length === 0 ? (
+          <div className="no-results">
+            <Search size={60} className="text-soft" />
+            <h2>NO HAY CLUBES CON ESOS FILTROS</h2>
+            <p>Intentá quitar algunos filtros para ver más resultados.</p>
+          </div>
         ) : (
           <div className="results-container">
-            {clubes.length > 0 && (
-              <section className="result-section">
-                <h3 className="section-subtitle">CLUBES ENCONTRADOS</h3>
-                <div className="results-grid">
-                  {clubes.map(club => (
-                    <div 
-                      key={club.id} 
-                      className="result-card club-card" 
-                      onClick={() => navigate(`/club/${club.id}`)}
-                    >
-                      <div className="card-info">
-                        <span className="badge-deporte">{club.deporte || 'Multideporte'}</span>
-                        <h4>{club.nombre}</h4>
-                        <p><MapPin size={14}/> {club.direccion || club.ciudad}</p>
-                      </div>
-                      <ArrowRight className="card-arrow" size={20} />
+            <section className="result-section">
+              <h3 className="section-subtitle">CLUBES ENCONTRADOS</h3>
+              <div className="results-grid">
+                {/* ACÁ ESTABA EL ERROR: AHORA USAMOS clubesFiltrados EN LUGAR DE clubes */}
+                {clubesFiltrados.map(club => (
+                  <div 
+                    key={club.id} 
+                    className="result-card club-card" 
+                    onClick={() => navigate(`/club/${club.id}`)}
+                  >
+                    <div className="card-info">
+                      <span className="badge-deporte">{club.deporte || 'Multideporte'}</span>
+                      <h4>{club.nombre}</h4>
+                      <p><MapPin size={14}/> {club.direccion || club.ciudad}</p>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                    <ArrowRight className="card-arrow" size={20} />
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         )}
       </main>
