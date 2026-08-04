@@ -61,9 +61,6 @@ export default function Buscar() {
           <button className="btn-back" onClick={() => navigate('/')}>
             <ArrowLeft size={24} />
           </button>
-          <div className="logo" onClick={() => navigate('/')}>
-            GridPlay<span className="text-green">.</span>
-          </div>
         </div>
 
         <div className="buscar-header-content">

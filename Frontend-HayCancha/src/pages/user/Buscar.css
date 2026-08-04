@@ -223,3 +223,80 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   BARRA DE BÚSQUEDA INTERNA Y BOTÓN
+   ========================================= */
+.search-box-internal {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 50px; /* Redondeado moderno tipo píldora */
+  padding: 8px 10px 8px 24px;
+  max-width: 650px;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Efecto al hacer clic adentro */
+.search-box-internal:focus-within {
+  border-color: #22c55e;
+  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.25);
+}
+
+.search-box-internal .search-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.search-box-internal input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.05rem;
+  color: #1e293b;
+  background: transparent;
+  width: 100%;
+}
+
+.search-box-internal input::placeholder {
+  color: #94a3b8;
+}
+
+/* El botón que antes se veía feo */
+.search-box-internal .btn-search {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 50px; /* Redondeado igual que la barra */
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-box-internal .btn-search:hover {
+  background-color: #16a34a; /* Verde un poco más oscuro al pasar el mouse */
+  transform: scale(1.03);
+}
+
+.search-box-internal .btn-search:active {
+  transform: scale(0.97);
+}
+
+/* Ajuste para que en celulares no quede gigante */
+@media (max-width: 768px) {
+  .search-box-internal {
+    padding: 6px 8px 6px 16px;
+    border-radius: 16px; /* Un poco menos curvo en celu para ganar espacio */
+  }
+  
+  .search-box-internal .btn-search {
+    padding: 12px 20px;
+    border-radius: 12px;
+  }
+}

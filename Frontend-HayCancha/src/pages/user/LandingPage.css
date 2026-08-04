@@ -53,11 +53,6 @@
 .landing-desktop {
   font-family: var(--font-body);
   background-color: var(--paper);
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .landing-desktop { display: block; }
 }
 
 /* --- BLOQUE SUPERIOR (HERO OSCURO) --- */
