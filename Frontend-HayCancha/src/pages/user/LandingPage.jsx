@@ -149,15 +149,17 @@ export default function LandingPage() {
             Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
 
-          {/* 👇 BUSCADOR EXCLUSIVO PARA MÓVIL 👇 */}
+          {/* 👇 BUSCADOR CENTRAL (SOLO MÓVIL) 👇 */}
           <form className="search-box-mobile" onSubmit={manejarBusqueda}>
-            <Search className="search-icon-mobile" size={20} />
-            <input 
-              type="text" 
-              placeholder="Buscar club, ciudad..." 
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
+            <div className="input-wrapper-mobile">
+              <Search className="search-icon-mobile" size={22} />
+              <input 
+                type="text" 
+                placeholder="Buscar club, ciudad..." 
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+            </div>
             <button type="submit" className="btn-search-mobile">BUSCAR</button>
           </form>
           {/* 👆 FIN BUSCADOR MÓVIL 👆 */}
