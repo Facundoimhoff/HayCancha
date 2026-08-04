@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X, Store
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -677,7 +677,6 @@ const DashboardAdmin = () => {
     <div>
       <header className="content-header">
         <div>
-          {/* Le sumamos "y Extras" al título para que tenga sentido */}
           <h2>Gestión de Canchas y Extras</h2>
           <p className="subtitle-header">Administrá instalaciones, precios y kiosco</p>
         </div>
@@ -688,7 +687,6 @@ const DashboardAdmin = () => {
       
       <div className="canchas-list">
         {canchas.map(c => {
-          // ACÁ EXTRAEMOS LA PRIMERA IMAGEN PARA MOSTRARLA EN LA TARJETITA SIN ROMPERSE
           const primeraImagen = c.imagen_url ? c.imagen_url.split(',')[0] : null;
 
           return (
@@ -708,13 +706,19 @@ const DashboardAdmin = () => {
           )
         })}
       </div>
+    </div>
+  );
 
-      {/* 👇 ACÁ ENCHUFAMOS EL COMPONENTE DEL KIOSCO 👇 */}
-      <div style={{ marginTop: '40px' }}>
-        <GestorKiosco clubId={miClub?.id} />
-      </div>
-      {/* 👆 FIN DEL COMPONENTE DEL KIOSCO 👆 */}
+  const PantallaKiosco = () => (
+    <div>
+      <header className="content-header" style={{ marginBottom: '20px' }}>
+        <div>
+          <h2>Kiosco y Extras</h2>
+          <p className="subtitle-header">Administrá bebidas, paletas y otros productos</p>
+        </div>
+      </header>
       
+      <GestorKiosco clubId={miClub?.id} />
     </div>
   );
 
