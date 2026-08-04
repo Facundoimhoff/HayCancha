@@ -92,7 +92,6 @@ const ReservaCancha = () => {
               .from('productos')
               .select('*')
               .eq('club_id', dataClub.id)
-              .eq('activo', true);
             
             setProductosClub(dataProductos || []);
           }
