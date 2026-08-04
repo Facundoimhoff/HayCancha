@@ -300,3 +300,76 @@
     border-radius: 12px;
   }
 }
+
+/* =========================================
+   BARRA DE FILTROS AVANZADOS
+   ========================================= */
+.barra-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 0 auto 30px auto;
+  max-width: 800px;
+}
+
+.filtro-select {
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  appearance: none; /* Quita la flecha fea por defecto */
+}
+
+.filtro-select:hover, .filtro-select:focus {
+  border-color: #22c55e;
+  box-shadow: 0 4px 6px rgba(34, 197, 94, 0.1);
+}
+
+.filtro-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filtro-checkbox:hover {
+  border-color: #22c55e;
+}
+
+/* Checkbox personalizado */
+.filtro-checkbox input {
+  accent-color: #22c55e; /* Pinta la tilde de verde */
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .barra-filtros {
+    justify-content: flex-start;
+    overflow-x: auto; /* Permite scrollear los filtros hacia los lados en celu */
+    padding-bottom: 10px;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .filtro-select, .filtro-checkbox {
+    flex-shrink: 0; /* Evita que los botones se achiquen */
+  }
+}

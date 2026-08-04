@@ -15,6 +15,12 @@ export default function Buscar() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
+  // Nuevos estados para los filtros
+  const [filtroDeporte, setFiltroDeporte] = useState('');
+  const [filtroJugadores, setFiltroJugadores] = useState('');
+  const [filtroTechada, setFiltroTechada] = useState(false);
+  const [ordenPrecio, setOrdenPrecio] = useState(''); // 'menor' o 'mayor'
+
   useEffect(() => {
     const buscarEnSupabase = async () => {
       if (!query.trim()) {
@@ -54,6 +60,28 @@ export default function Buscar() {
     }
   };
 
+  // Aplicamos los filtros a la lista de clubes original
+  let clubesFiltrados = [...clubes];
+
+  if (filtroDeporte) {
+    clubesFiltrados = clubesFiltrados.filter(c => c.deporte?.toLowerCase() === filtroDeporte.toLowerCase());
+  }
+  
+  if (filtroJugadores) {
+    clubesFiltrados = clubesFiltrados.filter(c => c.cantidad_jugadores === parseInt(filtroJugadores));
+  }
+  
+  if (filtroTechada) {
+    clubesFiltrados = clubesFiltrados.filter(c => c.techada === true);
+  }
+
+  // Lógica de ordenamiento por precio
+  if (ordenPrecio === 'menor') {
+    clubesFiltrados.sort((a, b) => (a.precio_hora || 0) - (b.precio_hora || 0));
+  } else if (ordenPrecio === 'mayor') {
+    clubesFiltrados.sort((a, b) => (b.precio_hora || 0) - (a.precio_hora || 0));
+  }
+
   return (
     <div className="buscar-page">
       <header className="buscar-header">
@@ -74,6 +102,52 @@ export default function Buscar() {
             />
             <button type="submit" className="btn-search">BUSCAR</button>
           </form>
+
+          {/* BARRA DE FILTROS AVANZADOS */}
+          <div className="barra-filtros">
+            <select 
+              className="filtro-select" 
+              value={filtroDeporte} 
+              onChange={(e) => setFiltroDeporte(e.target.value)}
+            >
+              <option value="">Todos los deportes</option>
+              <option value="Fútbol">Fútbol</option>
+              <option value="Pádel">Pádel</option>
+              <option value="Tenis">Tenis</option>
+            </select>
+
+            <select 
+              className="filtro-select" 
+              value={filtroJugadores} 
+              onChange={(e) => setFiltroJugadores(e.target.value)}
+            >
+              <option value="">Jugadores</option>
+              <option value="5">Fútbol 5</option>
+              <option value="7">Fútbol 7</option>
+              <option value="11">Fútbol 11</option>
+              <option value="4">Dobles (Pádel/Tenis)</option>
+            </select>
+
+            <select 
+              className="filtro-select" 
+              value={ordenPrecio} 
+              onChange={(e) => setOrdenPrecio(e.target.value)}
+            >
+              <option value="">Ordenar por precio</option>
+              <option value="menor">Menor a mayor</option>
+              <option value="mayor">Mayor a menor</option>
+            </select>
+
+            <label className="filtro-checkbox">
+              <input 
+                type="checkbox" 
+                checked={filtroTechada} 
+                onChange={(e) => setFiltroTechada(e.target.checked)}
+              />
+              <span>Techada</span>
+            </label>
+          </div>
+          
           {query && !cargando && (
             <p className="search-feedback">
               Resultados para: <strong>"{query}"</strong>

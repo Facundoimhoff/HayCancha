@@ -354,7 +354,12 @@ export default function LandingPage() {
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
             </a>
-            <a href="mailto:supportgridpay@gmail.com" className="footer-link">
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridpay@gmail.com" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="footer-link"
+            >
               <Mail size={20} /> supportgridpay@gmail.com
             </a>
           </div>

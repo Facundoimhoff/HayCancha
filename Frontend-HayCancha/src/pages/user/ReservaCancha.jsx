@@ -31,6 +31,9 @@ const ReservaCancha = () => {
 
   const [turnosOcupados, setTurnosOcupados] = useState([]);
 
+  const [productosClub, setProductosClub] = useState([]); // Lista de productos del club
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState({}); // Lo que va eligiendo el usuario { productoId: cantidad }
+
   const generarProximosDias = () => {
     const dias = [];
     for (let i = 0; i < 7; i++) {
@@ -53,13 +56,12 @@ const ReservaCancha = () => {
   const diasSemana = generarProximosDias();
   const hoyBD = diasSemana[0].fechaBD; 
 
-  useEffect(() => {
+useEffect(() => {
     const cargarDatos = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(session.user);
-          // Si ya está logueado, pre-llenamos el nombre si lo tiene en el metadata
           if (session.user.user_metadata?.full_name) {
             setNombre(session.user.user_metadata.full_name);
           }
@@ -77,11 +79,23 @@ const ReservaCancha = () => {
         if (dataCancha?.club_id) {
           const { data: dataClub, error: errorClub } = await supabase
             .from('clubes')
-            .select('provincia, ciudad')
+            .select('*') // Traemos todo para tener provincia, ciudad e id del club
             .eq('id', dataCancha.club_id)
             .single();
             
-          if (!errorClub) setClub(dataClub);
+          if (!errorClub && dataClub) {
+            setClub(dataClub);
+
+            // 👇 BUSCAMOS LOS PRODUCTOS DEL KIOSCO DE ESTE CLUB 👇
+            const { data: dataProductos } = await supabase
+              .from('productos')
+              .select('*')
+              .eq('club_id', dataClub.id)
+              .eq('activo', true);
+            
+            setProductosClub(dataProductos || []);
+            // 👆 FIN DE LA BÚSQUEDA DE PRODUCTOS 👆
+          }
         }
 
         if (!diaExpandido) setDiaExpandido(hoyBD);
@@ -214,6 +228,20 @@ const ReservaCancha = () => {
       
       const nombreClienteFinal = nombre || user?.user_metadata?.full_name || user?.email || 'Cliente';
 
+      // 🛒 CONVERTIMOS LOS EXTRAS SELECCIONADOS A UN FORMATO LIMPIO PARA GUARDAR EN JSONB
+      const extrasArray = Object.entries(extrasSeleccionados)
+        .filter(([_, cantidad]) => cantidad > 0)
+        .map(([idProd, cantidad]) => {
+          const prodInfo = productosClub.find(p => p.id === idProd);
+          return {
+            id: idProd,
+            nombre: prodInfo?.nombre || 'Producto',
+            precio_unitario: prodInfo?.precio || 0,
+            cantidad: cantidad,
+            subtotal: (prodInfo?.precio || 0) * cantidad
+          };
+        });
+
       const { error } = await supabase
         .from('turnos')
         .insert([{
@@ -221,7 +249,8 @@ const ReservaCancha = () => {
           fecha: fechaSeleccionada,
           hora_inicio: horaSeleccionada,
           nombre_cliente: nombreClienteFinal,
-          telefono_cliente: telefono
+          telefono_cliente: telefono,
+          extras: extrasArray.length > 0 ? extrasArray : null // Guardamos el JSON acá
         }]);
 
       if (error) throw error;
@@ -495,6 +524,46 @@ const ReservaCancha = () => {
                   required
                 />
               </div>
+
+              {/* 👇 SECCIÓN DEL KIOSCO / EXTRAS QUE SE AGREGA ACÁ 👇 */}
+              {productosClub.length > 0 && (
+                <div style={{ margin: '20px 0', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem', color: '#0f172a' }}>¿Te falta algo para el partido? 🥤</h4>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '12px' }}>Agregá bebidas o alquileres para tenerlos listos al llegar.</p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {productosClub.map(prod => {
+                      const cantidadActual = extrasSeleccionados[prod.id] || 0;
+                      return (
+                        <div key={prod.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                          <div>
+                            <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{prod.nombre}</span>
+                            <span style={{ display: 'block', color: '#16a34a', fontSize: '0.85rem', fontWeight: 'bold' }}>${prod.precio}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <button 
+                              type="button"
+                              onClick={() => setExtrasSeleccionados(prev => ({ ...prev, [prod.id]: Math.max(0, cantidadActual - 1) }))}
+                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              -
+                            </button>
+                            <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>{cantidadActual}</span>
+                            <button 
+                              type="button"
+                              onClick={() => setExtrasSeleccionados(prev => ({ ...prev, [prod.id]: cantidadActual + 1 }))}
+                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #22c55e', background: '#22c55e', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* 👆 FIN DE LA SECCIÓN DEL KIOSCO 👆 */}
 
               <div className="btn-group" style={{marginTop: '20px'}}>
                 <button type="button" onClick={() => setPaso(1)} className="btn-atras">

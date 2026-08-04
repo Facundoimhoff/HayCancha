@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as XLSX from 'xlsx';
 import '../../index.css';
 import './DashboardAdmin.css';
+import GestorKiosco from './GestorKiosco';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable'; // <-- Importación moderna y segura
@@ -676,8 +677,9 @@ const DashboardAdmin = () => {
     <div>
       <header className="content-header">
         <div>
-          <h2>Gestión de Canchas</h2>
-          <p className="subtitle-header">Administrá instalaciones y precios</p>
+          {/* Le sumamos "y Extras" al título para que tenga sentido */}
+          <h2>Gestión de Canchas y Extras</h2>
+          <p className="subtitle-header">Administrá instalaciones, precios y kiosco</p>
         </div>
         <button className="btn-agregar" onClick={() => setMostrarModalCancha(true)}>
           <Plus size={18} /> Agregar Cancha
@@ -706,6 +708,13 @@ const DashboardAdmin = () => {
           )
         })}
       </div>
+
+      {/* 👇 ACÁ ENCHUFAMOS EL COMPONENTE DEL KIOSCO 👇 */}
+      <div style={{ marginTop: '40px' }}>
+        <GestorKiosco clubId={miClub?.id} />
+      </div>
+      {/* 👆 FIN DEL COMPONENTE DEL KIOSCO 👆 */}
+      
     </div>
   );
 
