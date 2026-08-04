@@ -50,10 +50,14 @@ const DashboardAdmin = () => {
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
-  const [formCancha, setFormCancha] = useState({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
+  const [formCancha, setFormCancha] = useState({ 
+    nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
+    precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
-  const [canchaEditando, setCanchaEditando] = useState({ id: '', nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
+  const [canchaEditando, setCanchaEditando] = useState({ 
+    id: '', nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
+    precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
   const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
@@ -186,7 +190,8 @@ const DashboardAdmin = () => {
       const { error } = await supabase.from('canchas').insert([{ 
         club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
         precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre, imagen_url: finalUrls
+        hora_cierre: formCancha.hora_cierre, imagen_url: finalUrls, cantidad_jugadores: Number(formCancha.cantidad_jugadores),
+techada: formCancha.techada,
       }]);
       
       if (error) { alert("Error: " + error.message); return; }
@@ -200,7 +205,7 @@ const DashboardAdmin = () => {
   const abrirModalEditar = (cancha) => {
     setCanchaEditando({
       id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
-      hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || ''
+      hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || '', cantidad_jugadores: cancha.cantidad_jugadores || 0, techada: cancha.techada || false
     });
     setImagenCanchaEditFiles([]); 
     setMostrarModalEditar(true);
@@ -991,17 +996,46 @@ const DashboardAdmin = () => {
           <form onSubmit={crearCanchaManual} className="modal-content">
             <h3>Nueva Cancha</h3>
             
-            <div className="modal-row">
+           <div className="modal-row">
               <div className="modal-col">
                 <label className="modal-label">Nombre</label>
                 <input type="text" placeholder="Ej: Cancha 1" required value={formCancha.nombre} onChange={(e) => setFormCancha({...formCancha, nombre: e.target.value})} className="modal-input solo"/>
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <input type="text" placeholder="Ej: Pádel" required value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input solo"/>
+                <select value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  <option value="Fútbol">Fútbol</option>
+                  <option value="Pádel">Pádel</option>
+                  <option value="Tenis">Tenis</option>
+                  <option value="Básquet">Básquet</option>
+                </select>
               </div>
             </div>
 
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Tipo de Partido</label>
+                <select value={formCancha.cantidad_jugadores} onChange={(e) => setFormCancha({...formCancha, cantidad_jugadores: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  <option value="5">Fútbol 5</option>
+                  <option value="7">Fútbol 7</option>
+                  <option value="11">Fútbol 11</option>
+                  <option value="4">Dobles (Pádel / Tenis)</option>
+                  <option value="2">Singles (Tenis)</option>
+                </select>
+              </div>
+              <div className="modal-col" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '5px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formCancha.techada} 
+                    onChange={(e) => setFormCancha({...formCancha, techada: e.target.checked})}
+                    style={{ width: '20px', height: '20px', accentColor: '#22c55e', cursor: 'pointer' }}
+                  />
+                  ¿Es cancha techada?
+                </label>
+              </div>
+            </div>
+            
             <div>
               <label className="modal-label">Precio por Hora ($)</label>
               <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input solo"/>
@@ -1052,7 +1086,12 @@ const DashboardAdmin = () => {
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <input type="text" required value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input solo"/>
+                <select value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  <option value="Fútbol">Fútbol</option>
+                  <option value="Pádel">Pádel</option>
+                  <option value="Tenis">Tenis</option>
+                  <option value="Básquet">Básquet</option>
+                </select>
               </div>
             </div>
 

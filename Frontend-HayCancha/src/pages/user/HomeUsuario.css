@@ -241,3 +241,33 @@
   color: #1d4ed8;
   transform: translateX(4px);
 }
+
+/* --- ESTILOS RESPONSIVOS PARA CELULARES EN FILTROS Y TARJETAS --- */
+@media (max-width: 768px) {
+  /* La barra de filtros pasa a columna para que no se achiquen mal los selects */
+  .home-usuario-container div[style*="flex-wrap: wrap"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .home-usuario-container select, 
+  .home-usuario-container label {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Ajuste de títulos en celulares */
+  .titulo-app {
+    font-size: 1.3rem !important;
+  }
+  
+  .subtitulo-ubicacion {
+    font-size: 0.85rem !important;
+  }
+
+  /* Las tarjetas ocupan todo el ancho disponible */
+  .grid-clubes {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
