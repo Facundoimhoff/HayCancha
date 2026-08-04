@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Phone, Zap, MapPin, ChevronUp, X, Menu } from 'lucide-react';
+import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; 
 
@@ -92,7 +92,7 @@ export default function LandingPage() {
     const data = new FormData(form);
 
     try {
-      const response = await fetch("https://formspree.io/f/xrengjgv", {
+      const response = await fetch("https://formspree.io/f/xzeppakb", {
         method: 'POST',
         body: data,
         headers: { 'Accept': 'application/json' }
@@ -343,7 +343,7 @@ export default function LandingPage() {
           <p className="footer-tagline">Hecho 100% para complejos deportivos.</p>
           
           <div className="footer-contacto">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="footer-link">
+            <a href="https://www.instagram.com/gridplay.app/" target="_blank" rel="noreferrer" className="footer-link">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -353,6 +353,9 @@ export default function LandingPage() {
             </a>
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
+            </a>
+            <a href="mailto:supportgridpay@gmail.com" className="footer-link">
+              <Mail size={20} /> supportgridpay@gmail.com
             </a>
           </div>
           
