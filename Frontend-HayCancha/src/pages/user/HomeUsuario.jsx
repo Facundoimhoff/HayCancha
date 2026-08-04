@@ -10,7 +10,7 @@ const HomeUsuario = () => {
   const [clubes, setClubes] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // 👇 1. ESTADOS PARA LOS FILTROS 👇
+  // ESTADOS PARA LOS FILTROS
   const [filtroDeporte, setFiltroDeporte] = useState('');
   const [filtroJugadores, setFiltroJugadores] = useState('');
   const [filtroTechada, setFiltroTechada] = useState(false);
@@ -18,9 +18,10 @@ const HomeUsuario = () => {
 
   useEffect(() => {
     const cargarClubes = async () => {
+      // 👇 CAMBIO IMPORTANTE: Pedimos 'canchas(*)' para traer toda la info de las canchas por las dudas
       const { data, error } = await supabase
         .from('clubes')
-        .select('*, canchas(id)') 
+        .select('*, canchas(*)') 
         .eq('provincia', provincia)
         .eq('ciudad', ciudad);
 
@@ -32,23 +33,62 @@ const HomeUsuario = () => {
     cargarClubes();
   }, [provincia, ciudad]);
 
-  // 👇 2. LÓGICA DE FILTRADO 👇
+  // ==========================================
+  // LÓGICA DE FILTRADO INTELIGENTE
+  // ==========================================
+  
+  // Función mágica para quitar tildes y mayúsculas ("Fútbol" -> "futbol")
+  const normalizar = (texto) => {
+    if (!texto) return '';
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  };
+
   let clubesFiltrados = [...clubes];
 
   if (filtroDeporte) {
-    clubesFiltrados = clubesFiltrados.filter(c => c.deporte?.toLowerCase() === filtroDeporte.toLowerCase());
+    const busqueda = normalizar(filtroDeporte);
+    clubesFiltrados = clubesFiltrados.filter(club => {
+      const deporteClub = normalizar(club.deporte);
+      // Chequeamos también si ALGUNA de sus canchas tiene ese deporte
+      const canchasTienenDeporte = club.canchas?.some(c => normalizar(c.deporte).includes(busqueda));
+      
+      return deporteClub.includes(busqueda) || canchasTienenDeporte;
+    });
   }
+
   if (filtroJugadores) {
-    clubesFiltrados = clubesFiltrados.filter(c => c.cantidad_jugadores === parseInt(filtroJugadores));
+    const cantBuscada = parseInt(filtroJugadores);
+    clubesFiltrados = clubesFiltrados.filter(club => {
+      const cantClub = club.cantidad_jugadores === cantBuscada;
+      const cantCanchas = club.canchas?.some(c => c.cantidad_jugadores === cantBuscada);
+      return cantClub || cantCanchas;
+    });
   }
+
   if (filtroTechada) {
-    clubesFiltrados = clubesFiltrados.filter(c => c.techada === true);
+    clubesFiltrados = clubesFiltrados.filter(club => {
+      const techadaClub = club.techada === true;
+      const techadaCanchas = club.canchas?.some(c => c.techada === true);
+      return techadaClub || techadaCanchas;
+    });
   }
+
+  // Ordenamiento por precio (busca el precio del club o el más barato de sus canchas)
+  const obtenerPrecio = (club) => {
+    if (club.precio_hora) return Number(club.precio_hora);
+    if (club.canchas && club.canchas.length > 0) {
+      const precios = club.canchas.map(c => Number(c.precio_hora) || 0).filter(p => p > 0);
+      return precios.length > 0 ? Math.min(...precios) : 0;
+    }
+    return 0;
+  };
+
   if (ordenPrecio === 'menor') {
-    clubesFiltrados.sort((a, b) => (a.precio_hora || 0) - (b.precio_hora || 0));
+    clubesFiltrados.sort((a, b) => obtenerPrecio(a) - obtenerPrecio(b));
   } else if (ordenPrecio === 'mayor') {
-    clubesFiltrados.sort((a, b) => (b.precio_hora || 0) - (a.precio_hora || 0));
+    clubesFiltrados.sort((a, b) => obtenerPrecio(b) - obtenerPrecio(a));
   }
+  // ==========================================
 
   return (
     <div className="home-usuario-container">
@@ -74,7 +114,7 @@ const HomeUsuario = () => {
         </button>
       </div>
 
-      {/* 👇 3. BARRA DE FILTROS VISUAL 👇 */}
+      {/* BARRA DE FILTROS VISUAL */}
       {!cargando && clubes.length > 0 && (
         <div style={{ maxWidth: '1200px', margin: '0 auto 20px auto', padding: '0 20px' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
@@ -145,7 +185,6 @@ const HomeUsuario = () => {
           </div>
         ) : (
           <div className="grid-clubes">
-            {/* 👇 4. USAMOS LA LISTA FILTRADA EN VEZ DE LA LISTA ORIGINAL 👇 */}
             {clubesFiltrados.map(club => {
               const cantidadCanchas = club.canchas ? club.canchas.length : 0;
 
