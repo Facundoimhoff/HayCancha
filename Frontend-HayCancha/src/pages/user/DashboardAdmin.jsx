@@ -824,10 +824,29 @@ const DashboardAdmin = () => {
                 <span className="detalle-label">Cancha:</span>
                 <span className="detalle-valor">{turnoSeleccionado.nombre_cancha}</span>
               </div>
+              {/* 👇 LISTA DE PRODUCTOS ADICIONALES (KIOSCO) 👇 */}
+              {!turnoSeleccionado.esBloqueo && turnoSeleccionado.extras && turnoSeleccionado.extras.length > 0 && (
+                <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px' }}>
+                  <span className="detalle-label" style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#334155' }}>
+                    Productos adicionales:
+                  </span>
+                  <ul style={{ margin: 0, paddingLeft: '20px', color: '#475569', fontSize: '0.95rem' }}>
+                    {turnoSeleccionado.extras.map((extra, index) => (
+                      <li key={index} style={{ marginBottom: '4px' }}>
+                        <strong>{extra.cantidad}x</strong> {extra.nombre} <span style={{ color: '#94a3b8' }}>(${extra.subtotal})</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 👇 PRECIO TOTAL ACTUALIZADO 👇 */}
               {!turnoSeleccionado.esBloqueo && (
-                <div className="detalle-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px' }}>
-                  <span className="detalle-label" style={{ color: '#16a34a' }}>Precio a cobrar:</span>
-                  <span className="detalle-valor" style={{ color: '#16a34a', fontSize: '1.2rem', fontWeight: 'bold' }}>${turnoSeleccionado.precio}</span>
+                <div className="detalle-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px', alignItems: 'center' }}>
+                  <span className="detalle-label" style={{ color: '#16a34a' }}>Total a cobrar:</span>
+                  <span className="detalle-valor" style={{ color: '#16a34a', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                    ${turnoSeleccionado.precio + (turnoSeleccionado.extras ? turnoSeleccionado.extras.reduce((acc, item) => acc + item.subtotal, 0) : 0)}
+                  </span>
                 </div>
               )}
             </div>
