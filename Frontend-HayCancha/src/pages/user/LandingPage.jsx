@@ -355,7 +355,7 @@ export default function LandingPage() {
               <Phone size={20} /> 3564-609641
             </a>
             <a 
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridpay@gmail.com" 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
               target="_blank" 
               rel="noreferrer" 
               className="footer-link"

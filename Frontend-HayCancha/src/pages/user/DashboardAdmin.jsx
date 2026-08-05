@@ -35,7 +35,35 @@ const DashboardAdmin = () => {
   const cambiarVista = (vista) => {
     setVistaActual(vista);
     setMenuMobileAbierto(false);
+
+    // 👇 Si entra a la vista de perfil, cargamos los datos al formulario
+    if (vista === 'perfil') {
+      cargarDatosPerfil();
+    }
   };
+
+  // 👇 Y esta función va aquí adentro, al mismo nivel que las demás
+  const cargarDatosPerfil = () => {
+    if (miClub) {
+      setFormMiClub({
+        nombre: miClub.nombre || '',
+        telefono_contacto: miClub.telefono_contacto || '',
+        correo_contacto: miClub.correo_contacto || '',
+        servicios: miClub.servicios || '',
+        redes_sociales: miClub.redes_sociales || { instagram: '', tiktok: '', facebook: '' }
+      });
+    }
+  };
+
+
+
+  const [formMiClub, setFormMiClub] = useState({
+    nombre: '',
+    telefono_contacto: '',
+    correo_contacto: '',
+    servicios: '',
+    redes_sociales: { instagram: '', tiktok: '', facebook: '' }
+  });
 
   // ESTADOS PARA MÚLTIPLES IMÁGENES
   const [imagenCanchaFiles, setImagenCanchaFiles] = useState([]);
@@ -51,12 +79,13 @@ const DashboardAdmin = () => {
 
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ 
-    nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
-    precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
+    nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, superficie: 'Sintético',
+    precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
+  });
 
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [canchaEditando, setCanchaEditando] = useState({ 
-    id: '', nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
+    id: '', nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, superficie: 'Sintético',
     precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
   const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
@@ -65,6 +94,16 @@ const DashboardAdmin = () => {
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const now = new Date();
   const mesActualNombre = `${meses[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
+
+  const manejarRedSocial = (red, valor) => {
+    setFormMiClub(prev => ({
+      ...prev,
+      redes_sociales: {
+        ...prev.redes_sociales,
+        [red]: valor
+      }
+    }));
+  };
 
   const cargarDatos = async () => {
     try {
@@ -179,27 +218,72 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
+  const guardarDatosClub = async (e) => {
+    e.preventDefault();
+    try {
+      // Le mandamos a Supabase todos los datos nuevos
+      const { error } = await supabase
+        .from('clubes')
+        .update({
+          telefono_contacto: formMiClub.telefono_contacto,
+          correo_contacto: formMiClub.correo_contacto,
+          servicios: formMiClub.servicios,
+          redes_sociales: formMiClub.redes_sociales
+        })
+        .eq('id', miClub.id); // Aseguramos que solo actualice TU club
+
+      if (error) {
+        alert(`🚨 ERROR DE SUPABASE:\n${error.message}`);
+        return;
+      }
+
+      alert("✅ ¡Datos de contacto y redes actualizados con éxito!");
+      
+      // Si tenés una función que recarga los datos, llamala acá
+      // await cargarDatos(); 
+
+    } catch (err) {
+      alert(`🚨 ERROR:\n${err.message}`);
+    }
+  };
+
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
-      let finalUrls = formCancha.imagen_url;
+      let finalUrls = formCancha.imagen_url || '';
       if (imagenCanchaFiles && imagenCanchaFiles.length > 0) {
         finalUrls = await subirMultiplesImagenes(imagenCanchaFiles);
       }
 
       const { error } = await supabase.from('canchas').insert([{ 
-        club_id: miClub.id, nombre: formCancha.nombre, deporte: formCancha.deporte,
-        precio_hora: Number(formCancha.precio_hora), hora_apertura: formCancha.hora_apertura,
-        hora_cierre: formCancha.hora_cierre, imagen_url: finalUrls, cantidad_jugadores: Number(formCancha.cantidad_jugadores),
-techada: formCancha.techada,
+        club_id: miClub.id, 
+        nombre: formCancha.nombre, 
+        deporte: formCancha.deporte || 'Fútbol',
+        cantidad_jugadores: Number(formCancha.cantidad_jugadores) || 5,
+        techada: Boolean(formCancha.techada),
+        precio_hora: Number(formCancha.precio_hora) || 0, 
+        hora_apertura: formCancha.hora_apertura || '08:00',
+        hora_cierre: formCancha.hora_cierre || '23:00', 
+        imagen_url: finalUrls
       }]);
       
-      if (error) { alert("Error: " + error.message); return; }
+      if (error) { 
+        console.error("Error Supabase:", error);
+        alert("Error al guardar en la base de datos: " + error.message); 
+        return; 
+      }
+
       setMostrarModalCancha(false);
-      setFormCancha({ nombre: '', deporte: '', precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
+      setFormCancha({ 
+        nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
+        precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
+      });
       setImagenCanchaFiles([]); 
       await cargarDatos(); 
-    } catch (err) { alert("Error al guardar: " + err.message); }
+    } catch (err) { 
+      console.error(err);
+      alert("Error al guardar la cancha: " + err.message); 
+    }
   };
 
   const abrirModalEditar = (cancha) => {
@@ -843,9 +927,18 @@ techada: formCancha.techada,
           {/* 👇 ACÁ LE DECIMOS A REACT QUE MUESTRE LA PANTALLA 👇 */}
           {vistaActual === 'kiosco' && <PantallaKiosco />} 
           
-          {vistaActual === 'perfil' && <PantallaPerfil />}
+          {vistaActual === 'perfil' && (
+            <PantallaPerfil 
+              miClub={miClub} 
+              formMiClub={formMiClub} 
+              setFormMiClub={setFormMiClub} 
+              manejarRedSocial={manejarRedSocial} 
+              guardarDatosClub={guardarDatosClub} 
+            />
+          )}
         </div>
       </main>
+
 
       {/* --- MODALES --- */}
 
@@ -1138,6 +1231,106 @@ techada: formCancha.techada,
       )}
     </div>
   );
+
+  // ==========================================
+// COMPONENTE DE LA VISTA PERFIL (Fuera del principal)
+// ==========================================
+const PantallaPerfil = ({ miClub, formMiClub, setFormMiClub, manejarRedSocial, guardarDatosClub }) => {
+  return (
+    <div className="vista-miclub animate-fade-in">
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>
+        Configuración de Mi Club
+      </h2>
+
+      <form onSubmit={guardarDatosClub} style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        
+        <h3 style={{ margin: '0 0 15px 0', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', fontSize: '1.1rem' }}>
+          Contacto y Servicios del Predio
+        </h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+          <div className="modal-col">
+            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Teléfono (WhatsApp)</label>
+            <input 
+              type="text" 
+              placeholder="Ej: 3564609641" 
+              value={formMiClub.telefono_contacto || ''} 
+              onChange={(e) => setFormMiClub({...formMiClub, telefono_contacto: e.target.value})} 
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            />
+          </div>
+          <div className="modal-col">
+            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Correo Electrónico</label>
+            <input 
+              type="email" 
+              placeholder="Ej: contacto@miclub.com" 
+              value={formMiClub.correo_contacto || ''} 
+              onChange={(e) => setFormMiClub({...formMiClub, correo_contacto: e.target.value})} 
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            />
+          </div>
+        </div>
+
+        <div className="modal-col" style={{ marginBottom: '25px' }}>
+          <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Servicios (Separados por coma)</label>
+          <input 
+            type="text" 
+            placeholder="Ej: Parrillas, Vestuarios, Cantina, Estacionamiento" 
+            value={formMiClub.servicios || ''} 
+            onChange={(e) => setFormMiClub({...formMiClub, servicios: e.target.value})} 
+            style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+          />
+        </div>
+
+        <h3 style={{ margin: '0 0 15px 0', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', fontSize: '1.1rem' }}>
+          Redes Sociales
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '15px' }}>
+          Completá solo las que tengas. Podés poner el @usuario o el link directo.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
+          <div className="modal-col">
+            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Instagram</label>
+            <input 
+              type="text" 
+              placeholder="Ej: @miclub" 
+              value={formMiClub.redes_sociales?.instagram || ''} 
+              onChange={(e) => manejarRedSocial('instagram', e.target.value)} 
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            />
+          </div>
+          <div className="modal-col">
+            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>TikTok</label>
+            <input 
+              type="text" 
+              placeholder="Ej: @miclub" 
+              value={formMiClub.redes_sociales?.tiktok || ''} 
+              onChange={(e) => manejarRedSocial('tiktok', e.target.value)} 
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            />
+          </div>
+          <div className="modal-col">
+            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Facebook</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Mi Club" 
+              value={formMiClub.redes_sociales?.facebook || ''} 
+              onChange={(e) => manejarRedSocial('facebook', e.target.value)} 
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" style={{ backgroundColor: '#059669', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
 };
 
 export default DashboardAdmin;
