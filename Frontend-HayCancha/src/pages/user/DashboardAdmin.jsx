@@ -81,7 +81,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
   const [nuevoLogo, setNuevoLogo] = useState(null);
   const [previewLogo, setPreviewLogo] = useState(miClub?.imagen_url || null);
   
-  // Fotos múltiples del club y su carrusel
+  // Nuevo estado para las fotos múltiples del club
   const [fotosClubFiles, setFotosClubFiles] = useState([]);
   const [fotoAdminIdx, setFotoAdminIdx] = useState(0);
   
@@ -188,9 +188,9 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
   };
 
   return (
-    <div className="perfil-wrapper" style={{ padding: '0' }}>
+    <div className="perfil-wrapper" style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
       
-      <div className="perfil-header" style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div className="perfil-header" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '20px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Building size={28} color="#2563eb" />
         <h2 style={{ margin: 0, fontSize: '1.6rem', color: '#0f172a' }}>Configuración Pública de tu Club</h2>
       </div>
@@ -203,163 +203,146 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
       )}
       
       <form onSubmit={guardarPerfil}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px', alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'flex-start' }}>
           
           {/* ========================================= */}
-          {/* COLUMNA IZQUIERDA                         */}
+          {/* COLUMNA IZQUIERDA: DATOS BÁSICOS          */}
           {/* ========================================= */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* BLOQUE 1: PERFIL BÁSICO */}
-            <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                 <Building size={18} color="#3b82f6"/> Perfil Principal
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label className="form-label">Logo del Club</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ 
+                  width: '130px', height: '130px', borderRadius: '12px', backgroundColor: '#f8fafc', 
+                  border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', 
+                  alignItems: 'center', padding: '8px', position: 'relative' 
+                }}>
+                  {previewLogo ? (
+                    <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <Building size={40} color="#94a3b8" />
+                  )}
+                </div>
+                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <label className="form-label">Logo del Club (Cuadrado sin fondo recomendado)</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ width: '100px', height: '100px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '8px' }}>
-                      {previewLogo ? <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Building size={32} color="#94a3b8" />}
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', fontWeight: '600', transition: 'background 0.2s', textAlign: 'center' }}>
-                        <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }} /> Subir Logo
-                        <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
-                      </label>
-                      {previewLogo && (
-                        <button type="button" onClick={eliminarLogo} style={{ cursor: 'pointer', backgroundColor: '#fef2f2', padding: '8px 16px', borderRadius: '8px', border: '1px solid #fecaca', fontSize: '0.9rem', color: '#ef4444', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                          <Trash2 size={16} /> Quitar Logo
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="form-label">Nombre del Club</label>
-                  <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-                </div>
-
-                <div>
-                  <label className="form-label">Color de tu marca (Para el banner público)</label>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input type="color" value={formPerfil.color_primario} onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} style={{ width: '45px', height: '45px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }} />
-                    <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* BLOQUE 2: ACERCA DEL CLUB (CARRUSEL Y DESC) */}
-            <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                 <ImageIcon size={18} color="#8b5cf6"/> Acerca del Predio
-              </h3>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <label className="form-label">Descripción (Historia o instalaciones)</label>
-                  <textarea placeholder="Ej: Fundado en 2020, contamos con el mejor predio iluminado..." value={formPerfil.descripcion} onChange={(e) => setFormPerfil({...formPerfil, descripcion: e.target.value})} className="form-input-icon" style={{ padding: '12px', minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }} />
-                </div>
-
-                <div>
-                  <label className="form-label">Subir Fotos de las Instalaciones</label>
-                  <input type="file" multiple accept="image/*" onChange={(e) => { if (e.target.files) setFotosClubFiles(Array.from(e.target.files)); }} className="form-input-icon" style={{ padding: '8px' }} />
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Podés seleccionar varias fotos juntas. Las nuevas se sumarán a las que ya tenés.</p>
-                </div>
-
-                {/* PREVIEW DEL CARRUSEL DE FOTOS DEL PREDIO */}
-                {fotosSubidas.length > 0 && (
-                  <div style={{ marginTop: '10px' }}>
-                    <label className="form-label">Galería actual ({fotosSubidas.length} fotos)</label>
-                    <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', backgroundColor: '#e2e8f0' }}>
-                      <img src={fotosSubidas[fotoAdminIdx]} alt={`Predio ${fotoAdminIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      
-                      {fotosSubidas.length > 1 && (
-                        <>
-                          <button type="button" onClick={retrocederFoto} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}><ChevronLeft size={20} color="#0f172a" /></button>
-                          <button type="button" onClick={avanzarFoto} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}><ChevronRight size={20} color="#0f172a" /></button>
-                          <div style={{ position: 'absolute', bottom: '10px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '5px' }}>
-                            {fotosSubidas.map((_, idx) => (
-                              <div key={idx} style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: idx === fotoAdminIdx ? '#2563eb' : 'rgba(255,255,255,0.6)' }} />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    
-                    <button type="button" onClick={eliminarFotosClub} style={{ marginTop: '15px', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 'bold', width: '100%' }}>
-                      <Trash2 size={16} /> Eliminar toda la galería
+                  <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', fontWeight: '600', textAlign: 'center', transition: 'background 0.2s' }}>
+                    <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }} />
+                    Subir Logo
+                    <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+                  </label>
+                  
+                  {previewLogo && (
+                    <button type="button" onClick={eliminarLogo} style={{ cursor: 'pointer', backgroundColor: '#fef2f2', padding: '10px 16px', borderRadius: '8px', border: '1px solid #fecaca', fontSize: '0.9rem', color: '#ef4444', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background 0.2s' }}>
+                      <Trash2 size={16} /> Quitar Logo
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 
+            <div>
+              <label className="form-label">Nombre del Club</label>
+              <div className="input-icon-wrapper">
+                <Building size={18} className="input-icon" />
+                <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label className="form-label">Provincia</label>
+                <div className="input-icon-wrapper">
+                  <Map size={18} className="input-icon" />
+                  <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
+                    <option value="">Seleccioná tu provincia</option>
+                    {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="form-label">Ciudad</label>
+                <div className="input-icon-wrapper">
+                  <MapPin size={18} className="input-icon" />
+                  <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Descripción del Club (Acerca de nosotros)</label>
+              <textarea 
+                placeholder="Contale a los jugadores cómo son tus instalaciones, tu historia, iluminación..." 
+                value={formPerfil.descripcion} 
+                onChange={(e) => setFormPerfil({...formPerfil, descripcion: e.target.value})} 
+                className="form-input-icon" 
+                style={{ padding: '12px', minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }} 
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Fotos de las instalaciones (Predio)</label>
+              <input 
+                type="file" multiple accept="image/*" 
+                onChange={(e) => { if (e.target.files) setFotosClubFiles(Array.from(e.target.files)); }} 
+                className="form-input-icon" style={{ padding: '8px' }}
+              />
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Mostrale a tus clientes lo grande que es el club. Podés elegir varias fotos juntas.</p>
+              
+              {formPerfil.fotos_club && (!fotosClubFiles || fotosClubFiles.length === 0) && (
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imágenes del predio cargadas previamente</p>
+              )}
+            </div>
+
+            <div>
+              <label className="form-label">Color de tu marca (Banner principal)</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input 
+                  type="color" 
+                  value={formPerfil.color_primario} 
+                  onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
+                  style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
+                />
+                <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
+              </div>
+            </div>
           </div>
 
 
           {/* ========================================= */}
-          {/* COLUMNA DERECHA                           */}
+          {/* COLUMNA DERECHA: CONTACTO Y REDES         */}
           {/* ========================================= */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
             
-            {/* BLOQUE 3: UBICACIÓN */}
-            <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                 <MapPin size={18} color="#f59e0b"/> Ubicación
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label className="form-label">Provincia</label>
-                  <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }}>
-                    <option value="">Seleccionar...</option>
-                    {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="form-label">Ciudad</label>
-                  <input type="text" required value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* BLOQUE 4: CONTACTO Y SERVICIOS */}
-            <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                 <Phone size={18} color="#16a34a"/> Contacto y Servicios
+            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Phone size={18} color="#16a34a"/> Contacto y Servicios del Predio
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                  <div>
-                    <label className="form-label">WhatsApp</label>
-                    <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-                  </div>
-                  <div>
-                    <label className="form-label">Correo</label>
-                    <input type="email" placeholder="contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-                  </div>
-                </div>
-
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
-                  <label className="form-label">Servicios (Separados por coma)</label>
-                  <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Teléfono (WhatsApp)</label>
+                  <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
                 </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Correo Electrónico</label>
+                  <input type="email" placeholder="Ej: contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.85rem' }}>Servicios (Separados por coma)</label>
+                <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
               </div>
             </div>
 
-            {/* BLOQUE 5: REDES SOCIALES */}
-            <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                 <Share2 size={18} color="#ec4899"/> Redes Sociales
+            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Share2 size={18} color="#ec4899"/> Redes Sociales
               </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 20px 0' }}>Completá con tu @usuario o link directo.</p>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Insta" style={{ width: '24px', height: '24px' }} />
                   <input type="text" placeholder="Instagram (@miclub)" value={formPerfil.redes_sociales?.instagram || ''} onChange={(e) => manejarRedSocial('instagram', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px', flex: 1 }} />
@@ -379,11 +362,11 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
         </div>
 
         {/* ========================================= */}
-        {/* BOTÓN GUARDAR GRANDE                      */}
+        {/* BOTÓN GUARDAR                             */}
         {/* ========================================= */}
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
-          <button type="submit" disabled={guardando} className="btn-guardar" style={{ padding: '16px 40px', fontSize: '1.2rem', width: '100%', maxWidth: '600px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.2)' }}>
-            {guardando ? 'Guardando cambios...' : 'Guardar y Publicar Perfil'}
+        <div style={{ marginTop: '30px', borderTop: '1px solid #e2e8f0', paddingTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" disabled={guardando} className="btn-guardar" style={{ padding: '12px 30px', fontSize: '1.1rem' }}>
+            {guardando ? 'Guardando...' : 'Guardar Cambios'}
           </button>
         </div>
       </form>
@@ -509,6 +492,11 @@ const DashboardAdmin = () => {
   };
 
   useEffect(() => { cargarDatos(); }, []);
+
+  const cambiarVista = (vista) => {
+    setVistaActual(vista);
+    setMenuMobileAbierto(false);
+  };
 
   const subirMultiplesImagenes = async (archivos) => {
     const urls = [];
@@ -1058,11 +1046,13 @@ const DashboardAdmin = () => {
         <div style={{ width: '28px' }}></div> 
       </div>
 
+      {/* EL FONDO OSCURO SE QUEDA ATRÁS (Z-INDEX 9998) */}
       {menuMobileAbierto && (
-        <div className="sidebar-overlay" onClick={() => setMenuMobileAbierto(false)}></div>
+        <div className="sidebar-overlay" style={{ zIndex: 9998 }} onClick={() => setMenuMobileAbierto(false)}></div>
       )}
 
-      <aside className={`sidebar-enterprise ${menuMobileAbierto ? 'abierto' : ''}`}>
+      {/* EL MENÚ LATERAL SE QUEDA ADELANTE DE TODO (Z-INDEX 9999) */}
+      <aside className={`sidebar-enterprise ${menuMobileAbierto ? 'abierto' : ''}`} style={{ zIndex: 9999 }}>
         <div className="sidebar-header">
           <div className="logo-empresa">
             GridPlay<span className="dot-green-circle"></span>
