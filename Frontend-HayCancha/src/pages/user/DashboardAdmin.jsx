@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -52,6 +52,16 @@ const OPCIONES_DEPORTE = {
     ],
     superficies: ['Parquet (Madera flotante)', 'Cemento', 'Goma Deportiva / Sintético']
   }
+};
+
+// NORMALIZADOR PARA DATOS VIEJOS DE LA BASE DE DATOS
+const normalizarDeporte = (dep) => {
+  if (!dep) return 'Fútbol';
+  const d = dep.toUpperCase();
+  if (d.includes('BASKET') || d.includes('BASQUET') || d.includes('BÁSQUET')) return 'Básquet';
+  if (d.includes('PADEL') || d.includes('PÁDEL')) return 'Pádel';
+  if (d.includes('TENIS')) return 'Tenis';
+  return 'Fútbol';
 };
 
 // ==========================================
@@ -257,7 +267,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
 };
 
 // ==========================================
-// COMPONENTE PRINCIPAL
+// COMPONENTE PRINCIPAL (DASHBOARD)
 // ==========================================
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -291,7 +301,6 @@ const DashboardAdmin = () => {
   const [mostrarModalBloqueo, setMostrarModalBloqueo] = useState(false);
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
-  // ESTADO INICIAL DE LA CANCHA (Con los valores dinámicos por defecto)
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ 
     nombre: '', 
@@ -430,7 +439,7 @@ const DashboardAdmin = () => {
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
   // ==========================================
-  // HANDLERS DINÁMICOS PARA CAMBIAR EL DEPORTE
+  // HANDLERS DINÁMICOS Y ROBUSTOS (Canchas)
   // ==========================================
   const handleDeporteNuevaCancha = (e) => {
     const deporteSelec = e.target.value;
@@ -451,7 +460,6 @@ const DashboardAdmin = () => {
       superficie: OPCIONES_DEPORTE[deporteSelec].superficies[0]
     });
   };
-
 
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
@@ -474,10 +482,7 @@ const DashboardAdmin = () => {
         imagen_url: finalUrls
       }]);
       
-      if (error) { 
-        alert("Error al guardar en la base de datos: " + error.message); 
-        return; 
-      }
+      if (error) throw error;
 
       setMostrarModalCancha(false);
       setFormCancha({ 
@@ -493,11 +498,20 @@ const DashboardAdmin = () => {
     }
   };
 
+  // ESTA FUNCIÓN AHORA "REPARA" LOS DATOS VIEJOS DE LA BD ANTES DE EDITAR
   const abrirModalEditar = (cancha) => {
-    // Si la cancha es vieja y no tiene superficie, le asignamos la primera de su deporte
-    const depSeguro = cancha.deporte || 'Fútbol';
-    const supSegura = cancha.superficie || OPCIONES_DEPORTE[depSeguro].superficies[0];
-    const jugSeguro = cancha.cantidad_jugadores || OPCIONES_DEPORTE[depSeguro].jugadores[0].value;
+    const depSeguro = normalizarDeporte(cancha.deporte);
+    const dict = OPCIONES_DEPORTE[depSeguro];
+
+    // Asegurarse de que la superficie sea válida, si no, poner la primera por defecto
+    const supValida = dict.superficies.includes(cancha.superficie) 
+      ? cancha.superficie 
+      : dict.superficies[0];
+
+    // Asegurarse de que los jugadores sean válidos, si no, poner el primero por defecto
+    const jugValido = dict.jugadores.some(j => Number(j.value) === Number(cancha.cantidad_jugadores))
+      ? Number(cancha.cantidad_jugadores)
+      : dict.jugadores[0].value;
 
     setCanchaEditando({
       id: cancha.id, 
@@ -507,8 +521,8 @@ const DashboardAdmin = () => {
       hora_apertura: cancha.hora_apertura || '08:00', 
       hora_cierre: cancha.hora_cierre || '23:00', 
       imagen_url: cancha.imagen_url || '', 
-      cantidad_jugadores: jugSeguro, 
-      superficie: supSegura,
+      cantidad_jugadores: jugValido, 
+      superficie: supValida,
       techada: cancha.techada || false
     });
     setImagenCanchaEditFiles([]); 
@@ -536,11 +550,31 @@ const DashboardAdmin = () => {
         imagen_url: finalUrls
       }).eq('id', canchaEditando.id);
       
-      if (error) { alert("Error al guardar: " + error.message); return; }
+      if (error) throw error;
+      
       setMostrarModalEditar(false);
       setImagenCanchaEditFiles([]);
       await cargarDatos();
     } catch (err) { alert("Error al editar: " + err.message); }
+  };
+
+  // NUEVO: FUNCIÓN PARA ELIMINAR CANCHA Y SUS TURNOS
+  const eliminarCancha = async (idCancha) => {
+    if (window.confirm("⚠️ ¿ESTÁS SEGURO? Se eliminará esta cancha por completo y todos los turnos que haya reservados en ella. Esta acción no se puede deshacer.")) {
+      try {
+        // 1. Borramos los turnos asociados para que la base de datos no tire error de clave foránea
+        await supabase.from('turnos').delete().eq('cancha_id', idCancha);
+        
+        // 2. Borramos la cancha
+        const { error } = await supabase.from('canchas').delete().eq('id', idCancha);
+        if (error) throw error;
+        
+        alert("Cancha eliminada con éxito.");
+        await cargarDatos();
+      } catch (err) {
+        alert("Error al eliminar la cancha: " + err.message);
+      }
+    }
   };
 
   const exportarExcel = () => {
@@ -842,24 +876,43 @@ const DashboardAdmin = () => {
       <div className="canchas-list">
         {canchas.map(c => {
           const primeraImagen = c.imagen_url ? c.imagen_url.split(',')[0] : null;
+          const depNormalizado = normalizarDeporte(c.deporte);
+          const dict = OPCIONES_DEPORTE[depNormalizado];
+          const jugDisplay = c.cantidad_jugadores || dict.jugadores[0].value;
+          const supDisplay = c.superficie || dict.superficies[0];
 
           return (
-            <div key={c.id} className="cancha-card-enterprise">
+            <div key={c.id} className="cancha-card-enterprise" style={{ position: 'relative' }}>
               <div className={`cancha-imagen-placeholder ${primeraImagen ? 'con-imagen' : ''}`}>
                 {primeraImagen ? <img src={primeraImagen} alt={c.nombre} /> : <ImageIcon color="#9ca3af" size={32} />}
               </div>
               <div className="cancha-info">
-                <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
+                <h3>{c.nombre} <span className="cancha-deporte">{depNormalizado}</span></h3>
                 <p className="cancha-precio-badge">${c.precio_hora} / hora</p>
                 <p className="cancha-horario">⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
                 <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem', color: '#64748b', marginTop: '6px' }}>
-                  <span>👥 {c.cantidad_jugadores} jug.</span>
-                  <span>• {c.superficie || 'Sintético'}</span>
+                  <span>👥 {jugDisplay} jug.</span>
+                  <span>• {supDisplay}</span>
                 </div>
               </div>
-              <button className="btn-editar-enterprise" onClick={() => abrirModalEditar(c)} title="Editar información">
-                <Edit size={20} />
-              </button>
+              
+              {/* BOTONES DE ACCIÓN: EDITAR Y ELIMINAR */}
+              <div style={{ display: 'flex', gap: '8px', position: 'absolute', top: '16px', right: '16px' }}>
+                <button 
+                  onClick={() => abrirModalEditar(c)} 
+                  title="Editar información" 
+                  style={{ backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Edit size={18} />
+                </button>
+                <button 
+                  onClick={() => eliminarCancha(c.id)} 
+                  title="Eliminar cancha" 
+                  style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
           )
         })}
@@ -1174,7 +1227,7 @@ const DashboardAdmin = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL EDITAR CANCHA - CON LÓGICA DINÁMICA                                 */}
+      {/* MODAL EDITAR CANCHA - CON LÓGICA DINÁMICA REPARADA                        */}
       {/* ========================================================================= */}
       {mostrarModalEditar && (
         <div className="modal-overlay">
