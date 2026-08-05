@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { 
   MapPin, ArrowLeft, Clock, ChevronLeft, ChevronRight, X, CalendarDays, 
-  Image as ImageIcon, Phone, Mail, Instagram, Facebook, Video, CheckCircle2, 
+  Image as ImageIcon, Phone, Mail, CheckCircle2, 
   Users, Layers, CloudRain 
 } from 'lucide-react';
 import './PerfilClub.css';
@@ -121,21 +121,24 @@ const PerfilClub = () => {
             </a>
           )}
 
-          {/* Iconos de Redes Sociales */}
-          <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+          {/* ACÁ ESTÁ TU IDEA: Iconos desde URL con nombre de usuario al lado */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginLeft: 'auto' }}>
             {club.redes_sociales?.instagram && (
-              <a href={club.redes_sociales.instagram.includes('http') ? club.redes_sociales.instagram : `https://instagram.com/${club.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#E1306C', display: 'flex', alignItems: 'center', backgroundColor: '#fce7f3', padding: '10px', borderRadius: '50%', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                <Instagram size={20} />
+              <a href={club.redes_sociales.instagram.includes('http') ? club.redes_sociales.instagram : `https://instagram.com/${club.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#E1306C', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fce7f3', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Insta" style={{ width: '20px', height: '20px' }} />
+                {club.redes_sociales.instagram}
               </a>
             )}
             {club.redes_sociales?.tiktok && (
-              <a href={club.redes_sociales.tiktok.includes('http') ? club.redes_sociales.tiktok : `https://tiktok.com/@${club.redes_sociales.tiktok.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#0f172a', display: 'flex', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '10px', borderRadius: '50%', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                <Video size={20} />
+              <a href={club.redes_sociales.tiktok.includes('http') ? club.redes_sociales.tiktok : `https://tiktok.com/@${club.redes_sociales.tiktok.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#e2e8f0', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" style={{ width: '20px', height: '20px' }} />
+                {club.redes_sociales.tiktok}
               </a>
             )}
             {club.redes_sociales?.facebook && (
-              <a href={club.redes_sociales.facebook.includes('http') ? club.redes_sociales.facebook : `https://facebook.com/search/top/?q=${club.redes_sociales.facebook}`} target="_blank" rel="noreferrer" style={{ color: '#1877F2', display: 'flex', alignItems: 'center', backgroundColor: '#dbeafe', padding: '10px', borderRadius: '50%', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                <Facebook size={20} />
+              <a href={club.redes_sociales.facebook.includes('http') ? club.redes_sociales.facebook : `https://facebook.com/search/top/?q=${club.redes_sociales.facebook}`} target="_blank" rel="noreferrer" style={{ color: '#1877F2', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#dbeafe', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Face" style={{ width: '20px', height: '20px' }} />
+                {club.redes_sociales.facebook}
               </a>
             )}
           </div>
@@ -181,7 +184,7 @@ const PerfilClub = () => {
                 <div className="cancha-tarjeta-body">
                   <h3 className="cancha-tarjeta-titulo">{cancha.nombre}</h3>
                   
-                  {/* NUEVO: Mini Detalles en la tarjeta */}
+                  {/* Mini Detalles en la tarjeta */}
                   <div style={{ display: 'flex', gap: '12px', color: '#64748b', fontSize: '0.85rem', marginBottom: '10px', flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }} title="Jugadores"><Users size={14}/> {cancha.cantidad_jugadores}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }} title="Superficie"><Layers size={14}/> {cancha.superficie || 'Sintético'}</span>
@@ -270,7 +273,7 @@ const PerfilClub = () => {
                 
                 <div className="detalle-bloque divisor"></div>
                 
-                {/* NUEVO: Especificaciones detalladas de la cancha */}
+                {/* Especificaciones detalladas de la cancha */}
                 <div className="detalle-bloque">
                   <span className="detalle-lbl">Especificaciones</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '5px', color: '#334155', fontSize: '0.95rem' }}>
