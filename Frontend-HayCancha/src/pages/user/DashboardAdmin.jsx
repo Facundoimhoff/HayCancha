@@ -18,7 +18,44 @@ import autoTable from 'jspdf-autotable';
 const COLORES_GRAFICO = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 // ==========================================
-// COMPONENTE DE LA VISTA PERFIL (Extraído para mejor rendimiento)
+// CONFIGURACIÓN DINÁMICA DE DEPORTES
+// ==========================================
+const OPCIONES_DEPORTE = {
+  'Fútbol': {
+    jugadores: [
+      { label: 'Fútbol 5 (10 jugadores)', value: 10 },
+      { label: 'Fútbol 7 (14 jugadores)', value: 14 },
+      { label: 'Fútbol 8 (16 jugadores)', value: 16 },
+      { label: 'Fútbol 9 (18 jugadores)', value: 18 },
+      { label: 'Fútbol 11 (22 jugadores)', value: 22 }
+    ],
+    superficies: ['Césped Sintético', 'Césped Natural', 'Cemento / Baldosa', 'Parquet (Futsal)', 'Tierra / Arena']
+  },
+  'Pádel': {
+    jugadores: [
+      { label: 'Dobles (4 jugadores)', value: 4 },
+      { label: 'Singles (2 jugadores)', value: 2 }
+    ],
+    superficies: ['Césped Sintético', 'Cemento', 'Piso Modular / Plástico']
+  },
+  'Tenis': {
+    jugadores: [
+      { label: 'Singles (2 jugadores)', value: 2 },
+      { label: 'Dobles (4 jugadores)', value: 4 }
+    ],
+    superficies: ['Polvo de Ladrillo', 'Cemento (Cancha Rápida)', 'Césped Natural', 'Césped Sintético']
+  },
+  'Básquet': {
+    jugadores: [
+      { label: '5 vs 5 (10 jugadores)', value: 10 },
+      { label: '3 vs 3 (6 jugadores)', value: 6 }
+    ],
+    superficies: ['Parquet (Madera flotante)', 'Cemento', 'Goma Deportiva / Sintético']
+  }
+};
+
+// ==========================================
+// COMPONENTE DE LA VISTA PERFIL
 // ==========================================
 const PantallaPerfil = ({ miClub, setMiClub }) => {
   const [formPerfil, setFormPerfil] = useState({ 
@@ -65,7 +102,6 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     try {
       let finalLogoUrl = formPerfil.imagen_url;
 
-      // Si subió un logo nuevo, lo guardamos en Storage
       if (nuevoLogo) {
         const fileExt = nuevoLogo.name.split('.').pop();
         const fileName = `logos/${Date.now()}.${fileExt}`;
@@ -75,7 +111,6 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
         finalLogoUrl = urlData.publicUrl;
       }
 
-      // Actualizamos la base de datos con absolutamente todo
       const { error } = await supabase.from('clubes').update({ 
         nombre: formPerfil.nombre, 
         provincia: formPerfil.provincia, 
@@ -115,8 +150,6 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
       )}
       
       <form onSubmit={guardarPerfil} className="perfil-form">
-        
-        {/* Logo del Club */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
           <label className="form-label">Logo del Club</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -162,7 +195,6 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
           </div>
         </div>
 
-        {/* NUEVOS CAMPOS: CONTACTO Y SERVICIOS */}
         <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
           <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '15px' }}>Contacto y Servicios del Predio</h3>
           
@@ -183,7 +215,6 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
           </div>
         </div>
 
-        {/* NUEVOS CAMPOS: REDES SOCIALES */}
         <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
           <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '5px' }}>Redes Sociales</h3>
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
@@ -249,7 +280,6 @@ const DashboardAdmin = () => {
     setMenuMobileAbierto(false);
   };
 
-  // ESTADOS PARA MÚLTIPLES IMÁGENES
   const [imagenCanchaFiles, setImagenCanchaFiles] = useState([]);
   const [imagenCanchaEditFiles, setImagenCanchaEditFiles] = useState([]);
 
@@ -261,15 +291,23 @@ const DashboardAdmin = () => {
   const [mostrarModalBloqueo, setMostrarModalBloqueo] = useState(false);
   const [formBloqueo, setFormBloqueo] = useState({ cancha_id: '', fecha: '', hora_inicio: '', motivo: '' });
 
+  // ESTADO INICIAL DE LA CANCHA (Con los valores dinámicos por defecto)
   const [mostrarModalCancha, setMostrarModalCancha] = useState(false);
   const [formCancha, setFormCancha] = useState({ 
-    nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, superficie: 'Sintético',
-    precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
+    nombre: '', 
+    deporte: 'Fútbol', 
+    cantidad_jugadores: OPCIONES_DEPORTE['Fútbol'].jugadores[0].value, 
+    superficie: OPCIONES_DEPORTE['Fútbol'].superficies[0],
+    techada: false, 
+    precio_hora: '', 
+    hora_apertura: '08:00', 
+    hora_cierre: '23:00', 
+    imagen_url: '' 
   });
 
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [canchaEditando, setCanchaEditando] = useState({ 
-    id: '', nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, superficie: 'Sintético',
+    id: '', nombre: '', deporte: 'Fútbol', cantidad_jugadores: '10', techada: false, superficie: 'Césped Sintético',
     precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' });
 
   const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
@@ -342,7 +380,6 @@ const DashboardAdmin = () => {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  // FUNCIÓN PARA SUBIR MÚLTIPLES FOTOS
   const subirMultiplesImagenes = async (archivos) => {
     const urls = [];
     for (let i = 0; i < archivos.length; i++) {
@@ -392,6 +429,30 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
+  // ==========================================
+  // HANDLERS DINÁMICOS PARA CAMBIAR EL DEPORTE
+  // ==========================================
+  const handleDeporteNuevaCancha = (e) => {
+    const deporteSelec = e.target.value;
+    setFormCancha({
+      ...formCancha,
+      deporte: deporteSelec,
+      cantidad_jugadores: OPCIONES_DEPORTE[deporteSelec].jugadores[0].value,
+      superficie: OPCIONES_DEPORTE[deporteSelec].superficies[0]
+    });
+  };
+
+  const handleDeporteEdicionCancha = (e) => {
+    const deporteSelec = e.target.value;
+    setCanchaEditando({
+      ...canchaEditando,
+      deporte: deporteSelec,
+      cantidad_jugadores: OPCIONES_DEPORTE[deporteSelec].jugadores[0].value,
+      superficie: OPCIONES_DEPORTE[deporteSelec].superficies[0]
+    });
+  };
+
+
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
@@ -403,8 +464,9 @@ const DashboardAdmin = () => {
       const { error } = await supabase.from('canchas').insert([{ 
         club_id: miClub.id, 
         nombre: formCancha.nombre, 
-        deporte: formCancha.deporte || 'Fútbol',
-        cantidad_jugadores: Number(formCancha.cantidad_jugadores) || 5,
+        deporte: formCancha.deporte,
+        cantidad_jugadores: Number(formCancha.cantidad_jugadores),
+        superficie: formCancha.superficie,
         techada: Boolean(formCancha.techada),
         precio_hora: Number(formCancha.precio_hora) || 0, 
         hora_apertura: formCancha.hora_apertura || '08:00',
@@ -413,28 +475,41 @@ const DashboardAdmin = () => {
       }]);
       
       if (error) { 
-        console.error("Error Supabase:", error);
         alert("Error al guardar en la base de datos: " + error.message); 
         return; 
       }
 
       setMostrarModalCancha(false);
       setFormCancha({ 
-        nombre: '', deporte: 'Fútbol', cantidad_jugadores: '5', techada: false, 
-        precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
+        nombre: '', deporte: 'Fútbol', 
+        cantidad_jugadores: OPCIONES_DEPORTE['Fútbol'].jugadores[0].value, 
+        superficie: OPCIONES_DEPORTE['Fútbol'].superficies[0],
+        techada: false, precio_hora: '', hora_apertura: '08:00', hora_cierre: '23:00', imagen_url: '' 
       });
       setImagenCanchaFiles([]); 
       await cargarDatos(); 
     } catch (err) { 
-      console.error(err);
       alert("Error al guardar la cancha: " + err.message); 
     }
   };
 
   const abrirModalEditar = (cancha) => {
+    // Si la cancha es vieja y no tiene superficie, le asignamos la primera de su deporte
+    const depSeguro = cancha.deporte || 'Fútbol';
+    const supSegura = cancha.superficie || OPCIONES_DEPORTE[depSeguro].superficies[0];
+    const jugSeguro = cancha.cantidad_jugadores || OPCIONES_DEPORTE[depSeguro].jugadores[0].value;
+
     setCanchaEditando({
-      id: cancha.id, nombre: cancha.nombre, deporte: cancha.deporte || '', precio_hora: cancha.precio_hora,
-      hora_apertura: cancha.hora_apertura || '08:00', hora_cierre: cancha.hora_cierre || '23:00', imagen_url: cancha.imagen_url || '', cantidad_jugadores: cancha.cantidad_jugadores || 0, techada: cancha.techada || false
+      id: cancha.id, 
+      nombre: cancha.nombre, 
+      deporte: depSeguro, 
+      precio_hora: cancha.precio_hora,
+      hora_apertura: cancha.hora_apertura || '08:00', 
+      hora_cierre: cancha.hora_cierre || '23:00', 
+      imagen_url: cancha.imagen_url || '', 
+      cantidad_jugadores: jugSeguro, 
+      superficie: supSegura,
+      techada: cancha.techada || false
     });
     setImagenCanchaEditFiles([]); 
     setMostrarModalEditar(true);
@@ -450,8 +525,15 @@ const DashboardAdmin = () => {
       }
 
       const { error } = await supabase.from('canchas').update({
-        nombre: canchaEditando.nombre, deporte: canchaEditando.deporte, precio_hora: Number(canchaEditando.precio_hora),
-        hora_apertura: canchaEditando.hora_apertura, hora_cierre: canchaEditando.hora_cierre, imagen_url: finalUrls
+        nombre: canchaEditando.nombre, 
+        deporte: canchaEditando.deporte, 
+        cantidad_jugadores: Number(canchaEditando.cantidad_jugadores),
+        superficie: canchaEditando.superficie,
+        techada: canchaEditando.techada,
+        precio_hora: Number(canchaEditando.precio_hora),
+        hora_apertura: canchaEditando.hora_apertura, 
+        hora_cierre: canchaEditando.hora_cierre, 
+        imagen_url: finalUrls
       }).eq('id', canchaEditando.id);
       
       if (error) { alert("Error al guardar: " + error.message); return; }
@@ -487,20 +569,15 @@ const DashboardAdmin = () => {
       alert("Cargando datos, por favor aguardá un segundo...");
       return;
     }
-
     const doc = new jsPDF();
     const nombreClub = miClub?.nombre || 'Mi_Complejo'; 
-    
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.text(`Reporte de Ingresos - ${nombreClub}`, 14, 20);
-    
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    
     const fechaTexto = new Date().toLocaleDateString();
     doc.text(`Generado el: ${fechaTexto}`, 14, 28);
-
     const tableData = turnosTotales
       .filter(t => t.telefono_cliente !== 'BLOQUEO')
       .map(t => {
@@ -513,7 +590,6 @@ const DashboardAdmin = () => {
           `$${canchaInfo?.precio_hora || 0}`
         ];
       });
-
     autoTable(doc, {
       head: [['Fecha', 'Hora', 'Cliente', 'Cancha', 'Ingreso']],
       body: tableData,
@@ -521,14 +597,10 @@ const DashboardAdmin = () => {
       theme: 'striped',
       headStyles: { fillColor: [15, 23, 42] },
     });
-
     const fechaArchivo = fechaTexto.replace(/\//g, '-');
     const nombreLimpio = nombreClub.replace(/\s+/g, '_'); 
-
     doc.save(`Reporte_${nombreLimpio}_${fechaArchivo}.pdf`);
   };
-
-  /* ================= VISTAS DE PANTALLA ================= */
 
   const PantallaGeneral = () => (
     <div>
@@ -570,11 +642,8 @@ const DashboardAdmin = () => {
         </h3>
         <div className="turnos-lista">
           {proximosTurnos.length === 0 ? <p className="texto-ayuda">No hay turnos agendados.</p> : proximosTurnos.slice(0,10).map(t => {
-            
-            // Calculamos el total (cancha + extras) para mostrarlo rápido en la tarjeta
             const totalExtras = t.extras ? t.extras.reduce((acc, item) => acc + item.subtotal, 0) : 0;
             const totalTurno = t.precio + totalExtras;
-
             return (
             <div key={t.id} className={`turno-item ${t.esBloqueo ? 'bloqueo' : 'normal'}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
               <div>
@@ -587,56 +656,23 @@ const DashboardAdmin = () => {
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                
-                {/* 👇 PRECIO AL COSTADO 👇 */}
                 {!t.esBloqueo && (
-                  <span style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '1.1rem' }}>
-                    ${totalTurno}
-                  </span>
+                  <span style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '1.1rem' }}>${totalTurno}</span>
                 )}
-
-                {/* 👇 BOTÓN DE 3 PUNTITOS 👇 */}
-                <button 
-                  onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#64748b' }}
-                >
+                <button onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#64748b' }}>
                   <MoreVertical size={20} />
                 </button>
-
-                {/* 👇 MENÚ DESPLEGABLE FLOTANTE 👇 */}
                 {menuAbiertoId === t.id && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    right: '0', 
-                    top: '100%', 
-                    background: 'white', 
-                    border: '1px solid #e2e8f0', 
-                    borderRadius: '8px', 
-                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', 
-                    zIndex: 10,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minWidth: '160px',
-                    overflow: 'hidden'
-                  }}>
+                  <div style={{ position: 'absolute', right: '0', top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', flexDirection: 'column', minWidth: '160px', overflow: 'hidden' }}>
                     {!t.esBloqueo && (
-                      <a 
-                        href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} 
-                        target="_blank" rel="noopener noreferrer" 
-                        style={{ padding: '12px 15px', textDecoration: 'none', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem', fontWeight: '500' }}
-                      >
+                      <a href={`https://wa.me/${t.telefono_cliente}?text=Hola!%20Te%20recordamos%20tu%20turno%20en%20${miClub?.nombre}%20el%20día%20${t.fecha.split('-').reverse().join('/')}%20a%20las%20${t.hora_inicio}hs.`} target="_blank" rel="noopener noreferrer" style={{ padding: '12px 15px', textDecoration: 'none', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem', fontWeight: '500' }}>
                         <CheckCircle size={16} color="#16a34a" /> Enviar WhatsApp
                       </a>
                     )}
-                    <button 
-                      onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} 
-                      style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}
-                    >  <Users size={16} color="#2563eb" /> Ver detalles
+                    <button onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
+                      <Users size={16} color="#2563eb" /> Ver detalles
                     </button>
-                    <button 
-                      onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} 
-                      style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}
-                    >
+                    <button onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
                       <Ban size={16} /> {t.esBloqueo ? 'Liberar horario' : 'Cancelar turno'}
                     </button>
                   </div>
@@ -651,7 +687,6 @@ const DashboardAdmin = () => {
 
   const PantallaMetricas = () => { 
     const [mostrarInfo, setMostrarInfo] = useState(false);
-
     const datosFiltrados = useMemo(() => {
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -730,38 +765,24 @@ const DashboardAdmin = () => {
             <div className="grafico-header">
               <h3 className="grafico-titulo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Distribución de Turnos
-                <button 
-                  onClick={() => setMostrarInfo(!mostrarInfo)} 
-                  className={`btn-info-grafico ${mostrarInfo ? 'activo' : ''}`}
-                  title="¿Qué significa este gráfico?"
-                >
+                <button onClick={() => setMostrarInfo(!mostrarInfo)} className={`btn-info-grafico ${mostrarInfo ? 'activo' : ''}`}>
                   <Info size={18} />
                 </button>
               </h3>
             </div>
             {mostrarInfo && (
               <div className="info-grafico-box">
-                Este gráfico te muestra rápidamente cuál es tu <strong>cancha "estrella"</strong>. Te sirve para saber qué instalaciones se usan más, enfocar promociones o decidir dónde invertir en mantenimiento.
+                Este gráfico te muestra rápidamente cuál es tu <strong>cancha "estrella"</strong>.
               </div>
             )}
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie 
-                  data={datosFiltrados} 
-                  cx="50%" cy="50%" 
-                  innerRadius={60} outerRadius={100} 
-                  paddingAngle={5} 
-                  dataKey="cantidad"
-                  nameKey="nombre" 
-                >
+                <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad" nameKey="nombre" >
                   {datosFiltrados.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  formatter={(value, name) => [`${value} turnos`, name]} 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} 
-                />
+                <Tooltip formatter={(value, name) => [`${value} turnos`, name]} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
                 <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
@@ -831,6 +852,10 @@ const DashboardAdmin = () => {
                 <h3>{c.nombre} <span className="cancha-deporte">{c.deporte}</span></h3>
                 <p className="cancha-precio-badge">${c.precio_hora} / hora</p>
                 <p className="cancha-horario">⏰ {c.hora_apertura || '08:00'} a {c.hora_cierre || '23:00'}</p>
+                <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem', color: '#64748b', marginTop: '6px' }}>
+                  <span>👥 {c.cantidad_jugadores} jug.</span>
+                  <span>• {c.superficie || 'Sintético'}</span>
+                </div>
               </div>
               <button className="btn-editar-enterprise" onClick={() => abrirModalEditar(c)} title="Editar información">
                 <Edit size={20} />
@@ -850,7 +875,6 @@ const DashboardAdmin = () => {
           <p className="subtitle-header">Administrá bebidas, paletas y otros productos</p>
         </div>
       </header>
-      
       <GestorKiosco clubId={miClub?.id} />
     </div>
   );
@@ -1055,6 +1079,9 @@ const DashboardAdmin = () => {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* MODAL CREAR CANCHA - CON LÓGICA DINÁMICA                                  */}
+      {/* ========================================================================= */}
       {mostrarModalCancha && (
         <div className="modal-overlay">
           <form onSubmit={crearCanchaManual} className="modal-content">
@@ -1067,7 +1094,7 @@ const DashboardAdmin = () => {
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <select value={formCancha.deporte} onChange={(e) => setFormCancha({...formCancha, deporte: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                <select value={formCancha.deporte} onChange={handleDeporteNuevaCancha} className="modal-input solo" style={{ cursor: 'pointer' }}>
                   <option value="Fútbol">Fútbol</option>
                   <option value="Pádel">Pádel</option>
                   <option value="Tenis">Tenis</option>
@@ -1077,17 +1104,34 @@ const DashboardAdmin = () => {
             </div>
 
             <div className="modal-row">
+              {/* SELECT DINÁMICO DE JUGADORES */}
               <div className="modal-col">
                 <label className="modal-label">Tipo de Partido</label>
                 <select value={formCancha.cantidad_jugadores} onChange={(e) => setFormCancha({...formCancha, cantidad_jugadores: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
-                  <option value="5">Fútbol 5</option>
-                  <option value="7">Fútbol 7</option>
-                  <option value="11">Fútbol 11</option>
-                  <option value="4">Dobles (Pádel / Tenis)</option>
-                  <option value="2">Singles (Tenis)</option>
+                  {OPCIONES_DEPORTE[formCancha.deporte].jugadores.map((opcion) => (
+                    <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
+                  ))}
                 </select>
               </div>
-              <div className="modal-col" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '5px' }}>
+              
+              {/* SELECT DINÁMICO DE SUPERFICIE */}
+              <div className="modal-col">
+                <label className="modal-label">Tipo de Piso</label>
+                <select value={formCancha.superficie} onChange={(e) => setFormCancha({...formCancha, superficie: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  {OPCIONES_DEPORTE[formCancha.deporte].superficies.map((sup) => (
+                    <option key={sup} value={sup}>{sup}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Precio por Hora ($)</label>
+                <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input solo"/>
+              </div>
+              
+              <div className="modal-col" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
                   <input 
                     type="checkbox" 
@@ -1098,11 +1142,6 @@ const DashboardAdmin = () => {
                   ¿Es cancha techada?
                 </label>
               </div>
-            </div>
-            
-            <div>
-              <label className="modal-label">Precio por Hora ($)</label>
-              <input type="number" required value={formCancha.precio_hora} onChange={(e) => setFormCancha({...formCancha, precio_hora: e.target.value})} className="modal-input solo"/>
             </div>
 
             <div className="modal-row">
@@ -1119,12 +1158,9 @@ const DashboardAdmin = () => {
             <div>
               <label className="modal-label">Fotos de la Cancha (Opcional)</label>
               <input 
-                type="file" 
-                multiple 
-                accept="image/*" 
+                type="file" multiple accept="image/*" 
                 onChange={(e) => { if (e.target.files) setImagenCanchaFiles(Array.from(e.target.files)); }} 
-                className="modal-input solo" 
-                style={{ padding: '8px' }}
+                className="modal-input solo" style={{ padding: '8px' }}
               />
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Podés seleccionar varias imágenes a la vez.</p>
             </div>
@@ -1137,6 +1173,9 @@ const DashboardAdmin = () => {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* MODAL EDITAR CANCHA - CON LÓGICA DINÁMICA                                 */}
+      {/* ========================================================================= */}
       {mostrarModalEditar && (
         <div className="modal-overlay">
           <form onSubmit={guardarEdicionCancha} className="modal-content">
@@ -1149,7 +1188,7 @@ const DashboardAdmin = () => {
               </div>
               <div className="modal-col">
                 <label className="modal-label">Deporte</label>
-                <select value={canchaEditando.deporte} onChange={(e) => setCanchaEditando({...canchaEditando, deporte: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                <select value={canchaEditando.deporte} onChange={handleDeporteEdicionCancha} className="modal-input solo" style={{ cursor: 'pointer' }}>
                   <option value="Fútbol">Fútbol</option>
                   <option value="Pádel">Pádel</option>
                   <option value="Tenis">Tenis</option>
@@ -1158,9 +1197,45 @@ const DashboardAdmin = () => {
               </div>
             </div>
 
-            <div>
-              <label className="modal-label">Precio por Hora ($)</label>
-              <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} className="modal-input solo"/>
+            <div className="modal-row">
+              {/* SELECT DINÁMICO DE JUGADORES */}
+              <div className="modal-col">
+                <label className="modal-label">Tipo de Partido</label>
+                <select value={canchaEditando.cantidad_jugadores} onChange={(e) => setCanchaEditando({...canchaEditando, cantidad_jugadores: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  {OPCIONES_DEPORTE[canchaEditando.deporte].jugadores.map((opcion) => (
+                    <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* SELECT DINÁMICO DE SUPERFICIE */}
+              <div className="modal-col">
+                <label className="modal-label">Tipo de Piso</label>
+                <select value={canchaEditando.superficie} onChange={(e) => setCanchaEditando({...canchaEditando, superficie: e.target.value})} className="modal-input solo" style={{ cursor: 'pointer' }}>
+                  {OPCIONES_DEPORTE[canchaEditando.deporte].superficies.map((sup) => (
+                    <option key={sup} value={sup}>{sup}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="modal-row">
+              <div className="modal-col">
+                <label className="modal-label">Precio por Hora ($)</label>
+                <input type="number" required value={canchaEditando.precio_hora} onChange={(e) => setCanchaEditando({...canchaEditando, precio_hora: e.target.value})} className="modal-input solo"/>
+              </div>
+              
+              <div className="modal-col" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={canchaEditando.techada} 
+                    onChange={(e) => setCanchaEditando({...canchaEditando, techada: e.target.checked})}
+                    style={{ width: '20px', height: '20px', accentColor: '#22c55e', cursor: 'pointer' }}
+                  />
+                  ¿Es cancha techada?
+                </label>
+              </div>
             </div>
 
             <div className="modal-row">
@@ -1177,12 +1252,9 @@ const DashboardAdmin = () => {
             <div>
               <label className="modal-label">Cambiar Fotos (Opcional)</label>
               <input 
-                type="file" 
-                multiple 
-                accept="image/*" 
+                type="file" multiple accept="image/*" 
                 onChange={(e) => { if (e.target.files) setImagenCanchaEditFiles(Array.from(e.target.files)); }} 
-                className="modal-input solo" 
-                style={{ padding: '8px' }}
+                className="modal-input solo" style={{ padding: '8px' }}
               />
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Las fotos nuevas se sumarán a las que ya tenés.</p>
               

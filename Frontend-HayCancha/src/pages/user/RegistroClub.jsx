@@ -10,7 +10,6 @@ const RegistroClub = () => {
   const [imagenFile, setImagenFile] = useState(null); 
   const [previewLogo, setPreviewLogo] = useState(null);
   
-  // Estado para el checkbox legal
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -19,8 +18,12 @@ const RegistroClub = () => {
     provincia: '',
     ciudad: '',
     direccion: '',
-    telefono_contacto: '', // <-- NUEVO: Capturamos el teléfono inicial
+    telefono_contacto: '', 
     estacionamiento: false,
+    servicios: '', // <-- NUEVO
+    instagram: '', // <-- NUEVO
+    tiktok: '',    // <-- NUEVO
+    facebook: '',  // <-- NUEVO
     email: '',
     password: ''
   });
@@ -46,7 +49,6 @@ const RegistroClub = () => {
     setCargando(true);
 
     try {
-      // 1. Creamos la cuenta del Admin
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -54,7 +56,6 @@ const RegistroClub = () => {
 
       if (authError) throw authError;
 
-      // 2. LÓGICA DE SUBIDA DE IMAGEN
       let logoUrl = ''; 
       
       if (imagenFile) {
@@ -62,38 +63,32 @@ const RegistroClub = () => {
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `logos/${fileName}`; 
 
-        const { error: uploadError } = await supabase.storage
-          .from('imagenes')
-          .upload(filePath, imagenFile);
-
+        const { error: uploadError } = await supabase.storage.from('imagenes').upload(filePath, imagenFile);
         if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('imagenes')
-          .getPublicUrl(filePath);
-
+        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(filePath);
         logoUrl = urlData.publicUrl;
       }
 
-      // 3. Guardamos todo en la base de datos (con la estructura nueva pre-armada)
-      const { error: clubError } = await supabase
-        .from('clubes')
-        .insert([
-          {
-            nombre: formData.nombre,
-            descripcion: formData.descripcion, 
-            provincia: formData.provincia,    
-            ciudad: formData.ciudad,
-            direccion: formData.direccion,
-            estacionamiento: formData.estacionamiento,
-            telefono_contacto: formData.telefono_contacto, // <-- Guardamos el teléfono
-            correo_contacto: formData.email, // <-- Usamos su correo de registro por defecto
-            servicios: '', // <-- Vacío por ahora, lo llenan en el panel
-            redes_sociales: { instagram: '', tiktok: '', facebook: '' }, // <-- Estructura JSON inicializada
-            imagen_url: logoUrl, 
-            admin_id: authData.user.id
-          }
-        ]);
+      const { error: clubError } = await supabase.from('clubes').insert([
+        {
+          nombre: formData.nombre,
+          descripcion: formData.descripcion, 
+          provincia: formData.provincia,    
+          ciudad: formData.ciudad,
+          direccion: formData.direccion,
+          estacionamiento: formData.estacionamiento,
+          telefono_contacto: formData.telefono_contacto, 
+          correo_contacto: formData.email, 
+          servicios: formData.servicios, // <-- Guardamos servicios
+          redes_sociales: {              // <-- Guardamos redes armando el objeto
+            instagram: formData.instagram, 
+            tiktok: formData.tiktok, 
+            facebook: formData.facebook 
+          }, 
+          imagen_url: logoUrl, 
+          admin_id: authData.user.id
+        }
+      ]);
 
       if (clubError) throw clubError;
 
@@ -122,7 +117,6 @@ const RegistroClub = () => {
 
         <form onSubmit={handleSubmit} className="registro-form">
           
-          {/* --- SECCIÓN 1: PERFIL DEL CLUB --- */}
           <div className="registro-seccion">
             <h3 className="seccion-titulo"><Building2 size={18}/> 1. Perfil del Club</h3>
             <div className="club-perfil-layout">
@@ -136,14 +130,7 @@ const RegistroClub = () => {
                       <span>Subir Logo</span>
                     </div>
                   )}
-                  <input 
-                    id="logo-upload"
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    required 
-                    style={{ display: 'none' }}
-                  />
+                  <input id="logo-upload" type="file" accept="image/*" onChange={handleImageChange} required style={{ display: 'none' }} />
                 </label>
                 <p className="logo-ayuda">Formato JPG o PNG.</p>
               </div>
@@ -161,9 +148,8 @@ const RegistroClub = () => {
             </div>
           </div>
 
-          {/* --- SECCIÓN 2: UBICACIÓN Y COMODIDADES --- */}
           <div className="registro-seccion">
-            <h3 className="seccion-titulo"><MapPin size={18}/> 2. Ubicación y Contacto</h3>
+            <h3 className="seccion-titulo"><MapPin size={18}/> 2. Detalles, Contacto y Servicios</h3>
             
             <div className="grid-2-col">
               <div className="input-group">
@@ -187,7 +173,7 @@ const RegistroClub = () => {
               </div>
             </div>
 
-            <label className="toggle-servicio-container">
+            <label className="toggle-servicio-container" style={{ marginBottom: '15px' }}>
               <div className="toggle-info">
                 <Car size={20} className={formData.estacionamiento ? 'text-green' : 'text-gray'} />
                 <div>
@@ -200,9 +186,31 @@ const RegistroClub = () => {
                 <span className="slider"></span>
               </div>
             </label>
+
+            <div className="input-group">
+              <label>Servicios del Predio (Separados por coma)</label>
+              <input type="text" name="servicios" placeholder="Ej: Parrillas, Vestuarios, Cantina, Techado" onChange={handleChange} className="form-input-reg" />
+            </div>
+
+            <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '10px' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.95rem', color: '#334155' }}>Redes Sociales (Opcionales)</h4>
+              <div className="grid-2-col">
+                <div className="input-group">
+                  <label>Instagram</label>
+                  <input type="text" name="instagram" placeholder="@miclub" onChange={handleChange} className="form-input-reg" />
+                </div>
+                <div className="input-group">
+                  <label>TikTok</label>
+                  <input type="text" name="tiktok" placeholder="@miclub" onChange={handleChange} className="form-input-reg" />
+                </div>
+              </div>
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label>Facebook</label>
+                <input type="text" name="facebook" placeholder="Mi Club" onChange={handleChange} className="form-input-reg" />
+              </div>
+            </div>
           </div>
 
-          {/* --- SECCIÓN 3: CUENTA ADMIN --- */}
           <div className="registro-seccion cuenta-admin-seccion">
             <h3 className="seccion-titulo"><Lock size={18}/> 3. Tu Cuenta de Administrador</h3>
             <p className="seccion-descripcion">Con este correo y contraseña vas a ingresar a tu panel de control.</p>
@@ -225,7 +233,6 @@ const RegistroClub = () => {
             </div>
           </div>
 
-          {/* --- CHECKBOX LEGAL OBLIGATORIO --- */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '10px', backgroundColor: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
             <input 
               type="checkbox" 
