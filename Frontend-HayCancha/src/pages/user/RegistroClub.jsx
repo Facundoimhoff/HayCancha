@@ -10,7 +10,7 @@ const RegistroClub = () => {
   const [imagenFile, setImagenFile] = useState(null); 
   const [previewLogo, setPreviewLogo] = useState(null);
   
-  // NUEVO: Estado para el checkbox legal
+  // Estado para el checkbox legal
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -19,6 +19,7 @@ const RegistroClub = () => {
     provincia: '',
     ciudad: '',
     direccion: '',
+    telefono_contacto: '', // <-- NUEVO: Capturamos el teléfono inicial
     estacionamiento: false,
     email: '',
     password: ''
@@ -74,7 +75,7 @@ const RegistroClub = () => {
         logoUrl = urlData.publicUrl;
       }
 
-      // 3. Guardamos todo en la base de datos
+      // 3. Guardamos todo en la base de datos (con la estructura nueva pre-armada)
       const { error: clubError } = await supabase
         .from('clubes')
         .insert([
@@ -85,6 +86,10 @@ const RegistroClub = () => {
             ciudad: formData.ciudad,
             direccion: formData.direccion,
             estacionamiento: formData.estacionamiento,
+            telefono_contacto: formData.telefono_contacto, // <-- Guardamos el teléfono
+            correo_contacto: formData.email, // <-- Usamos su correo de registro por defecto
+            servicios: '', // <-- Vacío por ahora, lo llenan en el panel
+            redes_sociales: { instagram: '', tiktok: '', facebook: '' }, // <-- Estructura JSON inicializada
             imagen_url: logoUrl, 
             admin_id: authData.user.id
           }
@@ -158,7 +163,7 @@ const RegistroClub = () => {
 
           {/* --- SECCIÓN 2: UBICACIÓN Y COMODIDADES --- */}
           <div className="registro-seccion">
-            <h3 className="seccion-titulo"><MapPin size={18}/> 2. Ubicación y Servicios</h3>
+            <h3 className="seccion-titulo"><MapPin size={18}/> 2. Ubicación y Contacto</h3>
             
             <div className="grid-2-col">
               <div className="input-group">
@@ -171,9 +176,15 @@ const RegistroClub = () => {
               </div>
             </div>
             
-            <div className="input-group">
-              <label>Dirección Exacta</label>
-              <input type="text" name="direccion" placeholder="Ej: Av. Urquiza 332" required onChange={handleChange} className="form-input-reg" />
+            <div className="grid-2-col">
+              <div className="input-group">
+                <label>Dirección Exacta</label>
+                <input type="text" name="direccion" placeholder="Ej: Av. Urquiza 332" required onChange={handleChange} className="form-input-reg" />
+              </div>
+              <div className="input-group">
+                <label>Teléfono (WhatsApp)</label>
+                <input type="text" name="telefono_contacto" placeholder="Ej: 3564609641" required onChange={handleChange} className="form-input-reg" />
+              </div>
             </div>
 
             <label className="toggle-servicio-container">

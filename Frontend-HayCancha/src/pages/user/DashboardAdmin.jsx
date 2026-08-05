@@ -4,7 +4,8 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus,Menu, X, Store, MoreVertical} from 'lucide-react';
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
 import '../../index.css';
@@ -12,10 +13,221 @@ import './DashboardAdmin.css';
 import GestorKiosco from './GestorKiosco';
 
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // <-- Importación moderna y segura
+import autoTable from 'jspdf-autotable';
 
 const COLORES_GRAFICO = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
 
+// ==========================================
+// COMPONENTE DE LA VISTA PERFIL (Extraído para mejor rendimiento)
+// ==========================================
+const PantallaPerfil = ({ miClub, setMiClub }) => {
+  const [formPerfil, setFormPerfil] = useState({ 
+    nombre: miClub?.nombre || '', 
+    provincia: miClub?.provincia || '', 
+    ciudad: miClub?.ciudad || '',
+    color_primario: miClub?.color_primario || '#0f172a',
+    imagen_url: miClub?.imagen_url || '',
+    telefono_contacto: miClub?.telefono_contacto || '',
+    correo_contacto: miClub?.correo_contacto || '',
+    servicios: miClub?.servicios || '',
+    redes_sociales: miClub?.redes_sociales || { instagram: '', tiktok: '', facebook: '' }
+  });
+
+  const [nuevoLogo, setNuevoLogo] = useState(null);
+  const [previewLogo, setPreviewLogo] = useState(miClub?.imagen_url || null);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
+  
+  const provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Ciudad Autónoma de Buenos Aires"];
+
+  const handleLogoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setNuevoLogo(e.target.files[0]);
+      setPreviewLogo(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  const manejarRedSocial = (red, valor) => {
+    setFormPerfil(prev => ({
+      ...prev,
+      redes_sociales: {
+        ...prev.redes_sociales,
+        [red]: valor
+      }
+    }));
+  };
+
+  const guardarPerfil = async (e) => {
+    e.preventDefault();
+    setGuardando(true);
+    setMensaje({ texto: '', tipo: '' });
+    
+    try {
+      let finalLogoUrl = formPerfil.imagen_url;
+
+      // Si subió un logo nuevo, lo guardamos en Storage
+      if (nuevoLogo) {
+        const fileExt = nuevoLogo.name.split('.').pop();
+        const fileName = `logos/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, nuevoLogo);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
+        finalLogoUrl = urlData.publicUrl;
+      }
+
+      // Actualizamos la base de datos con absolutamente todo
+      const { error } = await supabase.from('clubes').update({ 
+        nombre: formPerfil.nombre, 
+        provincia: formPerfil.provincia, 
+        ciudad: formPerfil.ciudad,
+        color_primario: formPerfil.color_primario,
+        imagen_url: finalLogoUrl,
+        telefono_contacto: formPerfil.telefono_contacto,
+        correo_contacto: formPerfil.correo_contacto,
+        servicios: formPerfil.servicios,
+        redes_sociales: formPerfil.redes_sociales
+      }).eq('id', miClub.id);
+      
+      if (error) throw error;
+      
+      setMiClub({ ...miClub, ...formPerfil, imagen_url: finalLogoUrl });
+      setFormPerfil(prev => ({ ...prev, imagen_url: finalLogoUrl }));
+      setMensaje({ texto: '¡Datos y redes actualizados correctamente!', tipo: 'exito' });
+      setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
+    } catch (err) { 
+      setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' }); 
+    } finally { 
+      setGuardando(false); 
+    }
+  };
+
+  return (
+    <div className="perfil-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="perfil-header">
+        <Building size={24} color="#2563eb" />
+        <h2>Perfil de tu Club</h2>
+      </div>
+      {mensaje.texto && (
+        <div className={`perfil-alerta ${mensaje.tipo}`}>
+          {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
+          <strong>{mensaje.texto}</strong>
+        </div>
+      )}
+      
+      <form onSubmit={guardarPerfil} className="perfil-form">
+        
+        {/* Logo del Club */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
+          <label className="form-label">Logo del Club</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+              {previewLogo ? (
+                <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <Building size={32} color="#94a3b8" />
+              )}
+            </div>
+            <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#475569', fontWeight: 'bold' }}>
+              <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              Cambiar Logo
+              <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label className="form-label">Nombre del Club</label>
+          <div className="input-icon-wrapper">
+            <Building size={18} className="input-icon" />
+            <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+          </div>
+        </div>
+
+        <div>
+          <label className="form-label">Provincia</label>
+          <div className="input-icon-wrapper">
+            <Map size={18} className="input-icon" />
+            <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
+              <option value="">Seleccioná tu provincia</option>
+              {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="form-label">Ciudad</label>
+          <div className="input-icon-wrapper">
+            <MapPin size={18} className="input-icon" />
+            <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
+          </div>
+        </div>
+
+        {/* NUEVOS CAMPOS: CONTACTO Y SERVICIOS */}
+        <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
+          <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '15px' }}>Contacto y Servicios del Predio</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label className="form-label">Teléfono (WhatsApp)</label>
+              <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+            </div>
+            <div>
+              <label className="form-label">Correo Electrónico</label>
+              <input type="email" placeholder="Ej: contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+            </div>
+          </div>
+
+          <div>
+            <label className="form-label">Servicios (Separados por coma)</label>
+            <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina, Estacionamiento" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+          </div>
+        </div>
+
+        {/* NUEVOS CAMPOS: REDES SOCIALES */}
+        <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
+          <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '5px' }}>Redes Sociales</h3>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+            <div>
+              <label className="form-label">Instagram</label>
+              <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.instagram || ''} onChange={(e) => manejarRedSocial('instagram', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+            </div>
+            <div>
+              <label className="form-label">TikTok</label>
+              <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.tiktok || ''} onChange={(e) => manejarRedSocial('tiktok', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+            </div>
+            <div>
+              <label className="form-label">Facebook</label>
+              <input type="text" placeholder="Mi Club" value={formPerfil.redes_sociales?.facebook || ''} onChange={(e) => manejarRedSocial('facebook', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+            </div>
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '15px' }}>
+          <label className="form-label">Color de tu marca (Banner principal)</label>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <input 
+              type="color" 
+              value={formPerfil.color_primario} 
+              onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
+              style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
+            />
+            <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
+          </div>
+        </div>
+
+        <button type="submit" disabled={guardando} className="btn-guardar" style={{ marginTop: '20px' }}>
+          {guardando ? 'Guardando...' : 'Guardar Cambios'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// ==========================================
+// COMPONENTE PRINCIPAL
+// ==========================================
 const DashboardAdmin = () => {
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(true);
@@ -35,35 +247,7 @@ const DashboardAdmin = () => {
   const cambiarVista = (vista) => {
     setVistaActual(vista);
     setMenuMobileAbierto(false);
-
-    // 👇 Si entra a la vista de perfil, cargamos los datos al formulario
-    if (vista === 'perfil') {
-      cargarDatosPerfil();
-    }
   };
-
-  // 👇 Y esta función va aquí adentro, al mismo nivel que las demás
-  const cargarDatosPerfil = () => {
-    if (miClub) {
-      setFormMiClub({
-        nombre: miClub.nombre || '',
-        telefono_contacto: miClub.telefono_contacto || '',
-        correo_contacto: miClub.correo_contacto || '',
-        servicios: miClub.servicios || '',
-        redes_sociales: miClub.redes_sociales || { instagram: '', tiktok: '', facebook: '' }
-      });
-    }
-  };
-
-
-
-  const [formMiClub, setFormMiClub] = useState({
-    nombre: '',
-    telefono_contacto: '',
-    correo_contacto: '',
-    servicios: '',
-    redes_sociales: { instagram: '', tiktok: '', facebook: '' }
-  });
 
   // ESTADOS PARA MÚLTIPLES IMÁGENES
   const [imagenCanchaFiles, setImagenCanchaFiles] = useState([]);
@@ -94,16 +278,6 @@ const DashboardAdmin = () => {
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const now = new Date();
   const mesActualNombre = `${meses[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
-
-  const manejarRedSocial = (red, valor) => {
-    setFormMiClub(prev => ({
-      ...prev,
-      redes_sociales: {
-        ...prev.redes_sociales,
-        [red]: valor
-      }
-    }));
-  };
 
   const cargarDatos = async () => {
     try {
@@ -218,35 +392,6 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  const guardarDatosClub = async (e) => {
-    e.preventDefault();
-    try {
-      // Le mandamos a Supabase todos los datos nuevos
-      const { error } = await supabase
-        .from('clubes')
-        .update({
-          telefono_contacto: formMiClub.telefono_contacto,
-          correo_contacto: formMiClub.correo_contacto,
-          servicios: formMiClub.servicios,
-          redes_sociales: formMiClub.redes_sociales
-        })
-        .eq('id', miClub.id); // Aseguramos que solo actualice TU club
-
-      if (error) {
-        alert(`🚨 ERROR DE SUPABASE:\n${error.message}`);
-        return;
-      }
-
-      alert("✅ ¡Datos de contacto y redes actualizados con éxito!");
-      
-      // Si tenés una función que recarga los datos, llamala acá
-      // await cargarDatos(); 
-
-    } catch (err) {
-      alert(`🚨 ERROR:\n${err.message}`);
-    }
-  };
-
   const crearCanchaManual = async (e) => { 
     e.preventDefault();
     try {
@@ -338,15 +483,12 @@ const DashboardAdmin = () => {
   };
 
   const exportarPDF = () => {
-    // 1. Evitamos el crasheo si los datos de la base tardaron en llegar
     if (!turnosTotales || !canchas) {
       alert("Cargando datos, por favor aguardá un segundo...");
       return;
     }
 
     const doc = new jsPDF();
-    
-    // Si miClub no cargó, le ponemos un nombre genérico para que no tire error
     const nombreClub = miClub?.nombre || 'Mi_Complejo'; 
     
     doc.setFont("helvetica", "bold");
@@ -356,7 +498,6 @@ const DashboardAdmin = () => {
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     
-    // Guardamos la fecha en una variable (Ej: 03/08/2026)
     const fechaTexto = new Date().toLocaleDateString();
     doc.text(`Generado el: ${fechaTexto}`, 14, 28);
 
@@ -373,229 +514,21 @@ const DashboardAdmin = () => {
         ];
       });
 
-    // 2. Usamos autoTable pasándole el 'doc' por parámetro (sintaxis a prueba de fallos)
     autoTable(doc, {
       head: [['Fecha', 'Hora', 'Cliente', 'Cancha', 'Ingreso']],
       body: tableData,
       startY: 35,
       theme: 'striped',
-      headStyles: { fillColor: [15, 23, 42] }, // Ese azul oscuro queda espectacular
+      headStyles: { fillColor: [15, 23, 42] },
     });
 
-    // 3. Arreglamos las barras de la fecha reemplazándolas por guiones (03-08-2026)
     const fechaArchivo = fechaTexto.replace(/\//g, '-');
-    const nombreLimpio = nombreClub.replace(/\s+/g, '_'); // Cambia espacios por guiones bajos
+    const nombreLimpio = nombreClub.replace(/\s+/g, '_'); 
 
     doc.save(`Reporte_${nombreLimpio}_${fechaArchivo}.pdf`);
   };
 
-
   /* ================= VISTAS DE PANTALLA ================= */
-
- const PantallaPerfil = () => {
-    const [formPerfil, setFormPerfil] = useState({ 
-      nombre: miClub?.nombre || '', 
-      provincia: miClub?.provincia || '', 
-      ciudad: miClub?.ciudad || '',
-      color_primario: miClub?.color_primario || '#0f172a',
-      imagen_url: miClub?.imagen_url || '',
-      telefono_contacto: miClub?.telefono_contacto || '',
-      correo_contacto: miClub?.correo_contacto || '',
-      servicios: miClub?.servicios || '',
-      redes_sociales: miClub?.redes_sociales || { instagram: '', tiktok: '', facebook: '' }
-    });
-
-    const [nuevoLogo, setNuevoLogo] = useState(null);
-    const [previewLogo, setPreviewLogo] = useState(miClub?.imagen_url || null);
-    const [guardando, setGuardando] = useState(false);
-    const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-    
-    const provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán", "Ciudad Autónoma de Buenos Aires"];
-
-    const handleLogoChange = (e) => {
-      if (e.target.files && e.target.files[0]) {
-        setNuevoLogo(e.target.files[0]);
-        setPreviewLogo(URL.createObjectURL(e.target.files[0]));
-      }
-    };
-
-    const manejarRedSocial = (red, valor) => {
-      setFormPerfil(prev => ({
-        ...prev,
-        redes_sociales: {
-          ...prev.redes_sociales,
-          [red]: valor
-        }
-      }));
-    };
-
-    const guardarPerfil = async (e) => {
-      e.preventDefault();
-      setGuardando(true);
-      setMensaje({ texto: '', tipo: '' });
-      
-      try {
-        let finalLogoUrl = formPerfil.imagen_url;
-
-        // Si subió un logo nuevo, lo guardamos en Storage
-        if (nuevoLogo) {
-          const fileExt = nuevoLogo.name.split('.').pop();
-          const fileName = `logos/${Date.now()}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, nuevoLogo);
-          if (uploadError) throw uploadError;
-          const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-          finalLogoUrl = urlData.publicUrl;
-        }
-
-        // Actualizamos la base de datos con absolutamente todo
-        const { error } = await supabase.from('clubes').update({ 
-          nombre: formPerfil.nombre, 
-          provincia: formPerfil.provincia, 
-          ciudad: formPerfil.ciudad,
-          color_primario: formPerfil.color_primario,
-          imagen_url: finalLogoUrl,
-          telefono_contacto: formPerfil.telefono_contacto,
-          correo_contacto: formPerfil.correo_contacto,
-          servicios: formPerfil.servicios,
-          redes_sociales: formPerfil.redes_sociales
-        }).eq('id', miClub.id);
-        
-        if (error) throw error;
-        
-        setMiClub({ ...miClub, ...formPerfil, imagen_url: finalLogoUrl });
-        setFormPerfil(prev => ({ ...prev, imagen_url: finalLogoUrl }));
-        setMensaje({ texto: '¡Datos y redes actualizados correctamente!', tipo: 'exito' });
-        setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
-      } catch (err) { 
-        setMensaje({ texto: 'Error al guardar los cambios.', tipo: 'error' }); 
-      } finally { 
-        setGuardando(false); 
-      }
-    };
-
-    return (
-      <div className="perfil-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="perfil-header">
-          <Building size={24} color="#2563eb" />
-          <h2>Perfil de tu Club</h2>
-        </div>
-        {mensaje.texto && (
-          <div className={`perfil-alerta ${mensaje.tipo}`}>
-            {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
-            <strong>{mensaje.texto}</strong>
-          </div>
-        )}
-        
-        <form onSubmit={guardarPerfil} className="perfil-form">
-          
-          {/* Logo del Club */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
-            <label className="form-label">Logo del Club</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-                {previewLogo ? (
-                  <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <Building size={32} color="#94a3b8" />
-                )}
-              </div>
-              <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#475569', fontWeight: 'bold' }}>
-                <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-                Cambiar Logo
-                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="form-label">Nombre del Club</label>
-            <div className="input-icon-wrapper">
-              <Building size={18} className="input-icon" />
-              <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
-            </div>
-          </div>
-
-          <div>
-            <label className="form-label">Provincia</label>
-            <div className="input-icon-wrapper">
-              <Map size={18} className="input-icon" />
-              <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
-                <option value="">Seleccioná tu provincia</option>
-                {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="form-label">Ciudad</label>
-            <div className="input-icon-wrapper">
-              <MapPin size={18} className="input-icon" />
-              <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
-            </div>
-          </div>
-
-          {/* NUEVOS CAMPOS: CONTACTO Y SERVICIOS */}
-          <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '15px' }}>Contacto y Servicios del Predio</h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-              <div>
-                <label className="form-label">Teléfono (WhatsApp)</label>
-                <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-              </div>
-              <div>
-                <label className="form-label">Correo Electrónico</label>
-                <input type="email" placeholder="Ej: contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-              </div>
-            </div>
-
-            <div>
-              <label className="form-label">Servicios (Separados por coma)</label>
-              <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina, Estacionamiento" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-            </div>
-          </div>
-
-          {/* NUEVOS CAMPOS: REDES SOCIALES */}
-          <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '5px' }}>Redes Sociales</h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-              <div>
-                <label className="form-label">Instagram</label>
-                <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.instagram || ''} onChange={(e) => manejarRedSocial('instagram', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-              </div>
-              <div>
-                <label className="form-label">TikTok</label>
-                <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.tiktok || ''} onChange={(e) => manejarRedSocial('tiktok', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-              </div>
-              <div>
-                <label className="form-label">Facebook</label>
-                <input type="text" placeholder="Mi Club" value={formPerfil.redes_sociales?.facebook || ''} onChange={(e) => manejarRedSocial('facebook', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '15px' }}>
-            <label className="form-label">Color de tu marca (Banner principal)</label>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <input 
-                type="color" 
-                value={formPerfil.color_primario} 
-                onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
-                style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
-              />
-              <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
-            </div>
-          </div>
-
-          <button type="submit" disabled={guardando} className="btn-guardar" style={{ marginTop: '20px' }}>
-            {guardando ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
-        </form>
-      </div>
-    );
-  };
 
   const PantallaGeneral = () => (
     <div>
@@ -698,8 +631,7 @@ const DashboardAdmin = () => {
                     <button 
                       onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} 
                       style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}
-                    >
-                      <Users size={16} color="#2563eb" /> Ver detalles
+                    >  <Users size={16} color="#2563eb" /> Ver detalles
                     </button>
                     <button 
                       onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} 
@@ -820,13 +752,12 @@ const DashboardAdmin = () => {
                   innerRadius={60} outerRadius={100} 
                   paddingAngle={5} 
                   dataKey="cantidad"
-                  nameKey="nombre" /* <--- ESTO ARREGLA LA LEYENDA */
+                  nameKey="nombre" 
                 >
                   {datosFiltrados.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
                   ))}
                 </Pie>
-                {/* ESTO ARREGLA LO QUE SE VE AL PASAR EL MOUSE (HOVER) */}
                 <Tooltip 
                   formatter={(value, name) => [`${value} turnos`, name]} 
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} 
@@ -930,10 +861,6 @@ const DashboardAdmin = () => {
   return (
     <div className="dashboard-container">
       
-      {/* ==================================================== */}
-      {/* 1. NUEVA BARRA SUPERIOR (SOLO PARA CELULARES)        */}
-      {/* ==================================================== */}
-      {/* BARRA SUPERIOR MÓVIL (Hamburguesa a la izq y Logo nuevo) */}
       <div className="mobile-topbar-enterprise">
         <button className="btn-hamburguesa" onClick={() => setMenuMobileAbierto(true)}>
           <Menu size={28} />
@@ -941,30 +868,26 @@ const DashboardAdmin = () => {
         <div className="logo-empresa" style={{ fontSize: '1.4rem' }}>
           GridPlay<span className="dot-green-circle"></span>
         </div>
-        <div style={{ width: '28px' }}></div> {/* Espaciador invisible para centrar el logo */}
+        <div style={{ width: '28px' }}></div> 
       </div>
 
-      {/* FONDO OSCURO (Aparece cuando abrís el menú en el celu) */}
       {menuMobileAbierto && (
         <div className="sidebar-overlay" onClick={() => setMenuMobileAbierto(false)}></div>
       )}
 
-      {/* SIDEBAR */}
       <aside className={`sidebar-enterprise ${menuMobileAbierto ? 'abierto' : ''}`}>
         <div className="sidebar-header">
-          {/* Logo nuevo en la versión PC también */}
           <div className="logo-empresa">
             GridPlay<span className="dot-green-circle"></span>
           </div>
           {miClub && <p className="club-name-enterprise">{miClub.nombre}</p>}
           
-          {/* BOTÓN X PARA CERRAR EL MENÚ EN EL CELU */}
           <button className="btn-cerrar-sidebar-mobile" onClick={() => setMenuMobileAbierto(false)}>
             <X size={24} color="#94a3b8" />
           </button>
         </div>
         
-<nav className="sidebar-nav">
+        <nav className="sidebar-nav">
           <span className="nav-section-title">MENÚ PRINCIPAL</span>
           <button className={`nav-item-enterprise ${vistaActual === 'general' ? 'active' : ''}`} onClick={() => cambiarVista('general')}><LayoutDashboard size={20} /> Vista General</button>
           <button className={`nav-item-enterprise ${vistaActual === 'metricas' ? 'active' : ''}`} onClick={() => cambiarVista('metricas')}><BarChart3 size={20} /> Reportes</button>
@@ -972,10 +895,7 @@ const DashboardAdmin = () => {
           
           <span className="nav-section-title mt-4">CONFIGURACIÓN</span>
           <button className={`nav-item-enterprise ${vistaActual === 'ajustes' ? 'active' : ''}`} onClick={() => cambiarVista('ajustes')}><Settings size={20} /> Canchas</button>
-          
-          {/* 👇 ACÁ ESTÁ EL BOTÓN NUEVO QUE FALTABA 👇 */}
           <button className={`nav-item-enterprise ${vistaActual === 'kiosco' ? 'active' : ''}`} onClick={() => cambiarVista('kiosco')}><Store size={20} /> Kiosco y Extras</button>
-          
           <button className={`nav-item-enterprise ${vistaActual === 'perfil' ? 'active' : ''}`} onClick={() => cambiarVista('perfil')}><Building size={20} /> Mi Club</button>
         </nav>
         
@@ -988,25 +908,12 @@ const DashboardAdmin = () => {
           {vistaActual === 'metricas' && <PantallaMetricas />}
           {vistaActual === 'clientes' && <PantallaClientes />}
           {vistaActual === 'ajustes' && <PantallaAjustes />}
-          
-          {/* 👇 ACÁ LE DECIMOS A REACT QUE MUESTRE LA PANTALLA 👇 */}
           {vistaActual === 'kiosco' && <PantallaKiosco />} 
-          
-          {vistaActual === 'perfil' && (
-            <PantallaPerfil 
-              miClub={miClub} 
-              formMiClub={formMiClub} 
-              setFormMiClub={setFormMiClub} 
-              manejarRedSocial={manejarRedSocial} 
-              guardarDatosClub={guardarDatosClub} 
-            />
-          )}
+          {vistaActual === 'perfil' && <PantallaPerfil miClub={miClub} setMiClub={setMiClub} />}
         </div>
       </main>
 
-
       {/* --- MODALES --- */}
-
       {mostrarModalDetalles && turnoSeleccionado && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -1035,7 +942,7 @@ const DashboardAdmin = () => {
                 <span className="detalle-label">Cancha:</span>
                 <span className="detalle-valor">{turnoSeleccionado.nombre_cancha}</span>
               </div>
-              {/* 👇 LISTA DE PRODUCTOS ADICIONALES (KIOSCO) 👇 */}
+
               {!turnoSeleccionado.esBloqueo && turnoSeleccionado.extras && turnoSeleccionado.extras.length > 0 && (
                 <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px' }}>
                   <span className="detalle-label" style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#334155' }}>
@@ -1051,7 +958,6 @@ const DashboardAdmin = () => {
                 </div>
               )}
 
-              {/* 👇 PRECIO TOTAL ACTUALIZADO 👇 */}
               {!turnoSeleccionado.esBloqueo && (
                 <div className="detalle-item" style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px', alignItems: 'center' }}>
                   <span className="detalle-label" style={{ color: '#16a34a' }}>Total a cobrar:</span>
@@ -1210,7 +1116,6 @@ const DashboardAdmin = () => {
               </div>
             </div>
 
-            {/* INPUT DE MÚLTIPLES FOTOS PARA NUEVA CANCHA */}
             <div>
               <label className="modal-label">Fotos de la Cancha (Opcional)</label>
               <input 
@@ -1269,7 +1174,6 @@ const DashboardAdmin = () => {
               </div>
             </div>
 
-            {/* INPUT DE MÚLTIPLES FOTOS PARA EDITAR CANCHA */}
             <div>
               <label className="modal-label">Cambiar Fotos (Opcional)</label>
               <input 
@@ -1296,106 +1200,6 @@ const DashboardAdmin = () => {
       )}
     </div>
   );
-
-  // ==========================================
-// COMPONENTE DE LA VISTA PERFIL (Fuera del principal)
-// ==========================================
-const PantallaPerfil = ({ miClub, formMiClub, setFormMiClub, manejarRedSocial, guardarDatosClub }) => {
-  return (
-    <div className="vista-miclub animate-fade-in">
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>
-        Configuración de Mi Club
-      </h2>
-
-      <form onSubmit={guardarDatosClub} style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        
-        <h3 style={{ margin: '0 0 15px 0', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', fontSize: '1.1rem' }}>
-          Contacto y Servicios del Predio
-        </h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
-          <div className="modal-col">
-            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Teléfono (WhatsApp)</label>
-            <input 
-              type="text" 
-              placeholder="Ej: 3564609641" 
-              value={formMiClub.telefono_contacto || ''} 
-              onChange={(e) => setFormMiClub({...formMiClub, telefono_contacto: e.target.value})} 
-              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-          </div>
-          <div className="modal-col">
-            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Correo Electrónico</label>
-            <input 
-              type="email" 
-              placeholder="Ej: contacto@miclub.com" 
-              value={formMiClub.correo_contacto || ''} 
-              onChange={(e) => setFormMiClub({...formMiClub, correo_contacto: e.target.value})} 
-              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-          </div>
-        </div>
-
-        <div className="modal-col" style={{ marginBottom: '25px' }}>
-          <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Servicios (Separados por coma)</label>
-          <input 
-            type="text" 
-            placeholder="Ej: Parrillas, Vestuarios, Cantina, Estacionamiento" 
-            value={formMiClub.servicios || ''} 
-            onChange={(e) => setFormMiClub({...formMiClub, servicios: e.target.value})} 
-            style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-          />
-        </div>
-
-        <h3 style={{ margin: '0 0 15px 0', color: '#374151', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', fontSize: '1.1rem' }}>
-          Redes Sociales
-        </h3>
-        <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '15px' }}>
-          Completá solo las que tengas. Podés poner el @usuario o el link directo.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-          <div className="modal-col">
-            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Instagram</label>
-            <input 
-              type="text" 
-              placeholder="Ej: @miclub" 
-              value={formMiClub.redes_sociales?.instagram || ''} 
-              onChange={(e) => manejarRedSocial('instagram', e.target.value)} 
-              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-          </div>
-          <div className="modal-col">
-            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>TikTok</label>
-            <input 
-              type="text" 
-              placeholder="Ej: @miclub" 
-              value={formMiClub.redes_sociales?.tiktok || ''} 
-              onChange={(e) => manejarRedSocial('tiktok', e.target.value)} 
-              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-          </div>
-          <div className="modal-col">
-            <label className="modal-label" style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#4b5563' }}>Facebook</label>
-            <input 
-              type="text" 
-              placeholder="Ej: Mi Club" 
-              value={formMiClub.redes_sociales?.facebook || ''} 
-              onChange={(e) => manejarRedSocial('facebook', e.target.value)} 
-              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" style={{ backgroundColor: '#059669', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-            Guardar Cambios
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
 };
 
 export default DashboardAdmin;
