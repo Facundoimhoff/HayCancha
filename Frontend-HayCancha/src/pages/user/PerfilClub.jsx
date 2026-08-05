@@ -19,6 +19,9 @@ const PerfilClub = () => {
   const [canchaSeleccionada, setCanchaSeleccionada] = useState(null);
   const [imagenActualIdx, setImagenActualIdx] = useState(0);
 
+  // NUEVO: Estado para el carrusel del predio (Acerca del club)
+  const [fotoClubIdx, setFotoClubIdx] = useState(0);
+
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -70,6 +73,11 @@ const PerfilClub = () => {
   const retrocederImagen = (imagenes) => {
     setImagenActualIdx((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
   };
+
+  // NUEVO: Funciones para mover el carrusel del predio
+  const fotosClub = club?.fotos_club ? club.fotos_club.split(',').filter(url => url.trim() !== '') : [];
+  const avanzarFotoClub = () => setFotoClubIdx(prev => prev === fotosClub.length - 1 ? 0 : prev + 1);
+  const retrocederFotoClub = () => setFotoClubIdx(prev => prev === 0 ? fotosClub.length - 1 : prev - 1);
 
   if (cargando) return <div className="cargando-vista">Cargando complejo...</div>;
   if (!club) return <div className="cargando-vista">No se encontró el club.</div>;
@@ -243,10 +251,59 @@ const PerfilClub = () => {
           </div>
 
         </div>
+
+        {/* ========================================================= */}
+        {/* 5. ACERCA DE ESTE CLUB (CARRUSEL IZQ / TEXTO DER)         */}
+        {/* ========================================================= */}
+        {(club.descripcion || fotosClub.length > 0) && (
+          <div style={{ borderTop: '2px solid #e2e8f0', marginTop: '40px', paddingTop: '30px' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Acerca de este club
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', alignItems: 'start' }}>
+              
+              {/* CARRUSEL DE FOTOS DEL PREDIO */}
+              {fotosClub.length > 0 ? (
+                <div style={{ position: 'relative', width: '100%', height: '300px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                  <img src={fotosClub[fotoClubIdx]} alt={`Instalación ${fotoClubIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  
+                  {fotosClub.length > 1 && (
+                    <>
+                      <button onClick={retrocederFotoClub} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <ChevronLeft size={24} color="#0f172a" />
+                      </button>
+                      <button onClick={avanzarFotoClub} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <ChevronRight size={24} color="#0f172a" />
+                      </button>
+                      <div style={{ position: 'absolute', bottom: '15px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                        {fotosClub.map((_, idx) => (
+                          <div key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: idx === fotoClubIdx ? '#2563eb' : 'rgba(255,255,255,0.6)', transition: 'background-color 0.3s' }} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div style={{ width: '100%', height: '300px', borderRadius: '16px', backgroundColor: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1' }}>
+                  <ImageIcon size={48} style={{ marginBottom: '10px' }} />
+                  <span>No hay fotos disponibles</span>
+                </div>
+              )}
+
+              {/* DESCRIPCIÓN DEL CLUB */}
+              <div style={{ color: '#475569', fontSize: '1.05rem', lineHeight: '1.6', whiteSpace: 'pre-line', padding: '10px 0' }}>
+                {club.descripcion ? club.descripcion : <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Este club aún no ha agregado una descripción.</span>}
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* ========================================================= */}
-      {/* 5. MODAL DETALLE DE CANCHA                                */}
+      {/* 6. MODAL DETALLE DE CANCHA                                */}
       {/* ========================================================= */}
       {canchaSeleccionada && (
         <div className="modal-cancha-overlay" onClick={cerrarModal}>
