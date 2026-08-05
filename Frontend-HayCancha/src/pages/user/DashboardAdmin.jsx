@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2, Phone, Share2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -17,9 +17,6 @@ import autoTable from 'jspdf-autotable';
 
 const COLORES_GRAFICO = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
 
-// ==========================================
-// CONFIGURACIÓN DINÁMICA DE DEPORTES
-// ==========================================
 const OPCIONES_DEPORTE = {
   'Fútbol': {
     jugadores: [
@@ -54,7 +51,6 @@ const OPCIONES_DEPORTE = {
   }
 };
 
-// NORMALIZADOR PARA DATOS VIEJOS DE LA BASE DE DATOS
 const normalizarDeporte = (dep) => {
   if (!dep) return 'Fútbol';
   const d = dep.toUpperCase();
@@ -77,11 +73,17 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     telefono_contacto: miClub?.telefono_contacto || '',
     correo_contacto: miClub?.correo_contacto || '',
     servicios: miClub?.servicios || '',
+    descripcion: miClub?.descripcion || '',
+    fotos_club: miClub?.fotos_club || '',
     redes_sociales: miClub?.redes_sociales || { instagram: '', tiktok: '', facebook: '' }
   });
 
   const [nuevoLogo, setNuevoLogo] = useState(null);
   const [previewLogo, setPreviewLogo] = useState(miClub?.imagen_url || null);
+  
+  // Nuevo estado para las fotos múltiples del club
+  const [fotosClubFiles, setFotosClubFiles] = useState([]);
+  
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
   
@@ -94,14 +96,14 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     }
   };
 
+  const eliminarLogo = () => {
+    setNuevoLogo(null);
+    setPreviewLogo(null);
+    setFormPerfil(prev => ({ ...prev, imagen_url: '' }));
+  };
+
   const manejarRedSocial = (red, valor) => {
-    setFormPerfil(prev => ({
-      ...prev,
-      redes_sociales: {
-        ...prev.redes_sociales,
-        [red]: valor
-      }
-    }));
+    setFormPerfil(prev => ({ ...prev, redes_sociales: { ...prev.redes_sociales, [red]: valor } }));
   };
 
   const guardarPerfil = async (e) => {
@@ -112,6 +114,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     try {
       let finalLogoUrl = formPerfil.imagen_url;
 
+      // Subida de logo
       if (nuevoLogo) {
         const fileExt = nuevoLogo.name.split('.').pop();
         const fileName = `logos/${Date.now()}.${fileExt}`;
@@ -119,6 +122,24 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
         finalLogoUrl = urlData.publicUrl;
+      }
+
+      // Subida de fotos del predio
+      let finalFotosClub = formPerfil.fotos_club || '';
+      if (fotosClubFiles && fotosClubFiles.length > 0) {
+        const urlsFotos = [];
+        for (let i = 0; i < fotosClubFiles.length; i++) {
+          const file = fotosClubFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `clubes_fotos/${Date.now()}_${i}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
+            urlsFotos.push(urlData.publicUrl);
+          }
+        }
+        const nuevasUrls = urlsFotos.join(',');
+        finalFotosClub = finalFotosClub ? `${finalFotosClub},${nuevasUrls}` : nuevasUrls;
       }
 
       const { error } = await supabase.from('clubes').update({ 
@@ -130,13 +151,17 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
         telefono_contacto: formPerfil.telefono_contacto,
         correo_contacto: formPerfil.correo_contacto,
         servicios: formPerfil.servicios,
+        descripcion: formPerfil.descripcion,
+        fotos_club: finalFotosClub,
         redes_sociales: formPerfil.redes_sociales
       }).eq('id', miClub.id);
       
       if (error) throw error;
       
-      setMiClub({ ...miClub, ...formPerfil, imagen_url: finalLogoUrl });
-      setFormPerfil(prev => ({ ...prev, imagen_url: finalLogoUrl }));
+      setMiClub({ ...miClub, ...formPerfil, imagen_url: finalLogoUrl, fotos_club: finalFotosClub });
+      setFormPerfil(prev => ({ ...prev, imagen_url: finalLogoUrl, fotos_club: finalFotosClub }));
+      setFotosClubFiles([]);
+      
       setMensaje({ texto: '¡Datos y redes actualizados correctamente!', tipo: 'exito' });
       setTimeout(() => setMensaje({ texto: '', tipo: '' }), 3000);
     } catch (err) { 
@@ -147,124 +172,192 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
   };
 
   return (
-    <div className="perfil-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div className="perfil-header">
-        <Building size={24} color="#2563eb" />
-        <h2>Perfil de tu Club</h2>
+    <div className="perfil-wrapper" style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+      
+      <div className="perfil-header" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '20px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Building size={28} color="#2563eb" />
+        <h2 style={{ margin: 0, fontSize: '1.6rem', color: '#0f172a' }}>Perfil de tu Club</h2>
       </div>
+
       {mensaje.texto && (
-        <div className={`perfil-alerta ${mensaje.tipo}`}>
+        <div className={`perfil-alerta ${mensaje.tipo}`} style={{ marginBottom: '20px' }}>
           {mensaje.tipo === 'exito' && <CheckCircle size={18} />}
           <strong>{mensaje.texto}</strong>
         </div>
       )}
       
-      <form onSubmit={guardarPerfil} className="perfil-form">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
-          <label className="form-label">Logo del Club</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-              {previewLogo ? (
-                <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <Building size={32} color="#94a3b8" />
+      <form onSubmit={guardarPerfil}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'flex-start' }}>
+          
+          {/* ========================================= */}
+          {/* COLUMNA IZQUIERDA: DATOS BÁSICOS          */}
+          {/* ========================================= */}
+          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label className="form-label">Logo del Club</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ 
+                  width: '130px', height: '130px', borderRadius: '12px', backgroundColor: '#f8fafc', 
+                  border: '2px dashed #cbd5e1', display: 'flex', justifyContent: 'center', 
+                  alignItems: 'center', padding: '8px', position: 'relative' 
+                }}>
+                  {previewLogo ? (
+                    <img src={previewLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <Building size={40} color="#94a3b8" />
+                  )}
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', fontWeight: '600', textAlign: 'center', transition: 'background 0.2s' }}>
+                    <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }} />
+                    Subir Logo
+                    <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+                  </label>
+                  
+                  {previewLogo && (
+                    <button type="button" onClick={eliminarLogo} style={{ cursor: 'pointer', backgroundColor: '#fef2f2', padding: '10px 16px', borderRadius: '8px', border: '1px solid #fecaca', fontSize: '0.9rem', color: '#ef4444', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background 0.2s' }}>
+                      <Trash2 size={16} /> Quitar Logo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Nombre del Club</label>
+              <div className="input-icon-wrapper">
+                <Building size={18} className="input-icon" />
+                <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label className="form-label">Provincia</label>
+                <div className="input-icon-wrapper">
+                  <Map size={18} className="input-icon" />
+                  <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
+                    <option value="">Seleccioná tu provincia</option>
+                    {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="form-label">Ciudad</label>
+                <div className="input-icon-wrapper">
+                  <MapPin size={18} className="input-icon" />
+                  <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Descripción del Club (Acerca de nosotros)</label>
+              <textarea 
+                placeholder="Contale a los jugadores cómo son tus instalaciones, tu historia, iluminación..." 
+                value={formPerfil.descripcion} 
+                onChange={(e) => setFormPerfil({...formPerfil, descripcion: e.target.value})} 
+                className="form-input-icon" 
+                style={{ padding: '12px', minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }} 
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Fotos de las instalaciones (Predio)</label>
+              <input 
+                type="file" multiple accept="image/*" 
+                onChange={(e) => { if (e.target.files) setFotosClubFiles(Array.from(e.target.files)); }} 
+                className="form-input-icon" style={{ padding: '8px' }}
+              />
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Mostrale a tus clientes lo grande que es el club. Podés elegir varias fotos juntas.</p>
+              
+              {formPerfil.fotos_club && (!fotosClubFiles || fotosClubFiles.length === 0) && (
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imágenes del predio cargadas previamente</p>
               )}
             </div>
-            <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#475569', fontWeight: 'bold' }}>
-              <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-              Cambiar Logo
-              <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
-            </label>
-          </div>
-        </div>
 
-        <div>
-          <label className="form-label">Nombre del Club</label>
-          <div className="input-icon-wrapper">
-            <Building size={18} className="input-icon" />
-            <input type="text" required value={formPerfil.nombre} onChange={(e) => setFormPerfil({...formPerfil, nombre: e.target.value})} className="form-input-icon" />
-          </div>
-        </div>
-
-        <div>
-          <label className="form-label">Provincia</label>
-          <div className="input-icon-wrapper">
-            <Map size={18} className="input-icon" />
-            <select required value={formPerfil.provincia} onChange={(e) => setFormPerfil({...formPerfil, provincia: e.target.value})} className="form-input-icon">
-              <option value="">Seleccioná tu provincia</option>
-              {provincias.map(prov => <option key={prov} value={prov}>{prov}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="form-label">Ciudad</label>
-          <div className="input-icon-wrapper">
-            <MapPin size={18} className="input-icon" />
-            <input type="text" required placeholder="Ej: San Francisco" value={formPerfil.ciudad} onChange={(e) => setFormPerfil({...formPerfil, ciudad: e.target.value})} className="form-input-icon" />
-          </div>
-        </div>
-
-        <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
-          <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '15px' }}>Contacto y Servicios del Predio</h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
-              <label className="form-label">Teléfono (WhatsApp)</label>
-              <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-            </div>
-            <div>
-              <label className="form-label">Correo Electrónico</label>
-              <input type="email" placeholder="Ej: contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+              <label className="form-label">Color de tu marca (Banner principal)</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input 
+                  type="color" 
+                  value={formPerfil.color_primario} 
+                  onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
+                  style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
+                />
+                <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Servicios (Separados por coma)</label>
-            <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina, Estacionamiento" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+
+          {/* ========================================= */}
+          {/* COLUMNA DERECHA: CONTACTO Y REDES         */}
+          {/* ========================================= */}
+          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+            
+            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Phone size={18} color="#16a34a"/> Contacto y Servicios del Predio
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Teléfono (WhatsApp)</label>
+                  <input type="text" placeholder="Ej: 3564609641" value={formPerfil.telefono_contacto} onChange={(e) => setFormPerfil({...formPerfil, telefono_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Correo Electrónico</label>
+                  <input type="email" placeholder="Ej: contacto@miclub.com" value={formPerfil.correo_contacto} onChange={(e) => setFormPerfil({...formPerfil, correo_contacto: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.85rem' }}>Servicios (Separados por coma)</label>
+                <input type="text" placeholder="Ej: Parrillas, Vestuarios, Cantina" value={formPerfil.servicios} onChange={(e) => setFormPerfil({...formPerfil, servicios: e.target.value})} className="form-input-icon" style={{ paddingLeft: '12px' }} />
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Share2 size={18} color="#ec4899"/> Redes Sociales
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Insta" style={{ width: '24px', height: '24px' }} />
+                  <input type="text" placeholder="Instagram (@miclub)" value={formPerfil.redes_sociales?.instagram || ''} onChange={(e) => manejarRedSocial('instagram', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px', flex: 1 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" style={{ width: '24px', height: '24px' }} />
+                  <input type="text" placeholder="TikTok (@miclub)" value={formPerfil.redes_sociales?.tiktok || ''} onChange={(e) => manejarRedSocial('tiktok', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px', flex: 1 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Face" style={{ width: '24px', height: '24px' }} />
+                  <input type="text" placeholder="Facebook (Link o Nombre)" value={formPerfil.redes_sociales?.facebook || ''} onChange={(e) => manejarRedSocial('facebook', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px', flex: 1 }} />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
-          <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '5px' }}>Redes Sociales</h3>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Completá con tu @usuario o link directo.</p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-            <div>
-              <label className="form-label">Instagram</label>
-              <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.instagram || ''} onChange={(e) => manejarRedSocial('instagram', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-            </div>
-            <div>
-              <label className="form-label">TikTok</label>
-              <input type="text" placeholder="@miclub" value={formPerfil.redes_sociales?.tiktok || ''} onChange={(e) => manejarRedSocial('tiktok', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-            </div>
-            <div>
-              <label className="form-label">Facebook</label>
-              <input type="text" placeholder="Mi Club" value={formPerfil.redes_sociales?.facebook || ''} onChange={(e) => manejarRedSocial('facebook', e.target.value)} className="form-input-icon" style={{ paddingLeft: '12px' }} />
-            </div>
-          </div>
+        {/* ========================================= */}
+        {/* BOTÓN GUARDAR                             */}
+        {/* ========================================= */}
+        <div style={{ marginTop: '30px', borderTop: '1px solid #e2e8f0', paddingTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" disabled={guardando} className="btn-guardar" style={{ padding: '12px 30px', fontSize: '1.1rem' }}>
+            {guardando ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
         </div>
-        
-        <div style={{ marginTop: '15px' }}>
-          <label className="form-label">Color de tu marca (Banner principal)</label>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <input 
-              type="color" 
-              value={formPerfil.color_primario} 
-              onChange={(e) => setFormPerfil({...formPerfil, color_primario: e.target.value})} 
-              style={{ width: '50px', height: '50px', padding: '0', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
-            />
-            <span style={{ color: '#64748b', fontWeight: 'bold' }}>{formPerfil.color_primario}</span>
-          </div>
-        </div>
-
-        <button type="submit" disabled={guardando} className="btn-guardar" style={{ marginTop: '20px' }}>
-          {guardando ? 'Guardando...' : 'Guardar Cambios'}
-        </button>
       </form>
     </div>
   );
 };
+
 
 // ==========================================
 // COMPONENTE PRINCIPAL (DASHBOARD)
@@ -438,9 +531,6 @@ const DashboardAdmin = () => {
   
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
-  // ==========================================
-  // HANDLERS DINÁMICOS Y ROBUSTOS (Canchas)
-  // ==========================================
   const handleDeporteNuevaCancha = (e) => {
     const deporteSelec = e.target.value;
     setFormCancha({
@@ -498,17 +588,14 @@ const DashboardAdmin = () => {
     }
   };
 
-  // ESTA FUNCIÓN AHORA "REPARA" LOS DATOS VIEJOS DE LA BD ANTES DE EDITAR
   const abrirModalEditar = (cancha) => {
     const depSeguro = normalizarDeporte(cancha.deporte);
     const dict = OPCIONES_DEPORTE[depSeguro];
 
-    // Asegurarse de que la superficie sea válida, si no, poner la primera por defecto
     const supValida = dict.superficies.includes(cancha.superficie) 
       ? cancha.superficie 
       : dict.superficies[0];
 
-    // Asegurarse de que los jugadores sean válidos, si no, poner el primero por defecto
     const jugValido = dict.jugadores.some(j => Number(j.value) === Number(cancha.cantidad_jugadores))
       ? Number(cancha.cantidad_jugadores)
       : dict.jugadores[0].value;
@@ -558,14 +645,10 @@ const DashboardAdmin = () => {
     } catch (err) { alert("Error al editar: " + err.message); }
   };
 
-  // NUEVO: FUNCIÓN PARA ELIMINAR CANCHA Y SUS TURNOS
   const eliminarCancha = async (idCancha) => {
     if (window.confirm("⚠️ ¿ESTÁS SEGURO? Se eliminará esta cancha por completo y todos los turnos que haya reservados en ella. Esta acción no se puede deshacer.")) {
       try {
-        // 1. Borramos los turnos asociados para que la base de datos no tire error de clave foránea
         await supabase.from('turnos').delete().eq('cancha_id', idCancha);
-        
-        // 2. Borramos la cancha
         const { error } = await supabase.from('canchas').delete().eq('id', idCancha);
         if (error) throw error;
         
@@ -896,7 +979,6 @@ const DashboardAdmin = () => {
                 </div>
               </div>
               
-              {/* BOTONES DE ACCIÓN: EDITAR Y ELIMINAR */}
               <div style={{ display: 'flex', gap: '8px', position: 'absolute', top: '16px', right: '16px' }}>
                 <button 
                   onClick={() => abrirModalEditar(c)} 
