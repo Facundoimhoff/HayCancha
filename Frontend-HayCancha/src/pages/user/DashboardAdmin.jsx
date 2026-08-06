@@ -105,7 +105,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     }
   };
 
-  const eliminarFotosClub = () => {
+  const eliminarTodasFotosClub = () => {
     if(window.confirm("¿Seguro que querés eliminar todas las fotos de la galería del predio?")) {
       setFormPerfil(prev => ({ ...prev, fotos_club: '' }));
       setFotosClubFiles([]);
@@ -113,14 +113,21 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
     }
   };
 
+  // NUEVA FUNCION: Eliminar foto individual
+  const eliminarFotoIndividual = (indexParaBorrar) => {
+    if(window.confirm("¿Seguro que querés eliminar esta foto del predio?")) {
+      const fotosActuales = formPerfil.fotos_club.split(',').filter(u => u.trim() !== '');
+      const nuevasFotos = fotosActuales.filter((_, index) => index !== indexParaBorrar);
+      const nuevoStringFotos = nuevasFotos.join(',');
+      setFormPerfil(prev => ({ ...prev, fotos_club: nuevoStringFotos }));
+    }
+  };
+
   const manejarRedSocial = (red, valor) => {
     setFormPerfil(prev => ({ ...prev, redes_sociales: { ...prev.redes_sociales, [red]: valor } }));
   };
 
-  // Funciones Carrusel Admin
   const fotosSubidas = formPerfil.fotos_club ? formPerfil.fotos_club.split(',').filter(u => u.trim() !== '') : [];
-  const avanzarFoto = () => setFotoAdminIdx(prev => prev === fotosSubidas.length - 1 ? 0 : prev + 1);
-  const retrocederFoto = () => setFotoAdminIdx(prev => prev === 0 ? fotosSubidas.length - 1 : prev - 1);
 
   const guardarPerfil = async (e) => {
     e.preventDefault();
@@ -206,9 +213,9 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'flex-start' }}>
           
           {/* ========================================= */}
-          {/* COLUMNA IZQUIERDA: DATOS BÁSICOS          */}
+          {/* COLUMNA IZQUIERDA: PERFIL DEL CLUB        */}
           {/* ========================================= */}
-          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ flex: '1 1 45%', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <label className="form-label">Logo del Club</label>
@@ -289,8 +296,30 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
               />
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Mostrale a tus clientes lo grande que es el club. Podés elegir varias fotos juntas.</p>
               
-              {formPerfil.fotos_club && (!fotosClubFiles || fotosClubFiles.length === 0) && (
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: '#16a34a' }}>✓ Imágenes del predio cargadas previamente</p>
+              {/* GRILLA DE FOTOS DEL PREDIO CON BOTON BORRAR INDIVIDUAL */}
+              {fotosSubidas.length > 0 && (
+                <div style={{ marginTop: '10px' }}>
+                  <label className="form-label">Galería actual ({fotosSubidas.length} fotos)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: '10px', marginTop: '10px' }}>
+                    {fotosSubidas.map((foto, idx) => (
+                      <div key={idx} style={{ position: 'relative', width: '100%', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
+                        <img src={foto} alt={`Predio ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button 
+                          type="button" 
+                          onClick={() => eliminarFotoIndividual(idx)} 
+                          title="Eliminar esta foto"
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button type="button" onClick={eliminarTodasFotosClub} style={{ marginTop: '20px', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 'bold', width: '100%' }}>
+                    <Trash2 size={16} /> Eliminar toda la galería
+                  </button>
+                </div>
               )}
             </div>
 
@@ -312,7 +341,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
           {/* ========================================= */}
           {/* COLUMNA DERECHA: CONTACTO Y REDES         */}
           {/* ========================================= */}
-          <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+          <div style={{ flex: '1 1 45%', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
             
             <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -815,6 +844,50 @@ const DashboardAdmin = () => {
           )})}
         </div>
       </div>
+
+      {/* NUEVA SECCIÓN: HISTORIAL DE TURNOS */}
+      <div className="seccion-turnos" style={{ marginTop: '30px' }}>
+        <h3 className="titulo-seccion" style={{ color: '#64748b' }}>
+          <Clock size={20} /> Historial (Últimos turnos pasados)
+        </h3>
+        <div className="turnos-lista" style={{ opacity: 0.8 }}>
+          {turnosPasados.length === 0 ? <p className="texto-ayuda">No hay historial de turnos.</p> : turnosPasados.slice(0,10).map(t => {
+            const totalExtras = t.extras ? t.extras.reduce((acc, item) => acc + item.subtotal, 0) : 0;
+            const totalTurno = t.precio + totalExtras;
+            return (
+            <div key={t.id} className={`turno-item ${t.esBloqueo ? 'bloqueo' : 'normal'}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', backgroundColor: '#f8fafc' }}>
+              <div>
+                <p className="turno-nombre" style={{ color: '#475569' }}>
+                  {t.esBloqueo ? <><Ban size={14} style={{display:'inline', marginRight:'4px'}}/> {t.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:')}</> : t.nombre_cliente}
+                </p>
+                <p className="turno-detalle">
+                  {t.fecha.split('-').reverse().join('/')} • {t.hora_inicio} • {t.nombre_cancha}
+                </p>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                {!t.esBloqueo && (
+                  <span style={{ fontWeight: 'bold', color: '#64748b', fontSize: '1.1rem' }}>${totalTurno}</span>
+                )}
+                <button type="button" onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#94a3b8' }}>
+                  <MoreVertical size={20} />
+                </button>
+                {menuAbiertoId === t.id && (
+                  <div style={{ position: 'absolute', right: '0', top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', flexDirection: 'column', minWidth: '160px', overflow: 'hidden' }}>
+                    <button type="button" onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
+                      <Users size={16} color="#2563eb" /> Ver detalles
+                    </button>
+                    <button type="button" onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
+                      <Trash2 size={16} /> Eliminar registro
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )})}
+        </div>
+      </div>
+
     </div>
   );
 
