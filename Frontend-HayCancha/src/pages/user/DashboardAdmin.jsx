@@ -4,9 +4,9 @@ import { supabase } from '../../services/supabase';
 import { 
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
-  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2, Phone, Share2, ChevronLeft, ChevronRight
+  Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2, Phone, Share2, ChevronLeft, ChevronRight, TrendingUp, Receipt
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 import * as XLSX from 'xlsx';
 import '../../index.css';
 import './DashboardAdmin.css';
@@ -869,15 +869,15 @@ const DashboardAdmin = () => {
                 {!t.esBloqueo && (
                   <span style={{ fontWeight: 'bold', color: '#64748b', fontSize: '1.1rem' }}>${totalTurno}</span>
                 )}
-                <button type="button" onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#94a3b8' }}>
+                <button onClick={() => setMenuAbiertoId(menuAbiertoId === t.id ? null : t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#94a3b8' }}>
                   <MoreVertical size={20} />
                 </button>
                 {menuAbiertoId === t.id && (
                   <div style={{ position: 'absolute', right: '0', top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', flexDirection: 'column', minWidth: '160px', overflow: 'hidden' }}>
-                    <button type="button" onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
+                    <button onClick={() => { setTurnoSeleccionado(t); setMostrarModalDetalles(true); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
                       <Users size={16} color="#2563eb" /> Ver detalles
                     </button>
-                    <button type="button" onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
+                    <button onClick={() => { cancelarTurno(t.id, t.esBloqueo); setMenuAbiertoId(null); }} style={{ padding: '12px 15px', background: '#fef2f2', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' }}>
                       <Trash2 size={16} /> Eliminar registro
                     </button>
                   </div>
@@ -893,7 +893,9 @@ const DashboardAdmin = () => {
 
   const PantallaMetricas = () => { 
     const [mostrarInfo, setMostrarInfo] = useState(false);
-    const datosFiltrados = useMemo(() => {
+    
+    // LÓGICA DE REPORTES SUPER CARGADA
+    const { datosPorCancha, datosEvolucion, totales } = useMemo(() => {
       const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const mesActualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const day = now.getDay() || 7; 
@@ -904,6 +906,11 @@ const DashboardAdmin = () => {
       const ganCancha = {};
       canchas.forEach(c => ganCancha[c.id] = { nombre: c.nombre, ganancias: 0, cantidad: 0 });
 
+      let totalCanchas = 0;
+      let totalKiosco = 0;
+      let turnosValidos = 0;
+      const evolucionMap = {};
+
       turnosTotales.forEach(t => {
         if (t.telefono_cliente === 'BLOQUEO') return; 
         
@@ -912,24 +919,59 @@ const DashboardAdmin = () => {
         else if (filtroTiempo === 'semana' && t.fecha >= semanaStr) cumpleFiltro = true;
         else if (filtroTiempo === 'mes' && t.fecha.startsWith(mesActualStr)) cumpleFiltro = true;
 
-        if (cumpleFiltro && ganCancha[t.cancha_id]) {
+        if (cumpleFiltro) {
           const c = canchas.find(x => x.id === t.cancha_id);
-          ganCancha[t.cancha_id].ganancias += c ? Number(c.precio_hora) : 0;
-          ganCancha[t.cancha_id].cantidad += 1;
+          const precioCancha = c ? Number(c.precio_hora) : 0;
+          
+          // Sumar Kiosco (Extras)
+          let precioKiosco = 0;
+          if (t.extras && Array.isArray(t.extras)) {
+            precioKiosco = t.extras.reduce((acc, item) => acc + (item.subtotal || 0), 0);
+          }
+
+          if (ganCancha[t.cancha_id]) {
+            ganCancha[t.cancha_id].ganancias += (precioCancha + precioKiosco);
+            ganCancha[t.cancha_id].cantidad += 1;
+          }
+
+          totalCanchas += precioCancha;
+          totalKiosco += precioKiosco;
+          turnosValidos += 1;
+
+          // Agrupar para gráfico de evolución
+          const [anio, mes, dia] = t.fecha.split('-');
+          const fechaLabel = `${dia}/${mes}`;
+          if (!evolucionMap[fechaLabel]) {
+            evolucionMap[fechaLabel] = { fecha: fechaLabel, fechaRaw: t.fecha, canchas: 0, kiosco: 0, total: 0 };
+          }
+          evolucionMap[fechaLabel].canchas += precioCancha;
+          evolucionMap[fechaLabel].kiosco += precioKiosco;
+          evolucionMap[fechaLabel].total += (precioCancha + precioKiosco);
         }
       });
 
-      return Object.values(ganCancha);
-    }, [filtroTiempo, turnosTotales, canchas]);
+      // Ordenar datos de evolución cronológicamente
+      const datosEvolucionArr = Object.values(evolucionMap).sort((a, b) => a.fechaRaw.localeCompare(b.fechaRaw));
 
-    const totalCalculado = datosFiltrados.reduce((acc, curr) => acc + curr.ganancias, 0);
+      return {
+        datosPorCancha: Object.values(ganCancha),
+        datosEvolucion: datosEvolucionArr,
+        totales: {
+          canchas: totalCanchas,
+          kiosco: totalKiosco,
+          general: totalCanchas + totalKiosco,
+          turnos: turnosValidos,
+          ticketPromedio: turnosValidos > 0 ? Math.round((totalCanchas + totalKiosco) / turnosValidos) : 0
+        }
+      };
+    }, [filtroTiempo, turnosTotales, canchas]);
 
     return (
       <div>
         <div className="general-header">
           <div>
             <h2>Reportes Financieros</h2>
-            <p className="subtitle-header">Análisis de ingresos y rendimiento</p>
+            <p className="subtitle-header">Análisis de ingresos y rendimiento avanzado</p>
           </div>
           <div className="acciones-header">
             <button onClick={exportarPDF} className="btn-accion export-pdf">
@@ -950,14 +992,67 @@ const DashboardAdmin = () => {
           </select>
         </div>
 
+        {/* NUEVAS TARJETAS DE RESUMEN (Ingresos y Ticket Promedio) */}
+        <div className="metricas-grid" style={{ marginBottom: '24px' }}>
+            <div className="metrica-card">
+              <div className="icono-box azul"><Receipt size={24} color="#2563eb" /></div>
+              <div className="metrica-info">
+                <p>Ingresos Totales</p>
+                <h3>${totales.general.toLocaleString('es-AR')}</h3>
+              </div>
+            </div>
+            <div className="metrica-card">
+              <div className="icono-box verde"><Store size={24} color="#16a34a" /></div>
+              <div className="metrica-info">
+                <p>Ingresos Kiosco / Extras</p>
+                <h3>${totales.kiosco.toLocaleString('es-AR')}</h3>
+              </div>
+            </div>
+            <div className="metrica-card">
+              <div className="icono-box" style={{backgroundColor: '#fef3c7'}}><TrendingUp size={24} color="#d97706" /></div>
+              <div className="metrica-info">
+                <p>Ticket Promedio x Turno</p>
+                <h3>${totales.ticketPromedio.toLocaleString('es-AR')}</h3>
+              </div>
+            </div>
+        </div>
+
+        {/* NUEVO GRAFICO DE EVOLUCIÓN */}
+        <div className="grafico-container" style={{ marginBottom: '24px' }}>
+            <div className="grafico-header">
+              <h3 className="grafico-titulo">Evolución de Ingresos diarios</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={datosEvolucion} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCanchas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorKiosco" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0"/>
+                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(val) => `$${val}`} />
+                <Tooltip cursor={{stroke: '#cbd5e1', strokeWidth: 2}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}/>
+                <Legend verticalAlign="top" height={36}/>
+                <Area type="monotone" name="Alquiler Canchas" dataKey="canchas" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorCanchas)" />
+                <Area type="monotone" name="Kiosco" dataKey="kiosco" stroke="#16a34a" strokeWidth={3} fillOpacity={1} fill="url(#colorKiosco)" />
+              </AreaChart>
+            </ResponsiveContainer>
+        </div>
+
         <div className="metricas-charts-grid">
           <div className="grafico-container">
             <div className="grafico-header">
-              <h3 className="grafico-titulo">Ingresos por Cancha</h3>
-              <span className="grafico-total-badge">${totalCalculado.toLocaleString('es-AR')}</span>
+              <h3 className="grafico-titulo">Total Facturado por Cancha</h3>
+              <span className="grafico-total-badge">${totales.general.toLocaleString('es-AR')}</span>
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={datosFiltrados} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+              <BarChart data={datosPorCancha} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0"/>
                 <XAxis dataKey="nombre" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(value) => `$${value}`} />
@@ -983,8 +1078,8 @@ const DashboardAdmin = () => {
             )}
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie data={datosFiltrados} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad" nameKey="nombre" >
-                  {datosFiltrados.map((entry, index) => (
+                <Pie data={datosPorCancha} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="cantidad" nameKey="nombre" >
+                  {datosPorCancha.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
                   ))}
                 </Pie>
