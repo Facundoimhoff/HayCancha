@@ -216,11 +216,18 @@ const PerfilClub = () => {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {club.correo_contacto && (
-                <a href={`mailto:${club.correo_contacto}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#475569', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                  <Mail size={24} />
-                  {club.correo_contacto}
-                </a>
-              )}
+                      <a 
+                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${club.correo_contacto}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#475569', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} 
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} 
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        <Mail size={24} />
+                        {club.correo_contacto}
+                      </a>
+                    )}
 
               {club.redes_sociales?.instagram && (
                 <a href={club.redes_sociales.instagram.includes('http') ? club.redes_sociales.instagram : `https://instagram.com/${club.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#E1306C', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>

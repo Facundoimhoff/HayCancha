@@ -354,14 +354,14 @@ export default function LandingPage() {
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
             </a>
-            <a 
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="footer-link"
-            >
-              <Mail size={20} /> supportgridpay@gmail.com
-            </a>
+                                  <a 
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="footer-link" /* <--- Dejá las clases CSS o estilos que ya tenías */
+                      >
+                        <Mail size={18} /> supportgridplay@gmail.com
+                      </a>
           </div>
           
          <div className="footer-divisor"></div>
