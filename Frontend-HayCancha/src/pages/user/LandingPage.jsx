@@ -1,22 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, ChevronLeft, ChevronRight, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import FAQ from './FAQ';
 import './LandingPage.css'; 
+import { createPortal } from 'react-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [enviado, setEnviado] = useState(false);
   const [busqueda, setBusqueda] = useState('');
-  const [slideIndex, setSlideIndex] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
-  // --- NUEVO: autosugerencias del buscador de header (desktop) ---
-  const [sugerenciasHeader, setSugerenciasHeader] = useState([]);
-  const [mostrarSugerenciasHeader, setMostrarSugerenciasHeader] = useState(false);
-  const headerBuscadorRef = useRef(null);
-
-  // --- NUEVO: buscador de provincias en mobile (reemplaza al <select>) ---
+  // --- Buscador de provincias en mobile (reemplaza al <select>) ---
   const [busquedaProvinciaMobile, setBusquedaProvinciaMobile] = useState('');
 
   const provincias = [
@@ -27,64 +23,16 @@ export default function LandingPage() {
     "Tucumán", "Ciudad Autónoma de Buenos Aires"
   ];
 
-  const deportes = [
-    { nombre: "FÚTBOL", img: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "TENIS", img: "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "PÁDEL", img: "https://plus.unsplash.com/premium_photo-1708692919998-e3dc853ef8a8?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "VÓLEY", img: "https://plus.unsplash.com/premium_photo-1708696216326-0317bac37b82?q=80&w=2000&auto=format&fit=crop" },
-    { nombre: "BEACH VÓLEY", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=2000&auto=format&fit=crop" }
-  ];
-
-  // Lista de provincias ya filtrada para el buscador de mobile (se recalcula en cada render, es liviano)
   const provinciasFiltradasMobile = provincias.filter((p) =>
     p.toLowerCase().includes(busquedaProvinciaMobile.trim().toLowerCase())
   );
 
-  const nextSlide = () => setSlideIndex((prev) => (prev === deportes.length - 1 ? 0 : prev + 1));
-  const prevSlide = () => setSlideIndex((prev) => (prev === 0 ? deportes.length - 1 : prev - 1));
-
   const manejarBusqueda = (e) => {
     e.preventDefault(); 
     if (busqueda.trim() !== '') {
-      setMostrarSugerenciasHeader(false);
       navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
     }
   };
-
-  // Filtra sugerencias a medida que se escribe en el buscador del header.
-  // TODO: cuando tengas un endpoint de búsqueda de clubes/ciudades, reemplazá
-  // este filtro local por esa llamada (fetch/axios) y usá su resultado acá.
-  const manejarCambioBusquedaHeader = (valor) => {
-    setBusqueda(valor);
-    if (valor.trim().length > 0) {
-      const filtradas = provincias.filter((p) =>
-        p.toLowerCase().includes(valor.trim().toLowerCase())
-      );
-      setSugerenciasHeader(filtradas);
-      setMostrarSugerenciasHeader(true);
-    } else {
-      setSugerenciasHeader([]);
-      setMostrarSugerenciasHeader(false);
-    }
-  };
-
-  const seleccionarSugerenciaHeader = (provincia) => {
-    setBusqueda('');
-    setSugerenciasHeader([]);
-    setMostrarSugerenciasHeader(false);
-    navigate(`/seleccionar-ubicacion/${encodeURIComponent(provincia)}`);
-  };
-
-  // Cierra el dropdown de sugerencias si se hace click afuera
-  useEffect(() => {
-    const manejarClickAfuera = (e) => {
-      if (headerBuscadorRef.current && !headerBuscadorRef.current.contains(e.target)) {
-        setMostrarSugerenciasHeader(false);
-      }
-    };
-    document.addEventListener('mousedown', manejarClickAfuera);
-    return () => document.removeEventListener('mousedown', manejarClickAfuera);
-  }, []);
 
   const manejarEnvio = async (e) => {
     e.preventDefault();
@@ -135,8 +83,9 @@ export default function LandingPage() {
         <div className="sidebar-landing-links">
           <button onClick={() => scrollToSection('top')}>Buscar cancha</button>
           <button onClick={() => scrollToSection('provincias')}>Explorar</button>
-          <button onClick={() => { setSidebarAbierto(false); navigate('/planes'); }}>Planes</button>
           <button onClick={() => scrollToSection('contacto')}>Contacto</button>
+          <button onClick={() => scrollToSection('faq')}>Preguntas Frecuentes</button>
+          <button onClick={() => { setSidebarAbierto(false); navigate('/planes'); }}>Planes</button>
         </div>
         
         <div className="sidebar-landing-footer">
@@ -152,49 +101,17 @@ export default function LandingPage() {
             <Menu size={28} />
           </button>
 
-          <div className="logo">
+          {/* LOGO CON ESTILO (Clickeable para ir arriba) */}
+          <div className="logo" onClick={() => scrollToSection('top')} style={{ cursor: 'pointer' }}>
             GridPlay<span className="text-green">.</span>
           </div>
 
-          {/* BUSCADOR DE HEADER (SOLO DESKTOP, ≥1024px) — con autosugerencias */}
-          <div className="buscador-desktop-wrapper" ref={headerBuscadorRef}>
-            <form className="buscador-desktop-flotante" onSubmit={manejarBusqueda}>
-              <Search size={20} className="icono-lupa" />
-              <input 
-                type="text"
-                placeholder="Buscar provincia, ciudad o club..."
-                value={busqueda}
-                onChange={(e) => manejarCambioBusquedaHeader(e.target.value)}
-                onFocus={() => { if (sugerenciasHeader.length > 0) setMostrarSugerenciasHeader(true); }}
-                className="input-buscador-header"
-              />
-            </form>
-
-            {mostrarSugerenciasHeader && (
-              <div className="dropdown-sugerencias-header">
-                {sugerenciasHeader.length > 0 ? (
-                  sugerenciasHeader.map((prov) => (
-                    <button
-                      key={prov}
-                      type="button"
-                      className="sugerencia-item"
-                      onClick={() => seleccionarSugerenciaHeader(prov)}
-                    >
-                      <MapPin size={15} />
-                      <span>{prov}</span>
-                    </button>
-                  ))
-                ) : (
-                  <p className="sugerencia-vacia">Sin resultados para "{busqueda}"</p>
-                )}
-              </div>
-            )}
-          </div>
-
+          {/* BOTONES DE NAVEGACIÓN */}
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
-            <button className="btn-nav ocultar-movil" onClick={() => navigate('/planes')}>Planes</button>
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('contacto')}>Contacto</button>
+            <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('faq')}>Preguntas Frecuentes</button>
+            <button className="btn-nav ocultar-movil" onClick={() => navigate('/planes')}>Planes</button>
             <button className="btn-nav btn-soy-admin ocultar-movil" onClick={() => navigate('/login-admin')}>
               Soy Admin
             </button>
@@ -213,7 +130,7 @@ export default function LandingPage() {
             Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
 
-          {/* BUSCADOR CENTRAL (SOLO MÓVIL/TABLET, <1024px) */}
+          {/* BUSCADOR CENTRAL (MOBILE/TABLET) */}
           <form className="search-box-mobile" onSubmit={manejarBusqueda}>
             <div className="input-wrapper-mobile">
               <Search className="search-icon-mobile" size={20} />
@@ -252,7 +169,7 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* BUSCADOR DE PROVINCIAS — SOLO MÓVIL/TABLET (<1024px), reemplaza al <select> */}
+          {/* BUSCADOR DE PROVINCIAS — SOLO MÓVIL/TABLET (<1024px) */}
           <div className="buscador-provincia-mobile-wrapper provincias-dropdown-mobile">
             <div className="input-buscar-provincia">
               <MapPin size={20} className="icono-pin-prov" />
@@ -281,25 +198,69 @@ export default function LandingPage() {
               )}
             </div>
           </div>
-
         </div>
       </main>
 
-      <section className="sports-carousel-section">
-        <h2 className="section-title">¿QUÉ DEPORTE VAS A JUGAR?</h2>
-        <div className="carousel-container">
-          <button onClick={prevSlide} className="carousel-btn left" type="button"><ChevronLeft size={28} /></button>
-          <div className="carousel-track-wrapper">
-            <div className="carousel-track" style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
-              {deportes.map((dep, idx) => (
-                <div key={idx} className="carousel-slide">
-                  <img src={dep.img} alt={dep.nombre} />
-                  <div className="slide-overlay"><h3>{dep.nombre}</h3></div>
+      {/* --- NUEVA SECCIÓN: FUNCIONALIDADES / SOFTWARE --- */}
+      <section className="software-highlight-section">
+        <div className="software-container">
+          
+          {/* Lado Izquierdo: Gráfico/Mockup */}
+          <div className="software-visual">
+            <div className="mockup-dashboard">
+              <div className="mockup-header">
+                <div className="dots"><span></span><span></span><span></span></div>
+                <div className="mockup-title-bar">Panel Administrativo</div>
+              </div>
+              <div className="mockup-body">
+                <div className="mockup-card-metric">
+                  <div className="metric-icon bg-blue"><CalendarDays size={20} color="#2563eb"/></div>
+                  <div className="metric-text">
+                    <span>Turnos de Hoy</span>
+                    <strong>24 Reservas</strong>
+                  </div>
                 </div>
-              ))}
+                <div className="mockup-card-metric">
+                  <div className="metric-icon bg-green"><BarChart3 size={20} color="#16a34a"/></div>
+                  <div className="metric-text">
+                    <span>Ingresos</span>
+                    <strong>$145.000</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Notificaciones Flotantes */}
+            <div className="mockup-floating f-left">
+              <CheckCircle size={18} color="#16a34a"/> Nuevo turno 20:00hs
+            </div>
+            <div className="mockup-floating f-right">
+              <Zap size={18} color="#eab308"/> Venta Kiosco
             </div>
           </div>
-          <button onClick={nextSlide} className="carousel-btn right" type="button"><ChevronRight size={28} /></button>
+
+          {/* Lado Derecho: Textos y Botones */}
+          <div className="software-text">
+            <span className="software-eyebrow">SISTEMA DE GESTIÓN INTELIGENTE</span>
+            <h2 className="software-title">
+              Llevá tu complejo al <span className="text-green">siguiente nivel.</span>
+            </h2>
+            <p className="software-desc">
+              Olvidate del cuaderno, los mensajes perdidos y los choques de horarios. Con GridPlay, tus clientes pueden consultar disponibilidad y reservar online las 24 hs. 
+              <br/><br/>
+              Además, controlá el kiosco, bloqueá horarios por mantenimiento y accedé a reportes financieros automáticos desde cualquier dispositivo. Sin instalar nada.
+            </p>
+            
+            <div className="software-actions">
+              <button className="btn-software-primary" onClick={() => navigate('/planes')}>
+                Conocé los Planes <ArrowRight size={18} />
+              </button>
+              <button className="btn-software-secondary" onClick={() => navigate('/funcionalidades')}>
+                Ver Funcionalidades
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -337,6 +298,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* --- SECCIÓN: PREGUNTAS FRECUENTES (FAQ) --- */}
+      <div id="faq">
+        <FAQ />
+      </div>
+
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-logo">GridPlay<span className="text-green">.</span></div>
@@ -354,17 +320,17 @@ export default function LandingPage() {
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
             </a>
-                                  <a 
-                        href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="footer-link" /* <--- Dejá las clases CSS o estilos que ya tenías */
-                      >
-                        <Mail size={18} /> supportgridplay@gmail.com
-                      </a>
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="footer-link"
+            >
+              <Mail size={18} /> supportgridplay@gmail.com
+            </a>
           </div>
           
-         <div className="footer-divisor"></div>
+          <div className="footer-divisor"></div>
           <div className="footer-copyright" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             <div className="enlaces-legales" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <button onClick={() => navigate('/terminos')} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', cursor: 'pointer' }}>Términos y Condiciones</button>
@@ -375,23 +341,35 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <div className="menu-flotante-container">
-        <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
-          <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
-            <span className="opcion-tooltip">Conocé los planes</span>
-            <Zap size={22} />
+      {createPortal(
+        <div className="menu-flotante-container">
+          <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
+            
+            <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
+              <span className="opcion-tooltip">Conocé los planes</span>
+              <div className="icon-circle bg-dark">
+                <Zap size={22} color="#f59e0b" />
+              </div>
+            </button>
+            
+            <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="opcion-flotante btn-wp">
+              <span className="opcion-tooltip">Escribinos al WhatsApp</span>
+              <div className="icon-circle bg-whatsapp">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" 
+                  alt="WhatsApp"
+                  className="whatsapp-logo-img" 
+                />
+              </div>
+            </a>
+
+          </div>
+          <button className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)}>
+            {menuAbierto ? <X size={30} /> : <ChevronUp size={32} />}
           </button>
-          <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="opcion-flotante btn-wp">
-            <span className="opcion-tooltip">Escribinos al WhatsApp</span>
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
-              <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.183 1.603 6L.516 23.484l5.603-1.47c1.745.96 3.722 1.47 5.912 1.47 6.646 0 12.031-5.385 12.031-12.031C24 5.385 18.615 0 12.031 0zm3.625 17.156c-.156.44-1.281 1.094-1.844 1.156-.563.063-1.094.22-3.156-.562-2.47-1-4.063-3.625-4.188-3.781-.125-.156-1-1.344-1-2.563s.625-1.781.844-2.031c.219-.25.563-.312.75-.312.188 0 .375.031.531.406.188.438.625 1.563.688 1.688.063.125.125.312.031.5-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.25-.125.531.156.281.688 1.156 1.469 1.844.969.875 1.813 1.156 2.094 1.281.281.125.438.094.625-.094.188-.188.75-.875.938-1.188.188-.312.375-.25.625-.156.25.094 1.563.75 1.844.875.281.125.469.188.531.281.063.125.063.688-.094 1.125z"/>
-            </svg>
-          </a>
-        </div>
-        <button className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)}>
-          {menuAbierto ? <X size={30} /> : <ChevronUp size={32} />}
-        </button>
-      </div>
+        </div>,
+        document.body /* <--- Esta es la magia que lo saca de la jaula */
+      )}
       
     </div>
   );

@@ -1,0 +1,166 @@
+/* ==========================================================================
+   SISTEMA DE DISEÑO (Basado en Bootstrap Architecture)
+   ========================================================================== */
+:root {
+  /* Paleta Semántica */
+  --sys-primary: #0d6efd;       /* Azul Bootstrap (Acción/Enfoque) */
+  --sys-primary-hover: #0b5ed7; /* Estado Hover */
+  --sys-primary-bg: #e7f1ff;    /* Fondo suave activo */
+  
+  /* Escala de Grises Neutrales */
+  --sys-dark: #212529;          /* Títulos principales (WCAG AAA) */
+  --sys-secondary: #6c757d;     /* Texto secundario/párrafos (WCAG AA) */
+  --sys-border: #dee2e6;        /* Bordes sutiles */
+  --sys-bg-light: #f8f9fa;      /* Fondo de la sección */
+  --sys-white: #ffffff;         /* Superficies elevadas */
+  
+  /* Tipografía y Espaciado (Grilla 8px) */
+  --sys-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sys-transition-base: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --sys-radius-lg: 1rem;        /* 16px */
+  --sys-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE
+   ========================================================================== */
+.sys-faq-section {
+  padding: 5rem 1.5rem; /* 80px 24px */
+  background-color: var(--sys-bg-light);
+  font-family: var(--sys-font-sans);
+  color: var(--sys-dark);
+}
+
+.sys-container {
+  width: 100%;
+  max-width: 800px; /* Ancho de lectura óptimo (Hick-Hyman Law) */
+  margin: 0 auto;
+}
+
+/* --- Tipografía (Jerarquía visual clara) --- */
+.sys-text-center {
+  text-align: center;
+  margin-bottom: 3rem; /* 48px */
+}
+
+.sys-h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  color: var(--sys-dark);
+  letter-spacing: -0.02em; /* Regla tipográfica: títulos grandes llevan tracking negativo */
+}
+
+.sys-lead {
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: var(--sys-secondary);
+  margin: 0;
+}
+
+/* --- Contenedor del Acordeón --- */
+.sys-accordion {
+  background-color: var(--sys-white);
+  border-radius: var(--sys-radius-lg);
+  box-shadow: var(--sys-shadow-sm);
+  overflow: hidden; /* Mantiene los bordes redondeados limpios */
+  border: 1px solid var(--sys-border);
+}
+
+.sys-accordion-item {
+  border-bottom: 1px solid var(--sys-border);
+}
+
+.sys-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.sys-accordion-header {
+  margin: 0;
+}
+
+/* --- El Botón (Fitts's Law) --- */
+.sys-accordion-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.5rem 1.5rem; /* 24px - Área táctil masiva */
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--sys-dark);
+  text-align: left;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: var(--sys-transition-base);
+}
+
+.sys-accordion-button:hover {
+  color: var(--sys-primary);
+  background-color: var(--sys-bg-light);
+}
+
+.sys-accordion-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px rgba(13, 110, 253, 0.25); /* Accesibilidad visual */
+}
+
+/* Estado activo del botón */
+.sys-accordion-item.is-active .sys-accordion-button {
+  color: var(--sys-primary-hover);
+  background-color: var(--sys-primary-bg);
+}
+
+/* --- Icono --- */
+.sys-accordion-icon {
+  color: var(--sys-secondary);
+  transition: transform 0.3s ease-in-out;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.sys-accordion-item.is-active .sys-accordion-icon {
+  transform: rotate(-180deg);
+  color: var(--sys-primary);
+}
+
+/* --- Cuerpo de la respuesta (Proximidad y Legibilidad) --- */
+.sys-accordion-collapse {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.35s ease;
+}
+
+.sys-accordion-body {
+  padding: 0 1.5rem 1.5rem 1.5rem; /* El padding top es 0 para conectar visualmente con la pregunta */
+  color: var(--sys-secondary);
+  font-size: 1rem;
+  line-height: 1.6; /* Regla de oro para lectura en web */
+}
+
+/* Estado activo de la caja de respuesta */
+.sys-accordion-item.is-active .sys-accordion-body {
+  background-color: var(--sys-primary-bg); /* Unifica la caja entera con un color sutil */
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .sys-faq-section {
+    padding: 3rem 1rem;
+  }
+  
+  .sys-h2 {
+    font-size: 1.75rem;
+  }
+  
+  .sys-accordion-button {
+    font-size: 1rem;
+    padding: 1.25rem 1rem;
+  }
+  
+  .sys-accordion-body {
+    padding: 0 1rem 1.25rem 1rem;
+  }
+}

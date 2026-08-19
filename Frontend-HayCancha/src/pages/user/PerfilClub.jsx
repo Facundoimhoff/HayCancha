@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabase';
 import { 
   MapPin, ArrowLeft, Clock, ChevronLeft, ChevronRight, X, CalendarDays, 
   Image as ImageIcon, Phone, Mail, CheckCircle2, Car,
-  Users, Layers, CloudRain 
+  Users, Layers, CloudRain, MessageCircle 
 } from 'lucide-react';
 import './PerfilClub.css';
 
@@ -64,6 +64,28 @@ const PerfilClub = () => {
 
   const irAReservar = () => {
     navigate(`/reservar/${canchaSeleccionada.id}`);
+  };
+
+  // NUEVA FUNCIONALIDAD: Compartir por WhatsApp
+  const armarPartido = () => {
+    if (!canchaSeleccionada || !club) return;
+    
+    // Calculamos cuánto pone cada uno (si no hay cantidad, asumimos 10 para fútbol)
+    const cantJugadores = canchaSeleccionada.cantidad_jugadores || (canchaSeleccionada.deporte === 'Pádel' ? 4 : 10);
+    const precioPorPersona = Math.round(canchaSeleccionada.precio_hora / cantJugadores);
+    
+    const urlActual = window.location.href; // Agarramos el link de la página actual
+
+    // Armamos el texto con emojis y negritas para WhatsApp
+    const texto = 
+      `🏆 ¡Gente, sale partido en *${club.nombre}*!\n\n` +
+      `🏟️ *Cancha:* ${canchaSeleccionada.nombre} (${canchaSeleccionada.deporte})\n` +
+      `💵 *Costo total:* $${canchaSeleccionada.precio_hora} la hora\n` +
+      `💸 *Aprox por cabeza:* $${precioPorPersona}\n\n` +
+      `👇 Confirmen quién juega y reservo el horario por acá:\n${urlActual}`;
+
+    // Abrimos WhatsApp con el texto pre-cargado
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
   };
 
   const avanzarImagen = (imagenes) => {
@@ -216,18 +238,11 @@ const PerfilClub = () => {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {club.correo_contacto && (
-                      <a 
-                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${club.correo_contacto}`} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#475569', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} 
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} 
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                      >
-                        <Mail size={24} />
-                        {club.correo_contacto}
-                      </a>
-                    )}
+                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${club.correo_contacto}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#475569', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+                  <Mail size={24} />
+                  {club.correo_contacto}
+                </a>
+              )}
 
               {club.redes_sociales?.instagram && (
                 <a href={club.redes_sociales.instagram.includes('http') ? club.redes_sociales.instagram : `https://instagram.com/${club.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#E1306C', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
@@ -393,9 +408,38 @@ const PerfilClub = () => {
                 </div>
               </div>
 
-              <button className="btn-reservar-gigante" onClick={irAReservar}>
-                <CalendarDays size={20} /> Elegir Horario
-              </button>
+              {/* BOTONES DE ACCIÓN EN EL MODAL */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+                <button className="btn-reservar-gigante" onClick={irAReservar}>
+                  <CalendarDays size={20} /> Elegir Horario
+                </button>
+                
+                {/* BOTÓN MÁGICO DE WHATSAPP */}
+                <button 
+                  onClick={armarPartido}
+                  style={{ 
+                    backgroundColor: '#25D366', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '16px', 
+                    borderRadius: '12px', 
+                    fontSize: '1.1rem', 
+                    fontWeight: 'bold', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '10px', 
+                    cursor: 'pointer', 
+                    boxShadow: '0 4px 6px rgba(37, 211, 102, 0.2)',
+                    transition: 'transform 0.2s, background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#20b858'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#25D366'; e.currentTarget.style.transform = 'translateY(0)' }}
+                >
+                  <MessageCircle size={22} /> Invitar al equipo por WhatsApp
+                </button>
+              </div>
+
             </div>
 
           </div>

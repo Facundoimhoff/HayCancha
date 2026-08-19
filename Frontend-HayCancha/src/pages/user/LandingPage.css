@@ -597,126 +597,135 @@
   }
 }
 
-/* =========================================
-   Nuevo Menú Flotante (Speed Dial)
-   ========================================= */
+/* =========================================================
+   MENÚ FLOTANTE PREMIUM (FAB) FIJO EN PANTALLA
+   ========================================================= */
 .menu-flotante-container {
-  position: fixed;
+  /* position: fixed; es la clave para que se quede quieto al hacer scroll */
+  position: fixed; 
   bottom: 30px;
   right: 30px;
+  /* Un z-index obscenamente alto para que NADA lo tape */
+  z-index: 2147483647; 
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  z-index: 1000;
 }
 
 .menu-flotante-opciones {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 16px;
-  opacity: 0;
+  margin-bottom: 20px;
   pointer-events: none; 
-  transform: translateY(20px) scale(0.9);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.menu-flotante-opciones.abierto {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0) scale(1);
 }
 
 .opcion-flotante {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-flotante-opciones.abierto .opcion-flotante {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.menu-flotante-opciones.abierto .btn-wp { transition-delay: 0s; }
+.menu-flotante-opciones.abierto .btn-planes { transition-delay: 0.1s; }
+
+.opcion-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, background 0.2s ease;
+  white-space: nowrap; /* Evita que el texto se rompa en dos líneas si se achica la pantalla */
+}
+
+/* --- Contenedor de los Íconos --- */
+.icon-circle {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  cursor: pointer;
-  color: white;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  position: relative;
-  text-decoration: none;
-  transition: transform 0.2s ease, background-color 0.2s;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
-.opcion-flotante:hover { transform: scale(1.1); }
-.btn-planes { background-color: #0f172a; }
-.btn-planes:hover { background-color: #1e293b; }
-.btn-wp { background-color: #25D366; }
-.btn-wp:hover { background-color: #20b858; }
+.icon-circle.bg-dark { background: #1e293b; }
 
-.opcion-tooltip {
-  position: absolute;
-  right: 65px; 
-  background-color: white;
-  color: #0f172a;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(10px);
-  transition: all 0.3s ease;
+/* NUEVO: Círculo verde para WhatsApp */
+.icon-circle.bg-whatsapp { background: #25D366; }
+
+/* NUEVO: Reducimos el tamaño de la imagen del logo adentro del círculo */
+.whatsapp-logo-img {
+  width: 32px; /* Controla qué tan grande se ve el logo adentro del círculo de 50px */
+  height: 32px;
+  object-fit: contain;
+  /* Le damos un poquito de brillo para que resalte sobre el fondo verde */
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); 
 }
 
-.menu-flotante-opciones.abierto .opcion-tooltip {
-  opacity: 1;
-  transform: translateX(0);
+/* Efectos al pasar el mouse */
+.opcion-flotante:hover .opcion-tooltip {
+  transform: translateX(-4px);
+  background: #ffffff;
+}
+.opcion-flotante:hover .icon-circle {
+  transform: scale(1.1);
 }
 
+/* =========================================================
+   BOTÓN PRINCIPAL (Cerrar / Abrir)
+   ========================================================= */
 .menu-flotante-principal {
-  width: 65px;
-  height: 65px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background-color: #22c55e;
+  background: #16a34a; 
   color: white;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.menu-flotante-principal:hover { transform: scale(1.05); }
-
-.menu-flotante-principal:not(.abierto) {
-  animation: pulso-verde 2.5s infinite;
+.menu-flotante-principal:hover {
+  transform: scale(1.08);
+  background: #15803d;
 }
 
 .menu-flotante-principal.abierto {
-  background-color: #0f172a;
-  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.4);
-  transform: rotate(90deg); 
+  background: #0f172a; 
+  transform: rotate(180deg);
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
 }
 
-@media (max-width: 768px) {
-  .menu-flotante-container {
-    bottom: 20px;
-    right: 20px;
-  }
-  .menu-flotante-principal {
-    width: 55px;
-    height: 55px;
-  }
-  .opcion-flotante {
-    width: 45px;
-    height: 45px;
-  }
-  .opcion-tooltip {
-    right: 55px;
-    font-size: 0.85rem;
-    padding: 6px 12px;
-  }
+.menu-flotante-principal.abierto:hover {
+  background: #0f172a;
+  transform: rotate(180deg) scale(1.08);
 }
 
 /* =========================================
@@ -1195,4 +1204,268 @@
   color: #94a3b8;
   font-size: 0.85rem;
   /* etc... */
+}
+
+/* =========================================================
+   ALINEACIÓN DEL HEADER (Logo a la izquierda)
+   ========================================================= */
+
+.navbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.navbar .logo {
+  /* Anulamos cualquier estilo viejo que lo centrara */
+  position: static !important;
+  transform: none !important;
+  margin: 0 !important;
+  
+  /* Esto es lo que lo empuja hacia la izquierda y tira el menú a la derecha */
+  margin-right: auto !important; 
+}
+
+/* En celulares, acomodamos el menú hamburguesa al lado del logo */
+@media (max-width: 1024px) {
+  .navbar .logo {
+    margin-left: 15px !important;
+  }
+}
+
+/* =========================================================
+   SECCIÓN DE FUNCIONALIDADES / SOFTWARE HIGHLIGHT
+   ========================================================= */
+
+.software-highlight-section {
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  overflow: hidden;
+}
+
+.software-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+/* Lado Derecho: Textos */
+.software-text {
+  flex: 1;
+}
+
+.software-eyebrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #16a34a;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.software-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.software-desc {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.software-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.btn-software-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
+}
+
+.btn-software-primary:hover {
+  background-color: #15803d;
+  transform: translateY(-2px);
+}
+
+.btn-software-secondary {
+  background-color: transparent;
+  color: #0f172a;
+  border: 2px solid #cbd5e1;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-software-secondary:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Lado Izquierdo: Visual (Mockup Dashboard) */
+.software-visual {
+  flex: 1;
+  position: relative;
+  min-height: 350px;
+}
+
+.mockup-dashboard {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  transform: perspective(1000px) rotateY(5deg) rotateX(2deg);
+  transition: transform 0.5s ease;
+}
+
+.mockup-dashboard:hover {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+}
+
+.mockup-header {
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+}
+
+.mockup-header .dots {
+  display: flex;
+  gap: 6px;
+}
+
+.mockup-header .dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #cbd5e1;
+}
+
+.mockup-header .dots span:nth-child(1) { background-color: #ef4444; }
+.mockup-header .dots span:nth-child(2) { background-color: #eab308; }
+.mockup-header .dots span:nth-child(3) { background-color: #22c55e; }
+
+.mockup-title-bar {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-right: 40px; /* Para compensar los dots y centrar bien */
+}
+
+.mockup-body {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: #f1f5f9;
+}
+
+.mockup-card-metric {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.metric-icon.bg-blue { background-color: #dbeafe; }
+.metric-icon.bg-green { background-color: #dcfce3; }
+
+.metric-text {
+  display: flex;
+  flex-direction: column;
+}
+.metric-text span {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+.metric-text strong {
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+/* Tarjetitas Flotantes animadas */
+.mockup-floating {
+  position: absolute;
+  background-color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #334155;
+  z-index: 3;
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+.mockup-floating.f-left {
+  top: -20px;
+  left: -30px;
+  animation-delay: 0s;
+}
+
+.mockup-floating.f-right {
+  bottom: 20px;
+  right: -40px;
+  animation-delay: 3s; /* Desfase para que no floten igual */
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .software-container {
+    flex-direction: column-reverse;
+    gap: 40px;
+  }
+  .software-title { font-size: 2rem; }
+  .mockup-floating.f-left { left: 0; top: -15px; }
+  .mockup-floating.f-right { right: 0; }
 }
