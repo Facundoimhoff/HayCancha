@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, ArrowLeft, Loader2, Building } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import HeaderCliente from './HeaderCliente'; 
+import HeaderCliente from './HeaderCliente';
+import { sanitizarBusqueda } from '../../utils/validaciones';
 import './Buscar.css';
 
 export default function Buscar() {
@@ -23,7 +24,9 @@ export default function Buscar() {
 
   useEffect(() => {
     const buscarEnSupabase = async () => {
-      if (!query.trim()) {
+      // Los filtros .or() se arman como texto: se limpia el input para que no pueda inyectar filtros extra
+      const termino = sanitizarBusqueda(query);
+      if (!termino) {
         setClubes([]);
         return;
       }
@@ -35,7 +38,7 @@ export default function Buscar() {
         const { data, error: sbError } = await supabase
           .from('clubes')
           .select('*')
-          .or(`nombre.ilike.%${query}%,ciudad.ilike.%${query}%,provincia.ilike.%${query}%`);
+          .or(`nombre.ilike.%${termino}%,ciudad.ilike.%${termino}%,provincia.ilike.%${termino}%`);
 
         if (sbError) throw sbError;
         

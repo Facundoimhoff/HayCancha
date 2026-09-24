@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import HeaderCliente from './HeaderCliente';
+import { validarPassword, validarTelefono, mensajeDeServidor, fechaLocalISO } from '../../utils/validaciones';
 import './ReservaCancha.css';
 
 const ReservaCancha = () => {
@@ -41,7 +42,7 @@ const ReservaCancha = () => {
       const fecha = new Date();
       fecha.setDate(fecha.getDate() + i);
       
-      const fechaBD = fecha.toISOString().split('T')[0]; 
+      const fechaBD = fechaLocalISO(fecha);
       const nombreDia = fecha.toLocaleDateString('es-AR', { weekday: 'long' }); 
       const numeroDia = fecha.getDate();
       const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' }); 
@@ -56,6 +57,17 @@ const ReservaCancha = () => {
 
   const diasSemana = generarProximosDias();
   const hoyBD = diasSemana[0].fechaBD; 
+
+  // Los turnos de otras personas no son legibles (RLS): la disponibilidad sale de una RPC que solo devuelve slots ocupados.
+  const cargarOcupados = async () => {
+    const { data, error } = await supabase.rpc('disponibilidad_cancha', {
+      p_cancha_id: idCancha,
+      p_desde: hoyBD,
+      p_hasta: diasSemana[diasSemana.length - 1].fechaBD,
+    });
+    if (error) throw error;
+    setTurnosOcupados(data || []);
+  };
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -99,14 +111,7 @@ const ReservaCancha = () => {
 
         if (!diaExpandido) setDiaExpandido(hoyBD);
 
-        const { data: turnos, error: errorTurnos } = await supabase
-          .from('turnos')
-          .select('fecha, hora_inicio')
-          .eq('cancha_id', idCancha)
-          .gte('fecha', hoyBD); 
-
-        if (errorTurnos) throw errorTurnos;
-        setTurnosOcupados(turnos || []);
+        await cargarOcupados();
 
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -122,6 +127,12 @@ const ReservaCancha = () => {
     e.preventDefault();
     setErrorAuth('');
     setMensajeExitoAuth('');
+
+    if (esRegistro) {
+      const errorPassword = validarPassword(password);
+      if (errorPassword) { setErrorAuth(errorPassword); return; }
+    }
+
     setGuardando(true);
 
     try {
@@ -130,7 +141,7 @@ const ReservaCancha = () => {
           email,
           password,
           options: {
-            data: { full_name: nombre, rol: 'cliente' },
+            data: { full_name: nombre },
             emailRedirectTo: window.location.origin
           }
         });
@@ -221,41 +232,39 @@ const ReservaCancha = () => {
 
   const confirmarReserva = async (e) => {
     e.preventDefault();
+
+    if (!validarTelefono(telefono)) {
+      alert('Ingresá un teléfono válido (solo números, entre 6 y 20 dígitos).');
+      return;
+    }
+
     try {
       setGuardando(true);
-      
-      const nombreClienteFinal = nombre || user?.user_metadata?.full_name || user?.email || 'Cliente';
 
-      // 🛒 PREPARAMOS LOS EXTRAS PARA GUARDARLOS EN LA BASE
-      const extrasArray = Object.entries(extrasSeleccionados)
-        .filter(([_, cantidad]) => cantidad > 0)
-        .map(([idProd, cantidad]) => {
-          const prodInfo = productosClub.find(p => p.id == idProd);
-          return {
-            id: idProd,
-            nombre: prodInfo?.nombre || 'Producto',
-            precio_unitario: prodInfo?.precio || 0,
-            cantidad: cantidad,
-            subtotal: (prodInfo?.precio || 0) * cantidad
-          };
-        });
+      // Solo se mandan ids y cantidades: nombre, precio y totales los calcula el servidor.
+      const extras = Object.entries(extrasSeleccionados)
+        .filter(([, cantidad]) => cantidad > 0)
+        .map(([idProd, cantidad]) => ({ id: Number(idProd), cantidad }));
 
-      const { error } = await supabase
-        .from('turnos')
-        .insert([{
-          cancha_id: idCancha,
-          fecha: fechaSeleccionada,
-          hora_inicio: horaSeleccionada,
-          nombre_cliente: nombreClienteFinal,
-          telefono_cliente: telefono,
-          extras: extrasArray.length > 0 ? extrasArray : null 
-        }]);
+      const { error } = await supabase.rpc('crear_reserva', {
+        p_cancha_id: idCancha,
+        p_fecha: fechaSeleccionada,
+        p_hora: horaSeleccionada,
+        p_nombre: nombre,
+        p_telefono: telefono,
+        p_extras: extras,
+      });
 
       if (error) throw error;
-      setPaso(3); 
+      setPaso(3);
     } catch (error) {
       console.error("Error al guardar la reserva:", error);
-      alert("Hubo un error al procesar el turno. Intentá de nuevo.");
+      alert(mensajeDeServidor(error, 'Hubo un error al procesar el turno. Intentá de nuevo.'));
+      if (error?.message?.includes('SLOT_OCUPADO') || error?.message?.includes('TURNO_PASADO')) {
+        setHoraSeleccionada(null);
+        setPaso(1);
+        cargarOcupados().catch(() => {});
+      }
     } finally {
       setGuardando(false);
     }
@@ -323,7 +332,8 @@ const ReservaCancha = () => {
                   {estaAbierto && (
                     <div className="animacion-acordeon">
                       {horariosBase.map((hora) => {
-                        const estaOcupado = turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
+                        const yaPaso = dia.fechaBD === hoyBD && Number(hora.slice(0, 2)) <= new Date().getHours();
+                        const estaOcupado = yaPaso || turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
                         const estaSeleccionado = fechaSeleccionada === dia.fechaBD && horaSeleccionada === hora;
 
                         let claseBoton = 'btn-hora disponible';
@@ -450,10 +460,11 @@ const ReservaCancha = () => {
                       <input 
                         type="password" 
                         required 
-                        placeholder="Mínimo 6 caracteres" 
+                        placeholder={esRegistro ? '8+ caracteres, letras y números' : 'Tu contraseña'}
+                        autoComplete={esRegistro ? 'new-password' : 'current-password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        minLength={6}
+                        minLength={esRegistro ? 8 : undefined}
                         className="form-input"
                         style={{paddingLeft: '40px'}}
                       />

@@ -31,8 +31,9 @@ const ConfiguracionClub = () => {
         const { data, error } = await supabase
           .from('clubes')
           .select('*')
-          .eq('user_id', user.id) 
-          .single(); 
+          .eq('admin_id', user.id)
+          .limit(1)
+          .maybeSingle();
 
         if (data) {
           setClub({

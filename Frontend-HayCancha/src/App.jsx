@@ -23,6 +23,8 @@ import Terminos from './pages/user/Terminos';
 import CookieBanner from './pages/user/CookieBanner';
 import FAQ from './pages/user/FAQ';
 import Funcionalidades from './pages/user/Funcionalidades';
+import { AuthProvider } from './context/AuthProvider';
+import RutaProtegida from './components/RutaProtegida';
 
 // --- NUEVO COMPONENTE QUE ANIMA LAS RUTAS ---
 function RutasAnimadas() {
@@ -41,8 +43,8 @@ function RutasAnimadas() {
         <Route path="/explorar/:provincia/:ciudad" element={<HomeUsuario />} /> 
         <Route path="/club/:id" element={<PerfilClub />} />
         <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
-        <Route path="/panel" element={<DashboardAdmin />} />
-        <Route path="/mis-reservas" element={<MisReservas />} />
+        <Route path="/panel" element={<RutaProtegida rol="admin"><DashboardAdmin /></RutaProtegida>} />
+        <Route path="/mis-reservas" element={<RutaProtegida><MisReservas /></RutaProtegida>} />
         <Route path="/planes" element={<Planes />} />
         <Route path="/onboarding" element={<RegistroClub />} />
         <Route path="/contacto" element={<FormularioContacto />} />
@@ -66,8 +68,10 @@ function RutasAnimadas() {
 function App() {
   return (
     <BrowserRouter>
-      <CookieBanner />
-      <RutasAnimadas />
+      <AuthProvider>
+        <CookieBanner />
+        <RutasAnimadas />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
