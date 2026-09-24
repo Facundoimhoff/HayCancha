@@ -1,0 +1,21 @@
+# Dependencias (cada paquete tiene su propio package.json; se instalan con npm ci)
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Secretos / variables de entorno locales
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs y editores
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+.DS_Store

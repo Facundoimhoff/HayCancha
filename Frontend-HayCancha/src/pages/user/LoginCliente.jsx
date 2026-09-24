@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { ArrowLeft, Mail, Lock, User as UserIcon, CalendarDays, KeyRound } from 'lucide-react';
+import { validarPassword } from '../../utils/validaciones';
 import './LoginCliente.css';
 
 const LoginCliente = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Si venía de una ruta protegida (ej. /mis-reservas) vuelve ahí después de ingresar
+  const destino = location.state?.from || '/seleccionar-ubicacion';
   const [esRegistro, setEsRegistro] = useState(false);
   
   // Estado para controlar si mostramos la vista de recuperar contraseña
@@ -23,6 +27,12 @@ const LoginCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (esRegistro) {
+      const errorPassword = validarPassword(password);
+      if (errorPassword) { setError(errorPassword); return; }
+    }
+
     setCargando(true);
 
     try {
@@ -31,7 +41,7 @@ const LoginCliente = () => {
           email,
           password,
           options: {
-            data: { full_name: nombre, rol: 'cliente' },
+            data: { full_name: nombre },
             // Acá agregamos la redirección automática al login tras confirmar el mail
             emailRedirectTo: window.location.origin + '/login-cliente'
           }
@@ -44,7 +54,7 @@ const LoginCliente = () => {
           setEsRegistro(false);
           return;
         }
-        if (data.user) navigate('/seleccionar-ubicacion');
+        if (data.user) navigate(destino);
 
       } else {
         const { data, error: errorLogin } = await supabase.auth.signInWithPassword({
@@ -52,7 +62,7 @@ const LoginCliente = () => {
           password,
         });
         if (errorLogin) throw errorLogin;
-        if (data.user) navigate('/seleccionar-ubicacion');
+        if (data.user) navigate(destino);
       }
     } catch (err) {
       console.error("Detalle del error:", err);
@@ -108,7 +118,7 @@ const LoginCliente = () => {
         provider: 'google',
         options: {
           // Acá lo mandamos a la ruta que quieras una vez que Google lo aprueba
-          redirectTo: window.location.origin + '/seleccionar-ubicacion' 
+          redirectTo: window.location.origin + destino
         }
       });
       
@@ -221,10 +231,11 @@ const LoginCliente = () => {
                   <input 
                     type="password" 
                     required 
-                    placeholder="Mínimo 6 caracteres" 
+                    placeholder={esRegistro ? '8+ caracteres, letras y números' : 'Tu contraseña'}
+                    autoComplete={esRegistro ? 'new-password' : 'current-password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    minLength={6}
+                    minLength={esRegistro ? 8 : undefined}
                   />
                 </div>
                 {!esRegistro && (

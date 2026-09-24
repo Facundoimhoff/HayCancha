@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { 
+import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
+import {
   LogOut, LayoutDashboard, BarChart3, Settings, 
   DollarSign, Calendar as CalendarIcon, Users, Clock, Plus, Edit, ImageIcon, Ban,
   Building, MapPin, Map, CheckCircle, Download, FileText, Info, ImagePlus, Menu, X, Store, MoreVertical, Trash2, Phone, Share2, ChevronLeft, ChevronRight, TrendingUp, Receipt
@@ -139,26 +140,18 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
 
       // Subida de logo
       if (nuevoLogo) {
-        const fileExt = nuevoLogo.name.split('.').pop();
-        const fileName = `logos/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, nuevoLogo);
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-        finalLogoUrl = urlData.publicUrl;
+        finalLogoUrl = await subirImagen(nuevoLogo, 'logos');
       }
 
       // Subida de fotos del predio
       let finalFotosClub = formPerfil.fotos_club || '';
       if (fotosClubFiles && fotosClubFiles.length > 0) {
         const urlsFotos = [];
-        for (let i = 0; i < fotosClubFiles.length; i++) {
-          const file = fotosClubFiles[i];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `clubes_fotos/${Date.now()}_${i}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-            urlsFotos.push(urlData.publicUrl);
+        for (const file of fotosClubFiles) {
+          try {
+            urlsFotos.push(await subirImagen(file, 'clubes_fotos'));
+          } catch (errorFoto) {
+            console.error('No se pudo subir una foto del club:', errorFoto);
           }
         }
         const nuevasUrls = urlsFotos.join(',');
@@ -236,7 +229,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
                   <label style={{ cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', fontWeight: '600', textAlign: 'center', transition: 'background 0.2s' }}>
                     <ImagePlus size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }} />
                     Subir Logo
-                    <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+                    <input type="file" accept={TIPOS_IMAGEN_ACEPTADOS} onChange={handleLogoChange} style={{ display: 'none' }} />
                   </label>
                   
                   {previewLogo && (
@@ -290,7 +283,7 @@ const PantallaPerfil = ({ miClub, setMiClub }) => {
             <div>
               <label className="form-label">Fotos de las instalaciones (Predio)</label>
               <input 
-                type="file" multiple accept="image/*" 
+                type="file" multiple accept={TIPOS_IMAGEN_ACEPTADOS} 
                 onChange={(e) => { if (e.target.files) setFotosClubFiles(Array.from(e.target.files)); }} 
                 className="form-input-icon" style={{ padding: '8px' }}
               />
@@ -464,7 +457,8 @@ const DashboardAdmin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/'); return; }
 
-      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_email', user.email).single();
+      // La identidad del club es admin_id (uid de auth); el email ya no interviene.
+      const { data: clubData } = await supabase.from('clubes').select('*').eq('admin_id', user.id).limit(1).maybeSingle();
       if (!clubData) { setErrorAcceso(true); setCargando(false); return; }
       setMiClub(clubData);
 
@@ -491,7 +485,8 @@ const DashboardAdmin = () => {
 
       turnosData?.forEach(t => {
         const c = canchasData.find(x => x.id === t.cancha_id);
-        const precio = c ? Number(c.precio_hora) : 0;
+        // precio_final se congela al reservar; el precio actual de la cancha solo cubre turnos sin ese dato
+        const precio = Number(t.precio_final ?? c?.precio_hora ?? 0);
         const esBloqueo = t.telefono_cliente === 'BLOQUEO'; 
 
         if (!esBloqueo) {
@@ -529,16 +524,10 @@ const DashboardAdmin = () => {
 
   const subirMultiplesImagenes = async (archivos) => {
     const urls = [];
-    for (let i = 0; i < archivos.length; i++) {
-      const file = archivos[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `canchas/${Date.now()}_${i}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('imagenes').upload(fileName, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('imagenes').getPublicUrl(fileName);
-      urls.push(urlData.publicUrl);
+    for (const file of archivos) {
+      urls.push(await subirImagen(file, 'canchas'));
     }
-    return urls.join(','); 
+    return urls.join(',');
   };
 
   const cancelarTurno = async (id, esBloqueo) => { 
@@ -552,8 +541,12 @@ const DashboardAdmin = () => {
   
   const crearTurnoManual = async (e) => { 
     e.preventDefault(); 
-    await supabase.from('turnos').insert([formTurno]); 
-    setMostrarModal(false); 
+    const { error } = await supabase.from('turnos').insert([formTurno]);
+    if (error) {
+      alert(error.code === '23505' ? 'Ese horario ya está ocupado en esa cancha.' : 'No se pudo cargar el turno: ' + error.message);
+      return;
+    }
+    setMostrarModal(false);
     cargarDatos(); 
   };
 
@@ -716,7 +709,7 @@ const DashboardAdmin = () => {
           Cliente: t.nombre_cliente,
           Teléfono: t.telefono_cliente,
           Cancha: canchaInfo?.nombre || 'Desconocida',
-          'Ingreso ($)': canchaInfo?.precio_hora || 0,
+          'Ingreso ($)': Number(t.precio_final ?? canchaInfo?.precio_hora ?? 0),
         };
       });
 
@@ -749,7 +742,7 @@ const DashboardAdmin = () => {
           t.hora_inicio,
           t.nombre_cliente || 'Sin nombre',
           canchaInfo?.nombre || 'Desconocida',
-          `$${canchaInfo?.precio_hora || 0}`
+          `$${Number(t.precio_final ?? canchaInfo?.precio_hora ?? 0)}`
         ];
       });
     autoTable(doc, {
@@ -921,7 +914,7 @@ const DashboardAdmin = () => {
 
         if (cumpleFiltro) {
           const c = canchas.find(x => x.id === t.cancha_id);
-          const precioCancha = c ? Number(c.precio_hora) : 0;
+          const precioCancha = Number(t.precio_final ?? c?.precio_hora ?? 0);
           
           // Sumar Kiosco (Extras)
           let precioKiosco = 0;
@@ -1479,7 +1472,7 @@ const DashboardAdmin = () => {
             <div>
               <label className="modal-label">Fotos de la Cancha (Opcional)</label>
               <input 
-                type="file" multiple accept="image/*" 
+                type="file" multiple accept={TIPOS_IMAGEN_ACEPTADOS} 
                 onChange={(e) => { if (e.target.files) setImagenCanchaFiles(Array.from(e.target.files)); }} 
                 className="modal-input solo" style={{ padding: '8px' }}
               />
@@ -1573,7 +1566,7 @@ const DashboardAdmin = () => {
             <div>
               <label className="modal-label">Cambiar Fotos (Opcional)</label>
               <input 
-                type="file" multiple accept="image/*" 
+                type="file" multiple accept={TIPOS_IMAGEN_ACEPTADOS} 
                 onChange={(e) => { if (e.target.files) setImagenCanchaEditFiles(Array.from(e.target.files)); }} 
                 className="modal-input solo" style={{ padding: '8px' }}
               />

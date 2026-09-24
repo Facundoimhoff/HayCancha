@@ -26,14 +26,14 @@ const Planes = () => {
  const iniciarPago = async () => {
     setCargando(true);
     try {
-      // 👇 ACÁ CONECTAMOS CON TU BACKEND DE RENDER 👇
-      // OJO: Cambiá la URL por la de tu proyecto real de Render
-      const response = await fetch('https://haycancha.onrender.com/api/crear-suscripcion', {
+      // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://haycancha.onrender.com';
+      const response = await fetch(`${apiUrl}/api/crear-suscripcion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan: 'Full', precio: 50000 })
+        body: JSON.stringify({ plan: 'Full' })
       });
 
       const data = await response.json();

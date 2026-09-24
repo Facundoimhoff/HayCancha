@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
+import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { Trash2, Plus, Image as ImageIcon, Smile, UploadCloud } from 'lucide-react';
 
 const GestorKiosco = ({ clubId }) => {
@@ -22,9 +23,9 @@ const GestorKiosco = ({ clubId }) => {
 
   const cargarProductos = async () => {
     try {
-      // ⚠️ CAMBIÁ 'kiosco' POR EL NOMBRE DE TU TABLA SI ES DISTINTO
+      // `productos` es el catálogo que ve el jugador al reservar (la tabla `kiosco` quedó como legado)
       const { data, error } = await supabase
-        .from('kiosco') 
+        .from('productos')
         .select('*')
         .eq('club_id', clubId)
         .order('nombre', { ascending: true });
@@ -52,30 +53,17 @@ const GestorKiosco = ({ clubId }) => {
 
       // Si eligió subir imagen, la mandamos a Storage
       if (tipoIcono === 'imagen' && imagenFile) {
-        const fileExt = imagenFile.name.split('.').pop();
-        const fileName = `kiosco/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('imagenes')
-          .upload(fileName, imagenFile);
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: urlData } = supabase.storage
-          .from('imagenes')
-          .getPublicUrl(fileName);
-          
-        iconoFinal = urlData.publicUrl; // Guardamos el link de la foto
+        iconoFinal = await subirImagen(imagenFile, 'productos'); // Guardamos el link de la foto
       } else if (tipoIcono === 'imagen' && !imagenFile) {
         iconoFinal = '📦'; // Fallback por si eligió imagen pero no subió nada
       }
 
-      // ⚠️ CAMBIÁ 'kiosco' POR EL NOMBRE DE TU TABLA SI ES DISTINTO
-      const { error } = await supabase.from('kiosco').insert([{
+      const { error } = await supabase.from('productos').insert([{
         club_id: clubId,
-        nombre: nombre,
+        nombre: nombre.trim(),
         precio: Number(precio),
-        icono: iconoFinal // Acá guardamos la URL o el Emoji
+        icono: iconoFinal, // Acá guardamos la URL o el Emoji
+        activo: true
       }]);
 
       if (error) throw error;
@@ -89,7 +77,7 @@ const GestorKiosco = ({ clubId }) => {
       
       cargarProductos();
     } catch (error) {
-      alert("Error al agregar producto. ¿Agregaste la columna 'icono' en Supabase?: " + error.message);
+      alert("No se pudo agregar el producto: " + error.message);
     } finally {
       setCargando(false);
     }
@@ -97,8 +85,7 @@ const GestorKiosco = ({ clubId }) => {
 
   const eliminarProducto = async (id) => {
     if (window.confirm("¿Seguro que querés eliminar este producto?")) {
-      // ⚠️ CAMBIÁ 'kiosco' POR EL NOMBRE DE TU TABLA SI ES DISTINTO
-      await supabase.from('kiosco').delete().eq('id', id);
+      await supabase.from('productos').delete().eq('id', id);
       cargarProductos();
     }
   };
@@ -168,7 +155,7 @@ const GestorKiosco = ({ clubId }) => {
               ) : (
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#eff6ff', border: '1px dashed #3b82f6', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', color: '#1d4ed8', fontWeight: '600' }}>
                   <UploadCloud size={18}/> {imagenFile ? 'Imagen cargada ✓' : 'Subir foto'}
-                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                  <input type="file" accept={TIPOS_IMAGEN_ACEPTADOS} onChange={handleImageChange} style={{ display: 'none' }} />
                 </label>
               )}
             </div>

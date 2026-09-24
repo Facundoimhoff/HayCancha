@@ -30,8 +30,16 @@ const LoginAdmin = () => {
       });
 
       if (error) throw error;
-      navigate('/panel');
-      
+
+      // El rol sale de public.usuarios (lo escribe el servidor). Cuentas sin club terminan su alta en /registro-club.
+      const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      navigate(['admin', 'superadmin'].includes(perfil?.rol) ? '/panel' : '/registro-club');
+
     } catch (error) {
       setError('Credenciales incorrectas. Por favor, intentá nuevamente.');
     } finally {
