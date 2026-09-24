@@ -6,9 +6,9 @@
 Agente autónomo por fases (Pensar → Herramientas → Observar → Actuar). Al terminar cada fase de investigación: reporte ejecutivo + plan, y esperar "ok" del usuario antes de modificar código. Al modificar: mostrar archivo, fragmento refactorizado y patrón aplicado. Idioma: español rioplatense. Nunca ejecutar SQL de escritura contra producción sin confirmación explícita (el clasificador de permisos lo bloquea, incluso dentro de una transacción con rollback).
 
 ## Estado actual (2026-09-24)
-- Fases 1 y 2 completas y **EN PRODUCCIÓN**: migración  aplicada en Supabase (pegada por el usuario en el SQL Editor porque el clasificador bloquea escrituras a producción) y frontend mergeado a  y pusheado por el usuario (Vercel: https://gridplay-x.vercel.app).
+- Fases 1 y 2 completas y **EN PRODUCCIÓN**: migración `seguridad_base` aplicada en Supabase (pegada por el usuario en el SQL Editor porque el clasificador bloquea escrituras a producción) y frontend mergeado a `main` y pusheado por el usuario (Vercel: https://gridplay-x.vercel.app).
 - Verificado en vivo: RLS activo en las 7 tablas, 23 policies, roles (sani/sport=admin, dueño=superadmin), /panel sin sesión redirige a /login-admin, /registro-club en dos pasos, lista de clubes y disponibilidad de canchas cargan.
-- Nota: el clasificador de la herramienta bloquea escrituras a producción y ; el usuario los ejecuta a mano.
+- Nota: el clasificador de la herramienta bloquea escrituras a producción y `git push`; el usuario los ejecuta a mano.
 - Commit local pendiente de push: actualización de este archivo.
 
 ## Arquitectura
@@ -37,7 +37,7 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 3. Borrar la Edge Function crear-pago desplegada (v5, verify_jwt=false; no la usa el frontend).
 
 ## Validación realizada
-- Migración: 65 pruebas de RLS en réplica local con PGlite ( en Frontend-HayCancha) y verificación posterior en la base real (RLS, policies, roles, bucket).
+- Migración: 65 pruebas de RLS en réplica local con PGlite (`npm run test:db` en Frontend-HayCancha) y verificación posterior en la base real (RLS, policies, roles, bucket).
 - Frontend: `npm run build` OK; ESLint limpio en archivos nuevos (el resto del repo tenía 43 errores previos de lint).
 
 ## Pendientes / deuda conocida
