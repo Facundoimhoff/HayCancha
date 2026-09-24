@@ -6,8 +6,10 @@
 Agente autónomo por fases (Pensar → Herramientas → Observar → Actuar). Al terminar cada fase de investigación: reporte ejecutivo + plan, y esperar "ok" del usuario antes de modificar código. Al modificar: mostrar archivo, fragmento refactorizado y patrón aplicado. Idioma: español rioplatense. Nunca ejecutar SQL de escritura contra producción sin confirmación explícita (el clasificador de permisos lo bloquea, incluso dentro de una transacción con rollback).
 
 ## Estado actual (2026-09-24)
-- Fase 1 (mapeo) y Fase 2 (auditoría) completadas. **Fase 2 implementada en la rama `fase-2-seguridad` (commits hechos, SIN push y SIN aplicar la migración a producción).**
-- Rama `main` sin cambios. Producción (Vercel + Supabase `sghtbvoyeswtfmgqxwgw`) sigue con RLS desactivado hasta que se despliegue.
+- Fases 1 y 2 completas y **EN PRODUCCIÓN**: migración  aplicada en Supabase (pegada por el usuario en el SQL Editor porque el clasificador bloquea escrituras a producción) y frontend mergeado a  y pusheado por el usuario (Vercel: https://gridplay-x.vercel.app).
+- Verificado en vivo: RLS activo en las 7 tablas, 23 policies, roles (sani/sport=admin, dueño=superadmin), /panel sin sesión redirige a /login-admin, /registro-club en dos pasos, lista de clubes y disponibilidad de canchas cargan.
+- Nota: el clasificador de la herramienta bloquea escrituras a producción y ; el usuario los ejecuta a mano.
+- Commit local pendiente de push: actualización de este archivo.
 
 ## Arquitectura
 Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha"):
@@ -29,14 +31,13 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - Helpers en schema `private` (no expuesto por PostgREST). Storage `imagenes`: solo jpeg/png/webp ≤5MB, escritura solo en carpeta `<uid>/`; sin listado público.
 - Clubes reales: SPORT AUTOMOVIL CLUB (admin sport@gmail.com) y SANI (sani@gmail.com); sus `admin_id` apuntaban al dueño (facuimhoff2112) → la migración los reasigna por email. Dueño del proyecto pasa a rol `superadmin`.
 
-## ORDEN DE DESPLIEGUE (crítico)
-1. Revisar y aplicar la migración (Supabase → SQL editor / `supabase db push`) y **enseguida** desplegar el frontend de `fase-2-seguridad` (el frontend viejo se rompe apenas se activa RLS: reservas, panel, mis reservas).
-2. Backend Render: definir `CORS_ORIGINS` (dominio real del frontend), `MP_ACCESS_TOKEN`, `FRONTEND_URL`; redeploy.
-3. Supabase Auth (dashboard): password mínimo 8 + letras/dígitos, activar *Leaked password protection*, revisar *Redirect URLs* (`/login-admin`, `/login-cliente`, `/actualizar-password`) y decidir si se exige confirmación de mail.
-4. Borrar la Edge Function `crear-pago` desplegada (v5, `verify_jwt=false`) o redeployarla con el código nuevo.
+## Pendientes de configuración (manuales, dashboards)
+1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
+2. Supabase Auth: password mínimo 8 + letras/dígitos, Leaked password protection, Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
+3. Borrar la Edge Function crear-pago desplegada (v5, verify_jwt=false; no la usa el frontend).
 
 ## Validación realizada
-- Migración: parseo completo con libpg-query (120 sentencias, 4 cuerpos plpgsql OK). NO ejecutada contra la base (bloqueado por permisos). Pruebas de RLS con roles simulados pendientes: correrlas en una branch de Supabase o local antes de producción.
+- Migración: 65 pruebas de RLS en réplica local con PGlite ( en Frontend-HayCancha) y verificación posterior en la base real (RLS, policies, roles, bucket).
 - Frontend: `npm run build` OK; ESLint limpio en archivos nuevos (el resto del repo tenía 43 errores previos de lint).
 
 ## Pendientes / deuda conocida
@@ -49,4 +50,4 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso
-Esperar decisión del usuario sobre: (a) aplicar la migración (idealmente primero en una branch de Supabase con las pruebas de RLS), (b) merge/deploy, (c) arrancar Fase 3 (UX/UI Stripe/Linear) o el gating de pagos (Fase 2b).
+Configurar Render/Supabase Auth (ver Pendientes), y elegir entre: Fase 2b (webhook de Mercado Pago que verifique el pago antes de registrar_club) o Fase 3 (UX/UI Stripe/Linear).
