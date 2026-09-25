@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import HeaderCliente from './HeaderCliente';
-import { validarPassword, validarTelefono, mensajeDeServidor, fechaLocalISO } from '../../utils/validaciones';
+import { validarPassword, validarTelefono, mensajeDeServidor, fechaLocalISO, AYUDA_PASSWORD } from '../../utils/validaciones';
 import './ReservaCancha.css';
 
 const ReservaCancha = () => {
@@ -460,7 +460,7 @@ const ReservaCancha = () => {
                       <input 
                         type="password" 
                         required 
-                        placeholder={esRegistro ? '8+ caracteres, letras y números' : 'Tu contraseña'}
+                        placeholder={esRegistro ? AYUDA_PASSWORD : 'Tu contraseña'}
                         autoComplete={esRegistro ? 'new-password' : 'current-password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

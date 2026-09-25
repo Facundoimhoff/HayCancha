@@ -1,9 +1,14 @@
 // Validaciones compartidas de formularios de registro/login y mensajes de error del servidor.
 
+// Debe coincidir con la política de Supabase Auth (minúscula, mayúscula, dígito y símbolo, mínimo 8).
+export const AYUDA_PASSWORD = '8+ caracteres con mayúscula, minúscula, número y símbolo';
+
 const REGLAS_PASSWORD = [
   { ok: (p) => p.length >= 8, texto: 'al menos 8 caracteres' },
-  { ok: (p) => /[a-zA-Z]/.test(p), texto: 'una letra' },
+  { ok: (p) => /[a-z]/.test(p), texto: 'una minúscula' },
+  { ok: (p) => /[A-Z]/.test(p), texto: 'una mayúscula' },
   { ok: (p) => /\d/.test(p), texto: 'un número' },
+  { ok: (p) => /[^a-zA-Z0-9]/.test(p), texto: 'un símbolo (ej. ! @ # $)' },
 ];
 
 /** Devuelve un mensaje de error o `null` si la contraseña es válida. */

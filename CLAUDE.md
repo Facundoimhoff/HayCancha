@@ -17,7 +17,7 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
   - `src/services/supabase.js` (cliente único, falla si faltan env vars), `src/services/storage.js` (`subirImagen`: valida tipo/tamaño, sube a `imagenes/<uid>/<carpeta>/<uuid>.<ext>`).
   - `src/context/{authContext.js,AuthProvider.jsx}`: sesión + perfil (`public.usuarios.rol`) — fuente de verdad del rol. `recargarPerfil()` tras `registrar_club`.
   - `src/components/RutaProtegida.jsx`: `/panel` exige rol admin/superadmin, `/mis-reservas` exige sesión.
-  - `src/utils/validaciones.js`: password (8+, letra y número), teléfono, `sanitizarBusqueda`, `mensajeDeServidor` (códigos de error de las RPC), `fechaLocalISO`.
+  - `src/utils/validaciones.js`: password (8+, minúscula, mayúscula, número y símbolo), teléfono, `sanitizarBusqueda`, `mensajeDeServidor` (códigos de error de las RPC), `fechaLocalISO`.
   - Páginas en `src/pages/user/` (admin y jugador mezcladas; `DashboardAdmin.jsx` ~1600 líneas).
 - `Backend-HayCancha/index.js` — Express 5 (Render). Solo `/api/crear-suscripcion` (MP PreApprovalPlan), `/health`. Precio por plan definido en servidor (`PLANES`), CORS por `CORS_ORIGINS`, rate limit, falla al arrancar sin `MP_ACCESS_TOKEN`.
 - `supabase/functions/crear-pago` — Edge Function NO usada por el frontend (endurecida; conviene eliminarla).
@@ -33,7 +33,7 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 
 ## Pendientes de configuración (manuales, dashboards)
 1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
-2. Supabase Auth: password mínimo 8 + letras/dígitos, Leaked password protection, Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
+2. Supabase Auth: password mínimo 8 con minúscula+mayúscula+dígito+símbolo (YA CONFIGURADO por el usuario; el front lo valida igual), NO activar Captcha (rompería login: la web no envía captchaToken), Leaked password protection (en Email provider; puede ser función de pago), Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
 3. Borrar la Edge Function crear-pago desplegada (v5, verify_jwt=false; no la usa el frontend).
 
 ## Validación realizada

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { ArrowLeft, Mail, Lock, User as UserIcon, CalendarDays, KeyRound } from 'lucide-react';
-import { validarPassword } from '../../utils/validaciones';
+import { validarPassword, AYUDA_PASSWORD } from '../../utils/validaciones';
 import './LoginCliente.css';
 
 const LoginCliente = () => {
@@ -231,7 +231,7 @@ const LoginCliente = () => {
                   <input 
                     type="password" 
                     required 
-                    placeholder={esRegistro ? '8+ caracteres, letras y números' : 'Tu contraseña'}
+                    placeholder={esRegistro ? AYUDA_PASSWORD : 'Tu contraseña'}
                     autoComplete={esRegistro ? 'new-password' : 'current-password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

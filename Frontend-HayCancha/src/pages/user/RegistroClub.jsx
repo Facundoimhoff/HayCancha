@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { useAuth } from '../../context/authContext';
-import { validarPassword, validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
+import { validarPassword, validarTelefono, mensajeDeServidor, AYUDA_PASSWORD } from '../../utils/validaciones';
 import { CheckCircle2, ImagePlus, MapPin, Lock, Mail, Building2, Car } from 'lucide-react';
 import './RegistroClub.css';
 
@@ -200,7 +200,7 @@ const RegistroClub = () => {
                   <label htmlFor="password">Contraseña</label>
                   <div className="input-con-icono">
                     <Lock size={18} />
-                    <input id="password" type="password" name="password" autoComplete="new-password" placeholder="8+ caracteres, letras y números" required minLength={8}
+                    <input id="password" type="password" name="password" autoComplete="new-password" placeholder={AYUDA_PASSWORD} required minLength={8}
                       value={cuenta.password} onChange={(e) => setCuenta((c) => ({ ...c, password: e.target.value }))} className="form-input-reg" />
                   </div>
                 </div>
