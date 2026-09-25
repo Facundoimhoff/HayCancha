@@ -5,11 +5,17 @@
 ## Metodología
 Agente autónomo por fases (Pensar → Herramientas → Observar → Actuar). Al terminar cada fase de investigación: reporte ejecutivo + plan, y esperar "ok" del usuario antes de modificar código. Al modificar: mostrar archivo, fragmento refactorizado y patrón aplicado. Idioma: español rioplatense. Nunca ejecutar SQL de escritura contra producción sin confirmación explícita (el clasificador de permisos lo bloquea, incluso dentro de una transacción con rollback).
 
-## Estado actual (2026-09-24)
-- Fases 1 y 2 completas y **EN PRODUCCIÓN**: migración `seguridad_base` aplicada en Supabase (pegada por el usuario en el SQL Editor porque el clasificador bloquea escrituras a producción) y frontend mergeado a `main` y pusheado por el usuario (Vercel: https://gridplay-x.vercel.app).
-- Verificado en vivo: RLS activo en las 7 tablas, 23 policies, roles (sani/sport=admin, dueño=superadmin), /panel sin sesión redirige a /login-admin, /registro-club en dos pasos, lista de clubes y disponibilidad de canchas cargan.
-- Nota: el clasificador de la herramienta bloquea escrituras a producción y `git push`; el usuario los ejecuta a mano.
-- Commit local pendiente de push: actualización de este archivo.
+## Estado actual (cierre de sesión 2026-09-25)
+**En producción y verificado:**
+- Fase 1 (mapeo) y Fase 2 (seguridad): RLS en todas las tablas, roles por servidor, reservas por RPC, storage restringido. Migración `seguridad_base` aplicada.
+- Fase 2b (pago verificado): migración `suscripciones` aplicada; backend en Render con `/api/crear-suscripcion`, `/api/vincular-suscripcion` y webhook firmado; `registrar_club` exige suscripción activa. El usuario probó el pago real con `PRECIO_PLAN_FULL=50` y "funciona todo"; ya revirtió el precio y canceló la suscripción de prueba. Función Edge `crear-pago` borrada. Supabase Auth: contraseña 8+ con mayúscula/minúscula/número/símbolo; captcha apagado; "leaked passwords" NO disponible (plan Pro).
+- Fase 3 etapas 1-3 (tokens, vidrio, animaciones) publicadas.
+
+**Guardado en `main` local, SIN subir (el usuario debe correr `git push origin main`):** 4 commits — panel de administración rediseñado (ver sección Fase 3 más abajo), corrección del bug del menú lateral, modo demo, y este archivo. Tras el push verificar en https://gridplay-x.vercel.app/panel con sani@gmail.com o sport@gmail.com (no se pudo probar con datos reales).
+
+**Reglas de la herramienta:** el clasificador bloquea escrituras a producción (SQL/migraciones a veces sí pasan si el usuario lo pide explícitamente en ese turno), `git push` y logins en dashboards; el usuario los hace a mano. Nunca pedir ni mostrar claves secretas; service_role solo en Render.
+
+**Pendiente de configuración del usuario:** confirmar en Render las variables SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MP_WEBHOOK_SECRET, CORS_ORIGINS, FRONTEND_URL, y que PRECIO_PLAN_FULL esté en 50000 o borrada. Tabla suscripciones: puede tener una fila de prueba (plan Full) de la cuenta que hizo el pago.
 
 ## Arquitectura
 Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha"):
@@ -18,7 +24,7 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
   - `src/context/{authContext.js,AuthProvider.jsx}`: sesión + perfil (`public.usuarios.rol`) — fuente de verdad del rol. `recargarPerfil()` tras `registrar_club`.
   - `src/components/RutaProtegida.jsx`: `/panel` exige rol admin/superadmin, `/mis-reservas` exige sesión.
   - `src/utils/validaciones.js`: password (8+, minúscula, mayúscula, número y símbolo), teléfono, `sanitizarBusqueda`, `mensajeDeServidor` (códigos de error de las RPC), `fechaLocalISO`.
-  - Páginas en `src/pages/user/` (admin y jugador mezcladas; `DashboardAdmin.jsx` ~1600 líneas).
+  - Páginas de jugador/landing en `src/pages/user/`; panel de administración en `src/pages/admin/` (ver Fase 3).
 - `Backend-HayCancha/index.js` — Express 5 (Render). Solo `/api/crear-suscripcion` (MP PreApprovalPlan), `/health`. Precio por plan definido en servidor (`PLANES`), CORS por `CORS_ORIGINS`, rate limit, falla al arrancar sin `MP_ACCESS_TOKEN`.
 - `supabase/functions/crear-pago` — Edge Function NO usada por el frontend (endurecida; conviene eliminarla).
 - Dependencias de reportes (jspdf, jspdf-autotable, xlsx) ahora declaradas en `Frontend-HayCancha/package.json` (antes dependían del `node_modules` de la raíz que estaba commiteado). `package.json` de la raíz quedó redundante.
@@ -55,11 +61,6 @@ Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza C
 - Pendiente en el panel: `MiClub.jsx` (53 estilos en línea) y `GestorKiosco.jsx` (29) siguen con markup viejo pero se ven bien gracias a clases de compatibilidad en dashboard.css; reescribirlos.
 - Herramientas: `npm run dev:demo` (puerto 5174, datos de ejemplo sin sesión, ver src/services/supabaseDemo.js), `npm run test:unit` (13 tests de métricas), `npm run test:db` (73 de RLS). Para capturas en el navegador integrado: viewport 1000×N y `scale` 0.78 muestra el ancho completo; llamar a tabs_select antes de cada screenshot.
 
-## Pendientes de configuración (manuales, dashboards)
-1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
-2. Supabase Auth: password mínimo 8 con minúscula+mayúscula+dígito+símbolo (YA CONFIGURADO por el usuario; el front lo valida igual), NO activar Captcha (rompería login: la web no envía captchaToken), Leaked password protection (en Email provider; puede ser función de pago), Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
-3. Borrar la Edge Function crear-pago desplegada (v5, verify_jwt=false; no la usa el frontend).
-
 ## Validación realizada
 - Migración: 65 pruebas de RLS en réplica local con PGlite (`npm run test:db` en Frontend-HayCancha) y verificación posterior en la base real (RLS, policies, roles, bucket).
 - Frontend: `npm run build` OK; ESLint limpio en archivos nuevos (el resto del repo tenía 43 errores previos de lint).
@@ -73,5 +74,10 @@ Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza C
 - Registro con confirmación de mail: el flujo continúa en `/login-admin` → `/registro-club` (paso 2).
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
-## Próximo paso
-Subir a producción (git push origin main). Luego: reescribir MiClub y GestorKiosco con el sistema nuevo; formularios con errores inline y stepper en registro (Fase 3 etapa 4); limpieza de CSS de las demás pantallas (40 clases repetidas, 77 colores); revisar Landing/Reserva/PerfilClub con el mismo criterio visual. Después Fase 4 (n8n/webhooks) y Fase 7 (reportes y poda).
+## Próximo paso (por orden)
+1. El usuario sube con `git push origin main` y prueba el panel publicado; ajustar según lo que vea.
+2. Reescribir `views/MiClub.jsx` y `GestorKiosco.jsx` con el sistema de diseño nuevo (hoy tienen 53 y 29 estilos en línea).
+3. Fase 3 etapa 4: formularios con errores inline, medidor de contraseña y stepper Cuenta → Plan → Club en el registro; reemplazar alert() restantes.
+4. Fase 3 etapa 5 y pantallas públicas: Landing, Reserva, PerfilClub, HomeUsuario con el mismo criterio visual; unificar 40 clases CSS repetidas y 77 colores; Planes muestra $50000 fijo (leer el precio del backend).
+5. Fase 4 (webhooks/n8n, WhatsApp), Fase 5 (Second Brain, precios dinámicos solo si el admin lo habilita), Fase 6 (social/rachas), Fase 7 (reportes profesionales, metricas_mensuales, poda de turnos >30 días conservando total_reservas_historicas).
+Deuda: xlsx@0.18.5 con advisories (se reemplaza en Fase 7); dashboard descarga todos los turnos (Fase 7); enumeración de cuentas en login/registro (riesgo bajo).
