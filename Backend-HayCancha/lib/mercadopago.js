@@ -47,3 +47,17 @@ export function planDesdeMotivo(reason) {
     ? reason.slice(PREFIJO_MOTIVO.length).trim()
     : null;
 }
+
+/**
+ * Entre los planes que devuelve la búsqueda de Mercado Pago, elige uno reutilizable: activo, con el mismo motivo,
+ * precio y back_url. Si cambia el precio o el dominio del frontend, no coincide y se crea uno nuevo.
+ */
+export function buscarPlanCompatible(planes, { reason, precio, backUrl }) {
+  return (planes || []).find((p) =>
+    p?.status === 'active'
+    && p.reason === reason
+    && Number(p.auto_recurring?.transaction_amount) === Number(precio)
+    && p.back_url === backUrl
+    && typeof p.init_point === 'string' && p.init_point.startsWith('https://')
+  ) ?? null;
+}

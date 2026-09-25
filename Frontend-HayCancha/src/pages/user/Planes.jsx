@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send, ChevronLeft, ChevronRight } from 'lucide-react';
-import { postApi } from '../../services/api';
+import { postApi, precalentarApi } from '../../services/api';
 import { useAuth } from '../../context/authContext';
 import './Planes.css';
 
@@ -9,7 +9,9 @@ const Planes = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [cargando, setCargando] = useState(false);
-  
+  const [servidorLento, setServidorLento] = useState(false);
+  const [errorPago, setErrorPago] = useState('');
+
   // Estados para el formulario de contacto
   const [enviado, setEnviado] = useState(false);
 
@@ -25,31 +27,39 @@ const Planes = () => {
   const nextImg = () => setImagenIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   const prevImg = () => setImagenIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
 
- const iniciarPago = async () => {
-    setCargando(true);
-    try {
-      // Hace falta una cuenta: la suscripción se asocia a tu usuario cuando volvés de pagar.
-      if (!user) {
-        alert('Primero creá tu cuenta de administrador; después elegís el plan y pagás.');
-        navigate('/registro-club');
-        return;
-      }
+  // Despierta el backend (Render) mientras el usuario lee el plan, así el clic en "Comenzar" no espera el arranque en frío.
+  useEffect(() => { precalentarApi(); }, []);
 
-      // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
-      const { ok, data } = await postApi('/api/crear-suscripcion', { plan: 'Full' });
+  // Al volver atrás desde Mercado Pago el navegador puede restaurar la página con el botón trabado en "cargando".
+  useEffect(() => {
+    const restaurar = (e) => { if (e.persisted) { setCargando(false); setServidorLento(false); } };
+    window.addEventListener('pageshow', restaurar);
+    return () => window.removeEventListener('pageshow', restaurar);
+  }, []);
 
-      if (ok && data?.linkPago) {
-        // Redirigimos a Mercado Pago
-        window.location.href = data.linkPago; 
-      } else {
-        throw new Error("No se recibió el link de pago");
-      }
-    } catch (error) {
-      console.error("Error al iniciar el pago:", error);
-      alert("Hubo un error al conectar con Mercado Pago.");
-    } finally {
-      setCargando(false); 
+  const iniciarPago = async () => {
+    setErrorPago('');
+
+    // Hace falta una cuenta: la suscripción se asocia a tu usuario cuando volvés de pagar.
+    if (!user) {
+      navigate('/registro-club');
+      return;
     }
+
+    setCargando(true);
+    setServidorLento(false);
+
+    // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
+    const { ok, data } = await postApi('/api/crear-suscripcion', { plan: 'Full' }, { onLento: () => setServidorLento(true) });
+
+    if (ok && data?.linkPago) {
+      window.location.href = data.linkPago; // a Mercado Pago; el botón queda en "cargando" hasta que cambie la página
+      return;
+    }
+
+    setErrorPago(data?.error || 'No pudimos conectar con Mercado Pago. Intentá de nuevo en unos segundos.');
+    setCargando(false);
+    setServidorLento(false);
   };
 
   const manejarEnvioDuda = async (e) => {
@@ -198,8 +208,12 @@ const Planes = () => {
               disabled={cargando}
               className={`btn-comprar-modern ${cargando ? 'cargando' : 'activo'}`}
             >
-              {cargando ? 'Generando link de pago...' : 'Comenzar ahora'}
+              {cargando ? 'Conectando con Mercado Pago…' : 'Comenzar ahora'}
             </button>
+            {cargando && servidorLento && (
+              <p className="pago-aviso" role="status">Estamos despertando el servidor, puede tardar unos segundos. No cierres esta página.</p>
+            )}
+            {errorPago && <p className="pago-error" role="alert">{errorPago}</p>}
             <p className="texto-seguro">Pago 100% seguro a través de Mercado Pago.</p>
           </div>
         </div>

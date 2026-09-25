@@ -350,6 +350,26 @@
   box-shadow: none;
 }
 
+.pago-aviso,
+.pago-error {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.pago-aviso {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.pago-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .texto-seguro {
   text-align: center;
   color: #94a3b8;

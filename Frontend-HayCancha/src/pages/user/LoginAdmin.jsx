@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { precalentarApi } from '../../services/api';
 import { ArrowLeft, Lock, Mail, Zap, KeyRound } from 'lucide-react';
 import './LoginAdmin.css'; // Importamos el nuevo diseño
 
@@ -15,6 +16,9 @@ const LoginAdmin = () => {
   
   // Estado para alternar entre "Iniciar Sesión" y "Recuperar Contraseña"
   const [modoRecuperar, setModoRecuperar] = useState(false);
+
+  // Desde acá se llega a Planes y al pago: se despierta el backend con anticipación.
+  useEffect(() => { precalentarApi(); }, []);
 
   // FUNCIÓN 1: INICIAR SESIÓN NORMAL
   const handleLogin = async (e) => {

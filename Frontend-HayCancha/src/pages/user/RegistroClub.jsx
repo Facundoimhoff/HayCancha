@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
-import { postApi } from '../../services/api';
+import { postApi, precalentarApi } from '../../services/api';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { useAuth } from '../../context/authContext';
 import { validarPassword, validarTelefono, mensajeDeServidor, AYUDA_PASSWORD } from '../../utils/validaciones';
@@ -69,6 +69,9 @@ const RegistroClub = () => {
   }, [cargandoSesion, user, rol, navigate]);
 
   useEffect(() => () => { if (previewLogo) URL.revokeObjectURL(previewLogo); }, [previewLogo]);
+
+  // Al volver de Mercado Pago (o antes de ir a pagar) el backend tiene que estar despierto.
+  useEffect(() => { precalentarApi(); }, []);
 
   const leerSuscripcion = async (userId) => {
     const { data } = await supabase

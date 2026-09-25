@@ -49,3 +49,19 @@ test('reconoce solo suscripciones de GridPlay', () => {
   assert.equal(planDesdeMotivo('Netflix'), null);
   assert.equal(planDesdeMotivo(undefined), null);
 });
+
+import { buscarPlanCompatible } from '../lib/mercadopago.js';
+
+test('buscarPlanCompatible reutiliza solo planes activos con mismo motivo, precio y back_url', () => {
+  const base = { reason: 'GridPlay - Plan Full', precio: 50000, backUrl: 'https://x.com/registro-club' };
+  const plan = (o = {}) => ({
+    status: 'active', reason: base.reason, back_url: base.backUrl, init_point: 'https://mp.com/p/1',
+    auto_recurring: { transaction_amount: 50000 }, ...o,
+  });
+  assert.equal(buscarPlanCompatible([plan()], base)?.init_point, 'https://mp.com/p/1');
+  assert.equal(buscarPlanCompatible([plan({ status: 'inactive' })], base), null);
+  assert.equal(buscarPlanCompatible([plan({ auto_recurring: { transaction_amount: 100 } })], base), null);
+  assert.equal(buscarPlanCompatible([plan({ back_url: 'https://otro.com' })], base), null);
+  assert.equal(buscarPlanCompatible([plan({ init_point: 'javascript:1' })], base), null);
+  assert.equal(buscarPlanCompatible(undefined, base), null);
+});

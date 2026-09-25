@@ -3,7 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
-import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, PREFIJO_MOTIVO } from './lib/mercadopago.js';
+import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
 
@@ -84,8 +84,45 @@ async function usuarioDeLaSolicitud(req) {
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // --- 1) INICIAR SUSCRIPCIÓN: devuelve el link de pago de Mercado Pago (requiere sesión) ---
-// El plan de Mercado Pago se crea una sola vez por proceso (evita llenar la cuenta de planes repetidos).
-const planesMP = new Map();
+// Link de cada plan: variable de entorno (MP_PLAN_LINK_FULL) > caché en memoria > plan ya creado en Mercado Pago > plan nuevo.
+// Se cachea la PROMESA para que pedidos simultáneos no creen planes repetidos, y se precalienta al arrancar.
+const linksPlanes = new Map();
+
+async function crearOReutilizarPlan(nombrePlan, plan) {
+  const reason = `${PREFIJO_MOTIVO}${nombrePlan}`;
+  // MP vuelve acá agregando ?preapproval_id=...; el frontend la verifica con /api/vincular-suscripcion
+  const backUrl = `${FRONTEND_URL}/registro-club`;
+  const planes = new PreApprovalPlan(client);
+
+  try {
+    const { results } = await planes.search({ options: { status: 'active', limit: 100 } });
+    const existente = buscarPlanCompatible(results, { reason, precio: plan.precio, backUrl });
+    if (existente) return existente.init_point;
+  } catch (error) {
+    console.warn('No se pudo buscar planes existentes en Mercado Pago; se crea uno nuevo:', error?.message || error);
+  }
+
+  const creado = await planes.create({
+    body: {
+      reason,
+      auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: plan.precio, currency_id: 'ARS' },
+      back_url: backUrl,
+    },
+  });
+  return creado.init_point;
+}
+
+function linkDelPlan(nombrePlan) {
+  const fijo = process.env[`MP_PLAN_LINK_${nombrePlan.toUpperCase()}`];
+  if (fijo) return Promise.resolve(fijo);
+
+  if (!linksPlanes.has(nombrePlan)) {
+    const promesa = crearOReutilizarPlan(nombrePlan, PLANES[nombrePlan]);
+    linksPlanes.set(nombrePlan, promesa);
+    promesa.catch(() => linksPlanes.delete(nombrePlan)); // un fallo no queda cacheado
+  }
+  return linksPlanes.get(nombrePlan);
+}
 
 app.post('/api/crear-suscripcion', limitePagos, async (req, res) => {
   if (!supabaseAdmin) return res.status(503).json({ error: 'Pagos no disponibles por el momento' });
@@ -94,28 +131,10 @@ app.post('/api/crear-suscripcion', limitePagos, async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Iniciá sesión para suscribirte' });
 
   const nombrePlan = req.body?.plan;
-  const plan = PLANES[nombrePlan];
-  if (!plan) return res.status(400).json({ error: 'Plan inválido' });
+  if (!Object.hasOwn(PLANES, nombrePlan)) return res.status(400).json({ error: 'Plan inválido' });
 
   try {
-    if (!planesMP.has(nombrePlan)) {
-      const creado = await new PreApprovalPlan(client).create({
-        body: {
-          reason: `${PREFIJO_MOTIVO}${nombrePlan}`,
-          auto_recurring: {
-            frequency: 1,
-            frequency_type: 'months',
-            transaction_amount: plan.precio,
-            currency_id: 'ARS',
-          },
-          // MP vuelve acá agregando ?preapproval_id=...; el frontend la verifica con /api/vincular-suscripcion
-          back_url: `${FRONTEND_URL}/registro-club`,
-        },
-      });
-      planesMP.set(nombrePlan, creado.init_point);
-    }
-
-    res.json({ linkPago: planesMP.get(nombrePlan) });
+    res.json({ linkPago: await linkDelPlan(nombrePlan) });
   } catch (error) {
     console.error('Error en Mercado Pago:', error);
     res.status(500).json({ error: 'Fallo al crear la suscripción' });
@@ -224,4 +243,8 @@ app.post('/api/webhooks/mercadopago', limiteWebhook, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend de GridPlay escuchando en puerto ${PORT}`);
+  // Deja listos los links de pago: el primer usuario que paga después de un arranque no espera a Mercado Pago.
+  for (const nombre of Object.keys(PLANES)) {
+    linkDelPlan(nombre).catch((error) => console.warn(`No se pudo precalentar el plan ${nombre}:`, error?.message || error));
+  }
 });
