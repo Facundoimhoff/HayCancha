@@ -1,458 +1,219 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabase';
-import { 
-  MapPin, ArrowLeft, Clock, ChevronLeft, ChevronRight, X, CalendarDays, 
-  Image as ImageIcon, Phone, Mail, CheckCircle2, Car,
-  Users, Layers, CloudRain, MessageCircle 
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  MapPin, ArrowLeft, Clock, CalendarDays, Phone, Mail, CheckCircle2, Car, Users, Layers, CloudRain,
+  MessageCircle, Image as ImageIcon, Camera, AtSign, Music2, Globe,
 } from 'lucide-react';
+import { supabase } from '../../services/supabase';
 import { Calificacion } from '../../components/user/Estrellas';
 import SeccionResenas from '../../components/user/SeccionResenas';
+import Carrusel from '../../components/user/Carrusel';
+import Hoja from '../../components/user/Hoja';
+import { enlaceRed, enlaceCorreo, colorClub, textoSobre, listaImagenes } from '../../utils/enlaces';
+import { enlaceMapa, enlaceWhatsApp, moneda } from '../../utils/reservas';
 import './PerfilClub.css';
+
+const ICONOS_RED = { instagram: Camera, tiktok: Music2, facebook: Globe };
+const NOMBRES_RED = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook' };
+
+const superficieDe = (cancha) => cancha.superficie || (cancha.deporte === 'Pádel' ? 'Blindex / Sintético' : 'Sintético');
+const jugadoresDe = (cancha) => cancha.cantidad_jugadores || 5;
+const hora = (h) => String(h || '').slice(0, 5);
 
 const PerfilClub = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [club, setClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [resumenResenas, setResumenResenas] = useState(null);
-
-  const [canchaSeleccionada, setCanchaSeleccionada] = useState(null);
-  const [imagenActualIdx, setImagenActualIdx] = useState(0);
-
-  // Estado para el carrusel del predio (Acerca del club)
-  const [fotoClubIdx, setFotoClubIdx] = useState(0);
+  const [canchaAbierta, setCanchaAbierta] = useState(null);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const { data: clubData, error: clubError } = await supabase
-          .from('clubes')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (clubError) throw clubError;
-        setClub(clubData);
+    let cancelado = false;
 
-        const { data: canchasData, error: canchasError } = await supabase
-          .from('canchas')
-          .select('*')
-          .eq('club_id', id)
-          .order('precio_hora', { ascending: true });
-        
-        if (canchasError) throw canchasError;
-        setCanchas(canchasData || []);
+    (async () => {
+      const [{ data: dataClub, error: errorClub }, { data: dataCanchas }] = await Promise.all([
+        supabase.from('clubes').select('*').eq('id', id).single(),
+        supabase.from('canchas').select('*').eq('club_id', id).order('precio_hora', { ascending: true }),
+      ]);
+      if (cancelado) return;
+      if (errorClub) console.error('Error al cargar el club:', errorClub);
+      setClub(errorClub ? null : dataClub);
+      setCanchas((dataCanchas || []).filter((c) => c.activa !== false));
+      setCargando(false);
+    })();
 
-      } catch (error) {
-        console.error("Error al cargar el club:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarDatos();
+    return () => { cancelado = true; };
   }, [id]);
 
-  const abrirModalDetalle = (cancha) => {
-    setCanchaSeleccionada(cancha);
-    setImagenActualIdx(0);
-  };
-
-  const cerrarModal = () => {
-    setCanchaSeleccionada(null);
-  };
-
-  const irAReservar = () => {
-    navigate(`/reservar/${canchaSeleccionada.id}`);
-  };
-
-  // NUEVA FUNCIONALIDAD: Compartir por WhatsApp
-  const armarPartido = () => {
-    if (!canchaSeleccionada || !club) return;
-    
-    // Calculamos cuánto pone cada uno (si no hay cantidad, asumimos 10 para fútbol)
-    const cantJugadores = canchaSeleccionada.cantidad_jugadores || (canchaSeleccionada.deporte === 'Pádel' ? 4 : 10);
-    const precioPorPersona = Math.round(canchaSeleccionada.precio_hora / cantJugadores);
-    
-    const urlActual = window.location.href; // Agarramos el link de la página actual
-
-    // Armamos el texto con emojis y negritas para WhatsApp
-    const texto = 
+  // Compartir por WhatsApp: arma el mensaje con el costo por persona
+  const armarPartido = (cancha) => {
+    const jugadores = cancha.cantidad_jugadores || (cancha.deporte === 'Pádel' ? 4 : 10);
+    const porPersona = Math.round(cancha.precio_hora / jugadores);
+    const texto =
       `🏆 ¡Gente, sale partido en *${club.nombre}*!\n\n` +
-      `🏟️ *Cancha:* ${canchaSeleccionada.nombre} (${canchaSeleccionada.deporte})\n` +
-      `💵 *Costo total:* $${canchaSeleccionada.precio_hora} la hora\n` +
-      `💸 *Aprox por cabeza:* $${precioPorPersona}\n\n` +
-      `👇 Confirmen quién juega y reservo el horario por acá:\n${urlActual}`;
-
-    // Abrimos WhatsApp con el texto pre-cargado
-    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+      `🏟️ *Cancha:* ${cancha.nombre} (${cancha.deporte})\n` +
+      `💵 *Costo total:* ${moneda(cancha.precio_hora)} la hora\n` +
+      `💸 *Aprox por cabeza:* ${moneda(porPersona)}\n\n` +
+      `👇 Confirmen quién juega y reservo el horario por acá:\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank', 'noopener,noreferrer');
   };
 
-  const avanzarImagen = (imagenes) => {
-    setImagenActualIdx((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
-  };
+  if (cargando) return <div className="pc-estado">Cargando complejo…</div>;
+  if (!club) {
+    return (
+      <div className="pc-estado">
+        <p>No encontramos este club. Puede que ya no esté disponible.</p>
+        <Link to="/" className="gp-btn gp-btn--primario">Volver al inicio</Link>
+      </div>
+    );
+  }
 
-  const retrocederImagen = (imagenes) => {
-    setImagenActualIdx((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
-  };
-
-  // Funciones para mover el carrusel del predio
-  const fotosClub = club?.fotos_club ? club.fotos_club.split(',').filter(url => url.trim() !== '') : [];
-  const avanzarFotoClub = () => setFotoClubIdx(prev => prev === fotosClub.length - 1 ? 0 : prev + 1);
-  const retrocederFotoClub = () => setFotoClubIdx(prev => prev === 0 ? fotosClub.length - 1 : prev - 1);
-
-  if (cargando) return <div className="cargando-vista">Cargando complejo...</div>;
-  if (!club) return <div className="cargando-vista">No se encontró el club.</div>;
+  const color = colorClub(club.color_primario);
+  const textoBanner = textoSobre(color);
+  // Con texto claro el degradé se oscurece; con texto oscuro se aclara: así el contraste no baja hacia el final
+  const finBanner = textoBanner === '#ffffff' ? '#000000' : '#ffffff';
+  const fotosClub = listaImagenes(club.fotos_club);
+  const logo = listaImagenes(club.imagen_url)[0];
+  const servicios = (club.servicios || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const redes = Object.keys(NOMBRES_RED).map((red) => ({ red, href: enlaceRed(red, club.redes_sociales?.[red]), texto: club.redes_sociales?.[red] })).filter((r) => r.href);
+  const correo = enlaceCorreo(club.correo_contacto);
+  const whatsapp = enlaceWhatsApp(club.telefono_contacto);
+  const mapa = enlaceMapa(club);
+  const sinContacto = !correo && redes.length === 0;
 
   return (
-    <div className="perfil-cliente-page" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '60px' }}>
-      
-      {/* 1. NOMBRE DEL CLUB (BANNER) */}
-      <div 
-        className="perfil-header-banner" 
-        style={{ backgroundColor: club.color_primario || '#0f172a' }}
-      >
-        <button onClick={() => navigate(-1)} className="btn-volver-cliente">
-          <ArrowLeft size={20} /> Volver
-        </button>
-        
-        <div className="perfil-header-info-con-logo">
-          {club.imagen_url && (
-            <img src={club.imagen_url} alt="Logo del Club" className="club-logo-redondo" style={{ border: '4px solid white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-          )}
-          <div className="perfil-textos-header">
-            <h1 style={{ fontSize: '2.2rem', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>{club.nombre}</h1>
-            <Calificacion resumen={resumenResenas} />
+    <div className="pc-pagina">
+      <header className="pc-banner" style={{ '--pc-color': color, '--pc-texto': textoBanner, '--pc-fin': finBanner }}>
+        <div className="pc-banner-interior">
+          <button type="button" onClick={() => navigate(-1)} className="pc-volver"><ArrowLeft size={18} /> Volver</button>
+          <div className="pc-identidad">
+            {logo && <img src={logo} alt={`Logo de ${club.nombre}`} className="pc-logo" />}
+            <div>
+              <h1>{club.nombre}</h1>
+              <Calificacion resumen={resumenResenas} />
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-        
-        {/* 2. CELULAR | UBICACION | ESTACIONAMIENTO */}
-        <div style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          gap: '20px', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          backgroundColor: 'white', 
-          padding: '15px 20px', 
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          marginBottom: '30px'
-        }}>
-          
+      <main className="pc-contenido">
+        <ul className="pc-datos">
           {club.telefono_contacto && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', color: '#334155', fontWeight: '500' }}>
-              <Phone size={20} color="#16a34a" />
-              <a href={`https://wa.me/${club.telefono_contacto.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: '#16a34a', fontWeight: 'bold' }}>
-                {club.telefono_contacto}
-              </a>
-            </div>
+            <li>
+              <Phone size={20} aria-hidden="true" />
+              {whatsapp ? <a href={whatsapp} target="_blank" rel="noreferrer">{club.telefono_contacto}</a> : club.telefono_contacto}
+            </li>
           )}
+          <li>
+            <MapPin size={20} aria-hidden="true" />
+            {mapa
+              ? <a href={mapa} target="_blank" rel="noreferrer">{[club.direccion, club.ciudad, club.provincia].filter(Boolean).join(', ')}</a>
+              : <span>{[club.direccion, club.ciudad, club.provincia].filter(Boolean).join(', ')}</span>}
+          </li>
+          <li>
+            <Car size={20} aria-hidden="true" />
+            <span>{club.estacionamiento ? 'Estacionamiento disponible' : 'Estacionamiento en la calle'}</span>
+          </li>
+        </ul>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', color: '#334155', fontWeight: '500' }}>
-            <MapPin size={20} color="#2563eb" />
-            <span>
-              {club.direccion ? `${club.direccion}, ` : ''}{club.ciudad}, {club.provincia}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', color: '#334155', fontWeight: '500' }}>
-            <Car size={20} color="#64748b" />
-            <span>{club.estacionamiento ? 'Estacionamiento Disponible' : 'Estacionamiento en calle'}</span>
-          </div>
-        </div>
-
-        {/* 3. CANCHAS DISPONIBLES */}
-        <div className="canchas-disponibles-container" style={{ padding: '0', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>
-            Canchas Disponibles
-          </h2>
-          
+        <section className="pc-seccion" aria-labelledby="pc-canchas">
+          <h2 id="pc-canchas">Canchas disponibles</h2>
           {canchas.length === 0 ? (
-            <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '12px', textAlign: 'center', border: '1px dashed #cbd5e1' }}>
-              <ImageIcon size={48} color="#cbd5e1" style={{ margin: '0 auto 15px' }} />
-              <p className="no-canchas-msg" style={{ margin: 0, color: '#64748b', fontSize: '1.1rem' }}>Este club aún no tiene canchas registradas.</p>
-            </div>
+            <div className="pc-vacio"><ImageIcon size={40} aria-hidden="true" /><p>Este club aún no tiene canchas registradas.</p></div>
           ) : (
-            <div className="canchas-galeria-grid">
-              {canchas.map((cancha) => (
-                <div key={cancha.id} className="cancha-tarjeta-premium" onClick={() => abrirModalDetalle(cancha)}>
-                  <div className="cancha-tarjeta-img-box">
-                    {cancha.imagen_url ? (
-                      <img src={cancha.imagen_url.split(',')[0]} alt={cancha.nombre} className="cancha-tarjeta-img" />
-                    ) : (
-                      <div className="cancha-tarjeta-placeholder">
-                        <ImageIcon size={32} color="#94a3b8" />
-                      </div>
-                    )}
-                    <div className="cancha-badge-deporte">{cancha.deporte}</div>
-                  </div>
-                  <div className="cancha-tarjeta-body">
-                    <h3 className="cancha-tarjeta-titulo">{cancha.nombre}</h3>
-                    <div style={{ display: 'flex', gap: '12px', color: '#64748b', fontSize: '0.85rem', marginBottom: '10px', flexWrap: 'wrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={14}/> {cancha.cantidad_jugadores || '5'} jug.</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Layers size={14}/> {cancha.superficie || (cancha.deporte === 'Pádel' ? 'Blindex / Sintético' : 'Sintético')}</span>
-                      {cancha.techada && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2563eb' }}><CloudRain size={14}/> Techada</span>}
-                    </div>
-                    <div className="cancha-tarjeta-precio">
-                      <span className="precio-numero">${cancha.precio_hora}</span>
-                      <span className="precio-texto">/ hora</span>
-                    </div>
-                    <button className="btn-ver-detalle">Ver info y horarios</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 4. SERVICIOS Y REDES SOCIALES */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', borderTop: '2px solid #e2e8f0', paddingTop: '30px' }}>
-          
-          {/* Columna Izquierda: SERVICIOS */}
-          <div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '15px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Servicios
-            </h3>
-            {club.servicios ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                {club.servicios.split(',').map((servicio, i) => (
-                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#e2e8f0', color: '#334155', padding: '8px 16px', borderRadius: '20px', fontSize: '0.95rem', fontWeight: '500' }}>
-                    <CheckCircle2 size={18} color="#475569" />
-                    {servicio.trim()}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: '#64748b', fontSize: '1rem', fontStyle: 'italic' }}>No hay servicios detallados.</p>
-            )}
-          </div>
-
-          {/* Columna Derecha: REDES SOCIALES Y CORREO */}
-          <div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '15px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Redes Sociales y Correo
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {club.correo_contacto && (
-                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${club.correo_contacto}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#475569', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                  <Mail size={24} />
-                  {club.correo_contacto}
-                </a>
-              )}
-
-              {club.redes_sociales?.instagram && (
-                <a href={club.redes_sociales.instagram.includes('http') ? club.redes_sociales.instagram : `https://instagram.com/${club.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#E1306C', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                  <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Insta" style={{ width: '24px', height: '24px' }} />
-                  {club.redes_sociales.instagram}
-                </a>
-              )}
-              
-              {club.redes_sociales?.tiktok && (
-                <a href={club.redes_sociales.tiktok.includes('http') ? club.redes_sociales.tiktok : `https://tiktok.com/@${club.redes_sociales.tiktok.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#0f172a', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                  <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" style={{ width: '24px', height: '24px' }} />
-                  {club.redes_sociales.tiktok}
-                </a>
-              )}
-              
-              {club.redes_sociales?.facebook && (
-                <a href={club.redes_sociales.facebook.includes('http') ? club.redes_sociales.facebook : `https://facebook.com/search/top/?q=${club.redes_sociales.facebook}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: '#1877F2', fontSize: '1rem', fontWeight: '500', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Face" style={{ width: '24px', height: '24px' }} />
-                  {club.redes_sociales.facebook}
-                </a>
-              )}
-
-              {(!club.redes_sociales?.instagram && !club.redes_sociales?.tiktok && !club.redes_sociales?.facebook && !club.correo_contacto) && (
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>Sin redes sociales cargadas.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 5. ACERCA DE ESTE CLUB (SIEMPRE VISIBLE)                  */}
-        {/* ========================================================= */}
-        <div style={{ borderTop: '2px solid #e2e8f0', marginTop: '40px', paddingTop: '30px' }}>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#0f172a', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Acerca de este club
-          </h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', alignItems: 'start' }}>
-            
-            {/* CARRUSEL DE FOTOS DEL PREDIO */}
-            {fotosClub.length > 0 ? (
-              <div style={{ position: 'relative', width: '100%', height: '300px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                <img src={fotosClub[fotoClubIdx]} alt={`Instalación ${fotoClubIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                
-                {fotosClub.length > 1 && (
-                  <>
-                    <button onClick={retrocederFotoClub} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                      <ChevronLeft size={24} color="#0f172a" />
-                    </button>
-                    <button onClick={avanzarFotoClub} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                      <ChevronRight size={24} color="#0f172a" />
-                    </button>
-                    <div style={{ position: 'absolute', bottom: '15px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                      {fotosClub.map((_, idx) => (
-                        <div key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: idx === fotoClubIdx ? '#2563eb' : 'rgba(255,255,255,0.6)', transition: 'background-color 0.3s' }} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div style={{ width: '100%', height: '300px', borderRadius: '16px', backgroundColor: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1' }}>
-                <ImageIcon size={48} style={{ marginBottom: '10px' }} />
-                <span>No hay fotos disponibles</span>
-              </div>
-            )}
-
-            {/* DESCRIPCIÓN DEL CLUB */}
-            <div style={{ color: '#475569', fontSize: '1.05rem', lineHeight: '1.6', whiteSpace: 'pre-line', padding: '10px 0' }}>
-              {club.descripcion ? club.descripcion : <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Este club aún no ha agregado una descripción de sus instalaciones.</span>}
-            </div>
-
-          </div>
-        </div>
-
-        {/* 6. RESEÑAS */}
-        <SeccionResenas club={club} onResumen={setResumenResenas} />
-
-      </div>
-
-      {/* ========================================================= */}
-      {/* 7. MODAL DETALLE DE CANCHA                                */}
-      {/* ========================================================= */}
-      {canchaSeleccionada && (
-        <div className="modal-cancha-overlay" onClick={cerrarModal}>
-          <div className="modal-cancha-content" onClick={(e) => e.stopPropagation()}>
-            
-            <button className="btn-cerrar-modal" onClick={cerrarModal}>
-              <X size={24} />
-            </button>
-
-            <div className="modal-carrusel-container">
-              {(() => {
-                const imagenes = canchaSeleccionada.imagen_url 
-                  ? canchaSeleccionada.imagen_url.split(',').filter(url => url.trim() !== '') 
-                  : [];
-
-                if (imagenes.length === 0) {
-                  return (
-                    <div className="carrusel-placeholder">
-                      <ImageIcon size={48} color="#94a3b8" />
-                      <p>Sin fotos disponibles</p>
-                    </div>
-                  );
-                }
-
+            <ul className="pc-canchas">
+              {canchas.map((cancha) => {
+                const foto = listaImagenes(cancha.imagen_url)[0];
                 return (
-                  <>
-                    <img 
-                      src={imagenes[imagenActualIdx]} 
-                      alt={`Cancha ${imagenActualIdx + 1}`} 
-                      className="carrusel-img-activa"
-                    />
-                    
-                    {imagenes.length > 1 && (
-                      <>
-                        <button className="carrusel-btn left" onClick={() => retrocederImagen(imagenes)}>
-                          <ChevronLeft size={24} color="#0f172a" />
-                        </button>
-                        <button className="carrusel-btn right" onClick={() => avanzarImagen(imagenes)}>
-                          <ChevronRight size={24} color="#0f172a" />
-                        </button>
-                        <div className="carrusel-indicadores">
-                          {imagenes.map((_, idx) => (
-                            <div key={idx} className={`indicador-punto ${idx === imagenActualIdx ? 'activo' : ''}`} />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
+                  <li key={cancha.id}>
+                    <button type="button" className="pc-cancha" onClick={() => setCanchaAbierta(cancha)}>
+                      <span className="pc-cancha-foto">
+                        {foto ? <img src={foto} alt="" loading="lazy" /> : <ImageIcon size={32} aria-hidden="true" />}
+                        <span className="gp-chip gp-chip--marca">{cancha.deporte}</span>
+                      </span>
+                      <span className="pc-cancha-cuerpo">
+                        <strong>{cancha.nombre}</strong>
+                        <span className="pc-cancha-datos">
+                          <span><Users size={14} aria-hidden="true" /> {jugadoresDe(cancha)} jug.</span>
+                          <span><Layers size={14} aria-hidden="true" /> {superficieDe(cancha)}</span>
+                          {cancha.techada && <span><CloudRain size={14} aria-hidden="true" /> Techada</span>}
+                        </span>
+                        <span className="pc-cancha-precio">{moneda(cancha.precio_hora)} <small>/ hora</small></span>
+                        <span className="pc-cancha-cta">Ver info y horarios</span>
+                      </span>
+                    </button>
+                  </li>
                 );
-              })()}
-            </div>
+              })}
+            </ul>
+          )}
+        </section>
 
-            <div className="modal-cancha-info">
-              <div className="modal-info-header">
-                <h2>{canchaSeleccionada.nombre}</h2>
-                <span className="badge-deporte-grande">{canchaSeleccionada.deporte}</span>
-              </div>
-              
-              <div className="modal-info-detalles">
-                <div className="detalle-bloque">
-                  <span className="detalle-lbl">Precio por turno</span>
-                  <span className="detalle-val precio-destacado">${canchaSeleccionada.precio_hora} <small>/ hora</small></span>
-                </div>
-                
-                <div className="detalle-bloque divisor"></div>
-                
-                <div className="detalle-bloque">
-                  <span className="detalle-lbl">Especificaciones</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '5px', color: '#334155', fontSize: '0.95rem' }}>
-                    <span><strong style={{color:'#0f172a'}}>Jugadores:</strong> {canchaSeleccionada.cantidad_jugadores || '5'} jugadores</span>
-                    <span><strong style={{color:'#0f172a'}}>Tipo de piso:</strong> {canchaSeleccionada.superficie || (canchaSeleccionada.deporte === 'Pádel' ? 'Blindex / Sintético' : 'Sintético')}</span>
-                    <span><strong style={{color:'#0f172a'}}>Infraestructura:</strong> {canchaSeleccionada.techada ? 'Totalmente Techada' : 'Descubierta / Al aire libre'}</span>
-                  </div>
-                </div>
+        <div className="pc-dos-col">
+          <section className="pc-seccion" aria-labelledby="pc-servicios">
+            <h2 id="pc-servicios">Servicios</h2>
+            {servicios.length > 0 ? (
+              <ul className="pc-servicios">
+                {servicios.map((s) => <li key={s}><CheckCircle2 size={16} aria-hidden="true" /> {s}</li>)}
+              </ul>
+            ) : <p className="pc-nada">No hay servicios detallados.</p>}
+          </section>
 
-                <div className="detalle-bloque divisor"></div>
-                
-                <div className="detalle-bloque">
-                  <span className="detalle-lbl">Horario de atención</span>
-                  <span className="detalle-val con-icono">
-                    <Clock size={18} className="txt-azul"/> 
-                    {canchaSeleccionada.hora_apertura} a {canchaSeleccionada.hora_cierre} hs
-                  </span>
-                </div>
-              </div>
-
-              {/* BOTONES DE ACCIÓN EN EL MODAL */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-                <button className="btn-reservar-gigante" onClick={irAReservar}>
-                  <CalendarDays size={20} /> Elegir Horario
-                </button>
-                
-                {/* BOTÓN MÁGICO DE WHATSAPP */}
-                <button 
-                  onClick={armarPartido}
-                  style={{ 
-                    backgroundColor: '#25D366', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '16px', 
-                    borderRadius: '12px', 
-                    fontSize: '1.1rem', 
-                    fontWeight: 'bold', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '10px', 
-                    cursor: 'pointer', 
-                    boxShadow: '0 4px 6px rgba(37, 211, 102, 0.2)',
-                    transition: 'transform 0.2s, background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#20b858'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#25D366'; e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  <MessageCircle size={22} /> Invitar al equipo por WhatsApp
-                </button>
-              </div>
-
-            </div>
-
-          </div>
+          <section className="pc-seccion" aria-labelledby="pc-contacto">
+            <h2 id="pc-contacto">Redes y correo</h2>
+            <ul className="pc-contactos">
+              {correo && <li><a href={correo} target="_blank" rel="noreferrer"><Mail size={20} aria-hidden="true" /> {club.correo_contacto}</a></li>}
+              {redes.map(({ red, href, texto }) => {
+                const Icono = ICONOS_RED[red] || AtSign;
+                return <li key={red}><a href={href} target="_blank" rel="noopener noreferrer"><Icono size={20} aria-hidden="true" /> <span className="gp-solo-lector">{NOMBRES_RED[red]}: </span>{texto}</a></li>;
+              })}
+            </ul>
+            {sinContacto && <p className="pc-nada">Sin redes sociales cargadas.</p>}
+          </section>
         </div>
-      )}
 
+        <section className="pc-seccion" aria-labelledby="pc-acerca">
+          <h2 id="pc-acerca">Acerca de este club</h2>
+          <div className="pc-acerca">
+            <Carrusel imagenes={fotosClub} etiqueta={`Instalaciones de ${club.nombre}`} vacio="No hay fotos disponibles" className="pc-acerca-fotos" />
+            <p className="pc-descripcion">{club.descripcion || <span className="pc-nada">Este club aún no agregó una descripción de sus instalaciones.</span>}</p>
+          </div>
+        </section>
+
+        <SeccionResenas club={club} onResumen={setResumenResenas} />
+      </main>
+
+      {canchaAbierta && (
+        <Hoja
+          titulo={canchaAbierta.nombre}
+          descripcion={canchaAbierta.deporte}
+          ancho="lg"
+          onCerrar={() => setCanchaAbierta(null)}
+          pie={(
+            <>
+              <button type="button" className="gp-btn gp-btn--fantasma pc-whatsapp" onClick={() => armarPartido(canchaAbierta)}>
+                <MessageCircle size={18} /> Invitar al equipo
+              </button>
+              <span className="gp-espaciador" />
+              <button type="button" className="gp-btn gp-btn--primario" onClick={() => navigate(`/reservar/${canchaAbierta.id}`)}>
+                <CalendarDays size={18} /> Elegir horario
+              </button>
+            </>
+          )}
+        >
+          <Carrusel imagenes={listaImagenes(canchaAbierta.imagen_url)} etiqueta={canchaAbierta.nombre} vacio="Sin fotos disponibles" />
+          <dl className="pc-ficha">
+            <div><dt>Precio por turno</dt><dd className="pc-ficha-precio">{moneda(canchaAbierta.precio_hora)} <small>/ hora</small></dd></div>
+            <div><dt>Jugadores</dt><dd>{jugadoresDe(canchaAbierta)}</dd></div>
+            <div><dt>Tipo de piso</dt><dd>{superficieDe(canchaAbierta)}</dd></div>
+            <div><dt>Infraestructura</dt><dd>{canchaAbierta.techada ? 'Totalmente techada' : 'Al aire libre'}</dd></div>
+            <div><dt>Horario</dt><dd><Clock size={16} aria-hidden="true" /> {hora(canchaAbierta.hora_apertura) || '08:00'} a {hora(canchaAbierta.hora_cierre) || '23:00'} hs</dd></div>
+          </dl>
+        </Hoja>
+      )}
     </div>
   );
 };
