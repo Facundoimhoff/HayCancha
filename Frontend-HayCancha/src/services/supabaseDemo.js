@@ -92,7 +92,7 @@ const generarTurnos = () => {
     }
   }
   // Un par de bloqueos por mantenimiento
-  lista.push({ id: id++, cancha_id: 'c2', fecha: iso(new Date(hoy.getTime() + 2 * 86400000)), hora_inicio: '18:00', nombre_cliente: 'Bloqueo por: Mantenimiento', telefono_cliente: 'BLOQUEO', precio_final: null, extras: null });
+  lista.push({ id, cancha_id: 'c2', fecha: iso(new Date(hoy.getTime() + 2 * 86400000)), hora_inicio: '18:00', nombre_cliente: 'Bloqueo por: Mantenimiento', telefono_cliente: 'BLOQUEO', precio_final: null, extras: null });
   return lista;
 };
 

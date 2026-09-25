@@ -190,7 +190,7 @@ const GestorKiosco = ({ clubId }) => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <span style={{ color: '#16a34a', fontWeight: '800', fontSize: '1.15rem' }}>${p.precio}</span>
+              <span style={{ color: '#16a34a', fontWeight: '800', fontSize: "1.15rem" }}>${Number(p.precio).toLocaleString("es-AR")}</span>
               <button 
                 onClick={() => eliminarProducto(p.id)} 
                 style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '8px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}

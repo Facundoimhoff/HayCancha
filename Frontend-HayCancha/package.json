@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:db": "node supabase/tests/rls.test.mjs",
-    "dev:demo": "vite --mode demo --port 5174"
+    "dev:demo": "vite --mode demo --port 5174",
+    "test:unit": "node --test \"src/**/*.test.js\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
