@@ -38,6 +38,15 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - Pendiente de decisión de negocio: qué pasa con un club cuya suscripción se cancela (hoy solo se registra el estado; no se bloquean reservas).
 - Supuesto no verificado en vivo: que MP devuelva `preapproval_id` en la back_url del plan (si no, funciona el botón de verificación por mail).
 
+## Fase 3 — UX/UI Stripe/Linear (rama `fase-3-diseno`)
+Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza CSS) PENDIENTES.
+- `src/styles/tokens.css`: única fuente de colores/tipografía/radios/sombras/vidrio/movimiento/z-index. Incluye alias legacy (--turf, --ink, --paper, --line…). Cargado antes que todo (main.jsx). Fallback sin backdrop-filter vía @supports.
+- `src/styles/glass.css`: `.glass`, `.glass--strong`, `.glass--dark`, `.aurora-bg`. El vidrio solo se nota sobre color: las pantallas de auth/planes usan `var(--aurora-bg)`.
+- Aplicado: tarjetas de LoginAdmin/LoginCliente/RegistroClub/ActualizarPassword/Planes, barra de Planes (sticky), navbar de Landing (vidrio oscuro), tooltip del menú flotante, banner de cookies (vidrio oscuro, compacto en celular), overlays de modales (--overlay-bg/--overlay-filter).
+- Animación de ruta ahora SOLO opacidad (`pageFade`): un `transform` en un ancestro rompe `position: fixed` de los hijos. `prefers-reduced-motion` respetado. Foco visible global y `:active` scale(.98) en botones.
+- Tipografía cargada una sola vez en index.html (Inter + Montserrat); html usa --font-body; `*{font-family:inherit}`. Se borró App.css (plantilla Vite) y los @import/:root duplicados.
+- Deuda detectada (etapa 5): 40 clases CSS repetidas entre archivos (globales, se pisan; ej. .opcion-tooltip y .menu-flotante-container están en Landing y Dashboard), 77 colores hex distintos, 122 estilos inline en DashboardAdmin (53 en PerfilClub), FAQ.css usa azul Bootstrap (fuera de marca), Planes muestra $50000 fijo en el JSX (debería venir del backend), varios alert() en formularios.
+
 ## Pendientes de configuración (manuales, dashboards)
 1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
 2. Supabase Auth: password mínimo 8 con minúscula+mayúscula+dígito+símbolo (YA CONFIGURADO por el usuario; el front lo valida igual), NO activar Captcha (rompería login: la web no envía captchaToken), Leaked password protection (en Email provider; puede ser función de pago), Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
@@ -57,4 +66,4 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso
-Desplegar Fase 2b (migración en SQL Editor → env en Render → configurar webhook en Mercado Pago → Manual Deploy → git push) y probar un pago real; luego Fase 3 (UX/UI Stripe/Linear).
+Fase 3 etapas 4-5 (formularios con errores inline + medidor de contraseña + stepper de registro; limpieza de CSS/colisiones/inline styles), luego Landing/Reserva/Dashboard. Pendiente del usuario: revertir PRECIO_PLAN_FULL en Render y cancelar la suscripción de prueba en Mercado Pago.

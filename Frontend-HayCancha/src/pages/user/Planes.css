@@ -4,7 +4,7 @@
 
 .planes-page-modern {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background: var(--aurora-bg);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -14,8 +14,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
-  background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-bottom: 1px solid var(--glass-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
 }
 
 .btn-volver-modern {
@@ -217,11 +222,13 @@
 }
 
 .plan-card-premium {
-  background: white;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   border-radius: 24px;
   padding: 40px;
-  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--glass-border);
   position: sticky;
   top: 40px;
 }

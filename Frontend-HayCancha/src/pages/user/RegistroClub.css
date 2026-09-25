@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,800;0,900;1,900&display=swap');
+/* Tipografías: se cargan una sola vez en index.html */
 
 /* =========================================
    RegistroClub.css (Onboarding Premium GridPlay)
@@ -6,7 +6,7 @@
 
 .registro-club-container {
   min-height: 100vh;
-  background-color: #f8fafc; /* Gris super sutil (mismo que Planes) */
+  background: var(--aurora-bg);
   padding: 60px 20px;
   font-family: 'Inter', system-ui, sans-serif;
   display: flex;
@@ -17,11 +17,13 @@
 .registro-club-card {
   width: 100%;
   max-width: 750px; 
-  background-color: white;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   padding: 48px;
   border-radius: 24px;
-  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); /* Sombra premium suave */
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--glass-border);
 }
 
 /* --- CABECERA --- */

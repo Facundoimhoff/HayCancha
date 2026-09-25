@@ -1,20 +1,5 @@
 /* Heredamos variables por si se renderiza aislado */
-:root {
-  --font-body: 'Inter', sans-serif;
-  --font-display: 'Montserrat', sans-serif; 
-  
-  --paper: #f8fafc; 
-  --ink: #475162; 
-  --ink-dark: #1e293b; 
-  --paper-card: #ffffff; 
-  --line: #e2e8f0; 
-  
-  --turf: #22c55e;
-  --flash: #84cc16;
-  
-  --text-muted: #64748b;
-  --text-soft: #94a3b8;
-}
+/* Variables de diseño: ver src/styles/tokens.css */
 
 .buscar-page {
   font-family: var(--font-body);

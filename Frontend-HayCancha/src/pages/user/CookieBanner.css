@@ -3,11 +3,13 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #0f172a; /* Fondo oscuro GridPlay */
+  background: var(--glass-bg-dark); /* vidrio oscuro GridPlay */
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   color: white;
-  z-index: 9999;
+  z-index: var(--z-cookie);
   box-shadow: 0 -5px 25px rgba(0,0,0,0.2);
-  border-top: 2px solid #22c55e;
+  border-top: 1px solid rgba(34, 197, 94, 0.55);
   font-family: 'Inter', sans-serif;
 }
 
@@ -69,16 +71,24 @@
 }
 
 @media (max-width: 768px) {
+  /* Compacto en celular: texto más chico y botones lado a lado (antes tapaba ~35% de la pantalla) */
   .cookie-content {
     flex-direction: column;
-    padding: 20px;
-    text-align: center;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    gap: 12px;
+    text-align: left;
+  }
+  .cookie-content p {
+    font-size: 0.8rem;
+    line-height: 1.4;
   }
   .cookie-botones {
     width: 100%;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 10px;
   }
   .btn-cookie {
-    width: 100%;
+    flex: 1;
+    padding: 10px 12px;
   }
 }

@@ -1,0 +1,28 @@
+/* =============================================================================
+   Utilidades de vidrio (glassmorphism) reutilizables.
+   Receta: fondo translúcido + backdrop-filter + borde sutil + sombra suave.
+   El vidrio solo se nota sobre algo con color: usar .aurora-bg en el fondo de la página.
+   ============================================================================= */
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+
+.glass--strong {
+  background: var(--glass-bg-strong);
+}
+
+.glass--dark {
+  background: var(--glass-bg-dark);
+  border-color: var(--glass-border-dark);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  color: var(--color-white);
+}
+
+.aurora-bg {
+  background: var(--aurora-bg);
+}
