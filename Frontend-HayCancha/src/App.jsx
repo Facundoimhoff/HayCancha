@@ -6,7 +6,7 @@ import HomeUsuario from './pages/user/HomeUsuario';
 import PerfilClub from './pages/user/PerfilClub'; 
 import ReservaCancha from './pages/user/ReservaCancha';
 import LandingPage from './pages/user/LandingPage'; 
-import DashboardAdmin from './pages/user/DashboardAdmin';
+import DashboardAdmin from './pages/admin/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
 import RegistroClub from './pages/user/RegistroClub';

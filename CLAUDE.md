@@ -47,6 +47,14 @@ Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza C
 - Tipografía cargada una sola vez en index.html (Inter + Montserrat); html usa --font-body; `*{font-family:inherit}`. Se borró App.css (plantilla Vite) y los @import/:root duplicados.
 - Deuda detectada (etapa 5): 40 clases CSS repetidas entre archivos (globales, se pisan; ej. .opcion-tooltip y .menu-flotante-container están en Landing y Dashboard), 77 colores hex distintos, 122 estilos inline en DashboardAdmin (53 en PerfilClub), FAQ.css usa azul Bootstrap (fuera de marca), Planes muestra $50000 fijo en el JSX (debería venir del backend), varios alert() en formularios.
 
+## Fase 3 — Panel de administración rediseñado (rama `fase-3-dashboard`)
+- Reemplaza `pages/user/DashboardAdmin.jsx/.css` (1600 líneas con componentes anidados que se remontaban en cada render, 122 estilos en línea y un bug: un bloque de CSS de celular pegado dos veces quedó fuera del @media y escondía el menú lateral en escritorio).
+- Nueva estructura `src/pages/admin/`: `DashboardAdmin.jsx` (shell + carga de datos + operaciones Supabase), `dashboard.css` (todo bajo `.dash`, clases con prefijo `dash-`, usa tokens), `lib/` (`metricas.js` funciones puras + tests, `formato.js`, `deportes.js`), `components/ui.jsx` (Panel, KpiCard, Sparkline, Chip, Modal, Campo, MenuAcciones, TooltipGrafico…), `views/` (VistaGeneral, Reportes, Clientes, Canchas, MiClub), `modals/modales.jsx` (Turno, Bloqueo, Detalles, Cancha crear/editar unificado, Confirmar).
+- Métricas nuevas: variación contra el período anterior, ocupación por cancha, mapa de calor día×hora, ranking de clientes, "reservado a futuro". Ingresos = solo turnos con fecha <= hoy (antes incluía el mes completo). Períodos: hoy / semana (lunes→hoy) / mes / 30 días.
+- `window.confirm/alert` reemplazados por modales con error inline. El FAB de la Landing (menu flotante) vivía en DashboardAdmin.css y se movió a LandingPage.css.
+- Pendiente en el panel: `MiClub.jsx` (53 estilos en línea) y `GestorKiosco.jsx` (29) siguen con markup viejo pero se ven bien gracias a clases de compatibilidad en dashboard.css; reescribirlos.
+- Herramientas: `npm run dev:demo` (puerto 5174, datos de ejemplo sin sesión, ver src/services/supabaseDemo.js), `npm run test:unit` (13 tests de métricas), `npm run test:db` (73 de RLS). Para capturas en el navegador integrado: viewport 1000×N y `scale` 0.78 muestra el ancho completo; llamar a tabs_select antes de cada screenshot.
+
 ## Pendientes de configuración (manuales, dashboards)
 1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
 2. Supabase Auth: password mínimo 8 con minúscula+mayúscula+dígito+símbolo (YA CONFIGURADO por el usuario; el front lo valida igual), NO activar Captcha (rompería login: la web no envía captchaToken), Leaked password protection (en Email provider; puede ser función de pago), Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
@@ -66,4 +74,4 @@ Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza C
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso
-Fase 3 etapas 4-5 (formularios con errores inline + medidor de contraseña + stepper de registro; limpieza de CSS/colisiones/inline styles), luego Landing/Reserva/Dashboard. Pendiente del usuario: revertir PRECIO_PLAN_FULL en Render y cancelar la suscripción de prueba en Mercado Pago.
+Subir a producción (git push origin main). Luego: reescribir MiClub y GestorKiosco con el sistema nuevo; formularios con errores inline y stepper en registro (Fase 3 etapa 4); limpieza de CSS de las demás pantallas (40 clases repetidas, 77 colores); revisar Landing/Reserva/PerfilClub con el mismo criterio visual. Después Fase 4 (n8n/webhooks) y Fase 7 (reportes y poda).
