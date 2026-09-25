@@ -15,7 +15,7 @@ import Reportes from './views/Reportes.jsx';
 import Clientes from './views/Clientes.jsx';
 import Canchas from './views/Canchas.jsx';
 import MiClub from './views/MiClub.jsx';
-import GestorKiosco from '../user/GestorKiosco.jsx';
+import Kiosco from './views/Kiosco.jsx';
 import { ModalTurno, ModalBloqueo, ModalDetalles, ModalCancha, ModalConfirmar } from './modals/modales.jsx';
 import './dashboard.css';
 
@@ -270,14 +270,7 @@ const DashboardAdmin = () => {
             <Canchas canchas={canchas} onNueva={() => setModal({ tipo: 'cancha', modo: 'crear', inicial: canchaVacia() })}
               onEditar={(c) => setModal({ tipo: 'cancha', modo: 'editar', inicial: canchaParaEditar(c) })} onEliminar={pedirEliminarCancha} />
           )}
-          {vista === 'kiosco' && (
-            <>
-              <header className="dash-page-head">
-                <div><h1>Kiosco y extras</h1><p>Administrá bebidas, paletas y otros productos que se ofrecen al reservar</p></div>
-              </header>
-              <GestorKiosco clubId={miClub?.id} />
-            </>
-          )}
+          {vista === 'kiosco' && <Kiosco clubId={miClub?.id} />}
           {vista === 'perfil' && <MiClub miClub={miClub} setMiClub={setMiClub} />}
         </div>
       </main>

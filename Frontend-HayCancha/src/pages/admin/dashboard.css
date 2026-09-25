@@ -353,22 +353,75 @@
 .dash-detalle-cobro div { display: flex; justify-content: space-between; gap: 12px; color: var(--color-slate-600); }
 .dash-detalle-cobro .total { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--color-slate-200); font-size: 16px; font-weight: 700; color: var(--color-brand-700); }
 
-/* ---------- Compatibilidad: pantallas "Mi Club" y "Kiosco" (aún con estilos en línea) ---------- */
-.dash .perfil-wrapper { background: #fff; border: 1px solid var(--border-subtle); border-radius: var(--dash-radio); box-shadow: var(--shadow-sm); padding: 28px; width: 100%; }
-.dash .perfil-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--color-slate-100); }
-.dash .perfil-header h2 { font-size: 1.15rem; font-weight: 700; }
-.dash .perfil-alerta { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; }
-.dash .perfil-alerta.exito { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.dash .perfil-alerta.error { background: var(--color-danger-bg); color: #991b1b; border: 1px solid #fecaca; }
-.dash .form-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--color-slate-700); }
-.dash .input-icon-wrapper { position: relative; }
-.dash .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-slate-400); pointer-events: none; }
-.dash .form-input-icon { width: 100%; height: 42px; padding: 0 12px 0 42px; border: 1px solid var(--color-slate-300); border-radius: 10px; background: #fff; color: var(--text-strong); font-size: 14px; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); }
-.dash .form-input-icon:focus { outline: 0; border-color: var(--color-brand-500); box-shadow: var(--ring-brand); }
-.dash .btn-guardar { padding: 12px 18px; border: 0; border-radius: 10px; background: var(--color-brand-600); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: background var(--dur-fast); }
-.dash .btn-guardar:hover:not(:disabled) { background: var(--color-brand-700); }
-.dash .btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
-.dash textarea { font-family: inherit; }
+/* ---------- Mi club ---------- */
+.dash-club-form { display: flex; flex-direction: column; gap: 16px; }
+.dash-solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.dash-btn--auto { align-self: flex-start; }
+.dash-textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.5; }
+.dash-campo-error { font-size: 12.5px; font-weight: 600; color: #b91c1c; }
+.dash-nada { font-size: 13.5px; color: var(--text-muted); }
+.dash-input[aria-invalid="true"] { border-color: var(--color-danger); }
+.dash-btn:focus-within { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
+
+.dash-logo-fila { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dash-logo-caja { display: grid; place-items: center; width: 120px; height: 120px; padding: 8px; box-sizing: border-box; border: 2px dashed var(--color-slate-300); border-radius: 14px; background: var(--color-slate-50); color: var(--color-slate-400); }
+.dash-logo-caja img { width: 100%; height: 100%; object-fit: contain; }
+.dash-logo-acciones { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.dash-logo-acciones small { font-size: 12px; color: var(--text-muted); }
+.dash-color { display: inline-flex; align-items: center; gap: 10px; height: 40px; }
+.dash-color input { width: 48px; height: 40px; padding: 2px; border: 1px solid var(--color-slate-300); border-radius: 10px; background: #fff; cursor: pointer; }
+.dash-color code { font-size: 13px; font-weight: 700; color: var(--color-slate-600); }
+
+.dash-galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.dash-galeria li { position: relative; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--color-slate-200); border-radius: 10px; background: var(--color-slate-100); }
+.dash-galeria img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dash-galeria button { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 50%; background: rgba(15, 23, 42, 0.75); color: #fff; cursor: pointer; }
+.dash-galeria button:hover { background: var(--color-danger); }
+.dash-galeria li.nueva span { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: var(--color-brand-600); color: #fff; font-size: 11px; font-weight: 700; }
+
+.dash-redes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.dash-input-red { position: relative; display: flex; align-items: center; }
+.dash-input-red > svg { position: absolute; left: 12px; color: var(--color-slate-400); pointer-events: none; }
+.dash-input-red .dash-input { padding-left: 38px; }
+
+.dash-barra-guardar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 12px 16px; border: 1px solid var(--color-slate-200); border-radius: 14px; background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); box-shadow: 0 -8px 24px -12px rgba(15, 23, 42, 0.18); }
+.dash-aviso { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
+.dash-aviso.exito { color: var(--color-brand-700); }
+.dash-aviso.error { color: #b91c1c; }
+.dash-aviso.aviso { color: #92400e; }
+
+/* ---------- Kiosco y extras ---------- */
+.dash-prod-form { display: flex; flex-direction: column; gap: 14px; }
+.dash-prod-icono-fila { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dash-prod-agregar { margin-left: auto; }
+.dash-prod-emoji { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1px solid var(--color-slate-300); border-radius: 10px; background: #fff; color: var(--color-slate-500); }
+.dash-prod-emoji input { width: 64px; border: 0; background: none; font-size: 1.3rem; text-align: center; }
+.dash-prod-emoji input:focus { outline: 0; }
+.dash-prod-emoji:focus-within { border-color: var(--color-brand-500); box-shadow: var(--ring-brand); }
+.dash-prod-lista { display: flex; flex-direction: column; }
+.dash-prod { display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--color-slate-100); transition: background var(--dur-fast); }
+.dash-prod:last-child { border-bottom: 0; }
+.dash-prod:hover { background: var(--color-slate-50); }
+.dash-prod.oculto .dash-prod-info { opacity: 0.55; }
+.dash-prod-icono { flex-shrink: 0; width: 44px; height: 44px; object-fit: cover; border: 1px solid var(--color-slate-200); border-radius: 10px; background: var(--color-slate-100); }
+.dash-prod-icono--emoji { display: grid; place-items: center; font-size: 1.5rem; }
+.dash-prod-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.dash-prod-info strong { font-size: 14.5px; font-weight: 700; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-prod-info span { font-size: 14px; font-weight: 700; color: var(--color-brand-700); font-variant-numeric: tabular-nums; }
+.dash-prod-acciones { display: flex; align-items: center; gap: 6px; }
+.dash-prod-edicion { flex: 1; display: grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+.dash-prod-edicion .dash-prod-acciones, .dash-prod-edicion .dash-error { grid-column: 1 / -1; }
+.dash-prod-error { margin: 12px 20px; }
+.dash-prod-cargando { padding: 24px 20px; }
+.dash-icon-btn--peligro:hover { background: var(--color-danger-bg); color: var(--color-danger); }
+
+@media (max-width: 640px) {
+  .dash-prod { flex-wrap: wrap; padding: 12px 16px; }
+  .dash-prod-info { flex-basis: calc(100% - 60px); }
+  .dash-prod-edicion { grid-template-columns: 1fr; }
+  .dash-prod-agregar { margin-left: 0; width: 100%; }
+  .dash-barra-guardar { flex-wrap: wrap; }
+}
 
 /* ---------- Adaptación a pantallas chicas ---------- */
 @media (max-width: 1100px) {
