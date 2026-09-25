@@ -155,3 +155,5 @@
 .btn-enviar-contacto:active {
   transform: scale(0.98);
 }
+.contacto-error { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--color-danger-bg); color: #b91c1c; font-size: 0.9rem; font-weight: 600; }
+.btn-enviar-contacto:disabled { opacity: 0.6; cursor: not-allowed; }

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FAQ from './FAQ';
+import { useFormspree } from '../../hooks/useFormspree';
 import './LandingPage.css'; 
 import { createPortal } from 'react-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [enviado, setEnviado] = useState(false);
+  const { enviar, enviando, enviado, error: errorEnvio } = useFormspree('https://formspree.io/f/xzeppakb');
   const [busqueda, setBusqueda] = useState('');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
@@ -31,28 +32,6 @@ export default function LandingPage() {
     e.preventDefault(); 
     if (busqueda.trim() !== '') {
       navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
-    }
-  };
-
-  const manejarEnvio = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-
-    try {
-      const response = await fetch("https://formspree.io/f/xzeppakb", {
-        method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.ok) {
-        setEnviado(true);
-        form.reset();
-        setTimeout(() => setEnviado(false), 4000); 
-      }
-    } catch (error) {
-      alert("Hubo un error al enviar el mensaje.");
     }
   };
 
@@ -281,17 +260,18 @@ export default function LandingPage() {
                 <p>Nos contactaremos a la brevedad.</p>
               </div>
             ) : (
-              <form onSubmit={manejarEnvio} className="contact-form">
+              <form onSubmit={enviar} className="contact-form">
                 <div className="form-group">
-                  <input type="text" name="nombre" required placeholder="Tu Nombre / Empresa" className="sport-input" />
+                  <input type="text" name="nombre" required placeholder="Tu Nombre / Empresa" aria-label="Tu nombre o empresa" className="sport-input" />
                 </div>
                 <div className="form-group">
-                  <input type="email" name="email" required placeholder="Email de contacto" className="sport-input" />
+                  <input type="email" name="email" required placeholder="Email de contacto" aria-label="Email de contacto" className="sport-input" />
                 </div>
                 <div className="form-group">
-                  <textarea name="mensaje" required rows="4" placeholder="Dejanos tu comentario..." className="sport-input sport-textarea"></textarea>
+                  <textarea name="mensaje" required rows="4" placeholder="Dejanos tu comentario..." aria-label="Tu mensaje" className="sport-input sport-textarea"></textarea>
                 </div>
-                <button type="submit" className="btn-submit-sport">ENVIAR MENSAJE <Send size={18} /></button>
+                {errorEnvio && <p className="contact-error" role="alert">{errorEnvio}</p>}
+                <button type="submit" className="btn-submit-sport" disabled={enviando}>{enviando ? 'ENVIANDO…' : 'ENVIAR MENSAJE'} <Send size={18} /></button>
               </form>
             )}
           </div>

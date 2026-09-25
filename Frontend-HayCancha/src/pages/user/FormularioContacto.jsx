@@ -1,36 +1,11 @@
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Send, CheckCircle, ArrowLeft } from 'lucide-react';
-// IMPORTANTE: Importar CSS
+import { useFormspree } from '../../hooks/useFormspree';
 import './FormularioContacto.css';
 
 const FormularioContacto = () => {
-  const [enviado, setEnviado] = useState(false);
   const navigate = useNavigate();
-
-  const FORMSPREE_URL = "https://formspree.io/f/xrengjgv"; 
-
-  const manejarEnvio = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-
-    try {
-      const response = await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.ok) {
-        setEnviado(true);
-        form.reset();
-        setTimeout(() => setEnviado(false), 3000); 
-      }
-    } catch (error) {
-      alert("Hubo un error al enviar el mensaje.");
-    }
-  };
+  const { enviar, enviando, enviado, error } = useFormspree('https://formspree.io/f/xrengjgv', { mensajeOk: 3000 });
 
   return (
     <div className="contacto-container">
@@ -61,11 +36,12 @@ const FormularioContacto = () => {
             <p className="exito-texto">Gracias por contactarte. Te responderemos pronto.</p>
           </div>
         ) : (
-          <form onSubmit={manejarEnvio} className="contacto-form">
+          <form onSubmit={enviar} className="contacto-form">
             
             <div>
-              <label className="form-label-contacto">Tu Nombre / Empresa</label>
+              <label htmlFor="contacto-nombre" className="form-label-contacto">Tu Nombre / Empresa</label>
               <input 
+                id="contacto-nombre"
                 type="text" 
                 name="nombre" 
                 required 
@@ -75,8 +51,9 @@ const FormularioContacto = () => {
             </div>
 
             <div>
-              <label className="form-label-contacto">Email de contacto</label>
+              <label htmlFor="contacto-email" className="form-label-contacto">Email de contacto</label>
               <input 
+                id="contacto-email"
                 type="email" 
                 name="email" 
                 required 
@@ -86,8 +63,9 @@ const FormularioContacto = () => {
             </div>
 
             <div>
-              <label className="form-label-contacto">Mensaje</label>
+              <label htmlFor="contacto-mensaje" className="form-label-contacto">Mensaje</label>
               <textarea 
+                id="contacto-mensaje"
                 name="mensaje" 
                 required 
                 rows="5" 
@@ -96,8 +74,10 @@ const FormularioContacto = () => {
               ></textarea>
             </div>
 
-            <button type="submit" className="btn-enviar-contacto">
-              <Send size={20} /> Enviar Mensaje
+            {error && <p className="contacto-error" role="alert">{error}</p>}
+
+            <button type="submit" className="btn-enviar-contacto" disabled={enviando}>
+              <Send size={20} /> {enviando ? 'Enviando…' : 'Enviar Mensaje'}
             </button>
           </form>
         )}

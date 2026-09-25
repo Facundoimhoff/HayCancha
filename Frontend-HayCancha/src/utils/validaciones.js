@@ -17,6 +17,20 @@ export const validarPassword = (password) => {
   return faltantes.length ? `La contraseña necesita ${faltantes.join(', ')}.` : null;
 };
 
+/**
+ * Estado de cada regla y fuerza (0-4) para el medidor de contraseña.
+ * `valida` es true solo si cumple TODAS las reglas (lo mismo que exige validarPassword y Supabase).
+ */
+export const evaluarPassword = (password) => {
+  const p = password || '';
+  const reglas = REGLAS_PASSWORD.map((r, i) => ({ id: i, texto: r.texto, cumple: r.ok(p) }));
+  const cumplidas = reglas.filter((r) => r.cumple).length;
+  const valida = cumplidas === reglas.length;
+  // Sin nada escrito no hay fuerza; con 8+ caracteres las reglas restantes suben el nivel
+  const fuerza = !p ? 0 : valida ? (p.length >= 12 ? 4 : 3) : Math.min(2, Math.ceil(cumplidas / 2));
+  return { reglas, cumplidas, valida, fuerza };
+};
+
 export const validarTelefono = (telefono) => /^[0-9+()\s-]{6,20}$/.test((telefono || '').trim());
 
 /**

@@ -14,7 +14,8 @@ import {
 } from '../../utils/reservas';
 import { Calificacion } from '../../components/user/Estrellas';
 import EditorExtras from '../../components/user/EditorExtras';
-import AuthReserva from '../../components/user/AuthReserva';
+import FormularioAcceso from '../../components/user/FormularioAcceso';
+import { Pasos } from '../../components/user/Formulario';
 import './ReservaCancha.css';
 
 const PASOS = ['Horario', 'Confirmar', 'Listo'];
@@ -231,13 +232,7 @@ const ReservaCancha = () => {
           {club && <Calificacion resumen={resumen} className="rc-calif" />}
         </div>
 
-        <ol className="rc-pasos" aria-label="Progreso de la reserva">
-          {PASOS.map((nombrePaso, i) => (
-            <li key={nombrePaso} className={paso === i + 1 ? 'actual' : paso > i + 1 ? 'hecho' : ''} aria-current={paso === i + 1 ? 'step' : undefined}>
-              <span>{paso > i + 1 ? '✓' : i + 1}</span>{nombrePaso}
-            </li>
-          ))}
-        </ol>
+        <Pasos pasos={PASOS} actual={paso} etiqueta="Progreso de la reserva" />
 
         {/* ---------------- PASO 1: HORARIO ---------------- */}
         {paso === 1 && (
@@ -341,7 +336,7 @@ const ReservaCancha = () => {
             </div>
 
             {!user ? (
-              cargandoSesion ? <p className="rc-cargando">Cargando…</p> : <AuthReserva />
+              cargandoSesion ? <p className="rc-cargando">Cargando…</p> : <FormularioAcceso />
             ) : (
               <form onSubmit={confirmar} className="gp-form">
                 <p className="rc-conectado">Conectado como <strong>{user.email}</strong></p>

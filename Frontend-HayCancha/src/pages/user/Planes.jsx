@@ -1,88 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send, ChevronLeft, ChevronRight } from 'lucide-react';
-import { postApi, precalentarApi } from '../../services/api';
+import { precalentarApi } from '../../services/api';
 import { useAuth } from '../../context/authContext';
+import { usePagoPlan } from '../../hooks/usePagoPlan';
+import { usePrecioPlan } from '../../hooks/usePlanes';
+import { useFormspree } from '../../hooks/useFormspree';
 import './Planes.css';
 
 const Planes = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [cargando, setCargando] = useState(false);
-  const [servidorLento, setServidorLento] = useState(false);
-  const [errorPago, setErrorPago] = useState('');
+  const { iniciar: iniciarPago, cargando, servidorLento, error: errorPago } = usePagoPlan('Full');
+  const { precio, cargando: cargandoPrecio } = usePrecioPlan('Full');
+  const { enviar: manejarEnvioDuda, enviando: enviandoDuda, enviado, error: errorDuda } = useFormspree('https://formspree.io/f/xrengjgv', { mensajeOk: 5000 });
 
-  // Estados para el formulario de contacto
-  const [enviado, setEnviado] = useState(false);
-
-  // NUEVO: Estados para el carrusel de imágenes
+  // Carrusel de imágenes
   const [imagenIndex, setImagenIndex] = useState(0);
   const imagenes = [
-    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop", // Padel (Original tuya)
+    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop", // Padel
     "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop", // Tenis
     "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop"  // Fútbol
   ];
 
-  // Funciones para pasar las fotos
   const nextImg = () => setImagenIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   const prevImg = () => setImagenIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
 
   // Despierta el backend (Render) mientras el usuario lee el plan, así el clic en "Comenzar" no espera el arranque en frío.
   useEffect(() => { precalentarApi(); }, []);
 
-  // Al volver atrás desde Mercado Pago el navegador puede restaurar la página con el botón trabado en "cargando".
-  useEffect(() => {
-    const restaurar = (e) => { if (e.persisted) { setCargando(false); setServidorLento(false); } };
-    window.addEventListener('pageshow', restaurar);
-    return () => window.removeEventListener('pageshow', restaurar);
-  }, []);
-
-  const iniciarPago = async () => {
-    setErrorPago('');
-
+  const comenzar = () => {
     // Hace falta una cuenta: la suscripción se asocia a tu usuario cuando volvés de pagar.
-    if (!user) {
-      navigate('/registro-club');
-      return;
-    }
-
-    setCargando(true);
-    setServidorLento(false);
-
-    // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
-    const { ok, data } = await postApi('/api/crear-suscripcion', { plan: 'Full' }, { onLento: () => setServidorLento(true) });
-
-    if (ok && data?.linkPago) {
-      window.location.href = data.linkPago; // a Mercado Pago; el botón queda en "cargando" hasta que cambie la página
-      return;
-    }
-
-    setErrorPago(data?.error || 'No pudimos conectar con Mercado Pago. Intentá de nuevo en unos segundos.');
-    setCargando(false);
-    setServidorLento(false);
-  };
-
-  const manejarEnvioDuda = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-
-    try {
-      // Usando el mismo endpoint de Formspree que tu Landing
-      const response = await fetch("https://formspree.io/f/xrengjgv", {
-        method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.ok) {
-        setEnviado(true);
-        form.reset();
-        setTimeout(() => setEnviado(false), 5000); 
-      }
-    } catch (error) {
-      alert("Hubo un error al enviar tu consulta.");
-    }
+    if (!user) { navigate('/registro-club'); return; }
+    iniciarPago();
   };
 
   return (
@@ -178,7 +128,7 @@ const Planes = () => {
               <h2 className="plan-nombre">Suscripción Mensual</h2>
               <div className="plan-precio-wrapper">
                 <span className="plan-moneda">$</span>
-                <span className="plan-monto">50000</span>
+                <span className="plan-monto">{cargandoPrecio ? '…' : precio ? precio.toLocaleString('es-AR') : 'Consultar'}</span>
                 <span className="plan-periodo">/mes</span>
               </div>
               <p className="plan-sub-precio">Facturación mensual. Cancelá cuando quieras.</p>
@@ -204,7 +154,7 @@ const Planes = () => {
             </div>
 
             <button 
-              onClick={iniciarPago}
+              onClick={comenzar}
               disabled={cargando}
               className={`btn-comprar-modern ${cargando ? 'cargando' : 'activo'}`}
             >
@@ -241,8 +191,9 @@ const Planes = () => {
                 <input type="email" name="email" placeholder="Tu Email o Teléfono" required className="duda-input" />
               </div>
               <textarea name="mensaje" placeholder="Escribí tu duda acá..." required rows="4" className="duda-input duda-textarea"></textarea>
-              <button type="submit" className="btn-enviar-duda">
-                Enviar consulta <Send size={18} />
+              {errorDuda && <p className="pago-error" role="alert">{errorDuda}</p>}
+              <button type="submit" className="btn-enviar-duda" disabled={enviandoDuda}>
+                {enviandoDuda ? 'Enviando…' : 'Enviar consulta'} <Send size={18} />
               </button>
             </form>
           )}

@@ -1,412 +1,97 @@
-/* Tipografías: se cargan una sola vez en index.html */
+/* =============================================================================
+   Registro de club (Cuenta → Plan → Club). Campos, botones, alertas, medidor y pasos
+   son componentes compartidos: src/components/user/componentes.css
+   ============================================================================= */
 
-/* =========================================
-   RegistroClub.css (Onboarding Premium GridPlay)
-   ========================================= */
+.estado-carga { padding: 48px 20px; text-align: center; color: var(--text-muted); font-weight: 600; }
 
 .registro-club-container {
   min-height: 100vh;
-  background: var(--aurora-bg);
-  padding: 60px 20px;
-  font-family: 'Inter', system-ui, sans-serif;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  padding: 48px 16px;
+  background: var(--aurora-bg);
+  font-family: var(--font-body);
 }
 
 .registro-club-card {
   width: 100%;
-  max-width: 750px; 
+  max-width: 720px;
+  box-sizing: border-box;
+  padding: 40px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
-  padding: 48px;
-  border-radius: 24px;
   box-shadow: var(--shadow-glass);
-  border: 1px solid var(--glass-border);
 }
 
-/* --- CABECERA --- */
-.registro-header {
-  text-align: center;
-  margin-bottom: 40px;
+.registro-header { text-align: center; margin-bottom: 24px; }
+.icono-exito-wrapper { color: var(--color-brand-500); margin-bottom: 8px; filter: drop-shadow(0 4px 10px rgba(34, 197, 94, 0.2)); animation: rg-pop 0.5s var(--ease-out); }
+@keyframes rg-pop { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
+.registro-titulo { margin: 0 0 8px; color: var(--text-strong); font: 900 2rem/1.15 var(--font-display); letter-spacing: -0.8px; }
+.registro-subtitulo { margin: 0; color: var(--text-muted); font-size: 1rem; font-weight: 500; line-height: 1.5; }
+
+.rg-enviar { width: 100%; min-height: 50px; font-size: 1.02rem; }
+.rg-pie { margin: 0; text-align: center; color: var(--text-muted); font-size: 0.92rem; }
+.rg-pie a, .rg-enlace, .gp-alerta a { color: var(--color-brand-700); font-weight: 700; }
+.rg-enlace { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+.gp-opcional { font-weight: 500; color: var(--text-muted); }
+
+/* Términos */
+.rg-terminos { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--color-brand-200); border-radius: var(--radius-md); background: var(--color-brand-50); }
+.rg-terminos.con-error { border-color: var(--color-danger); background: var(--color-danger-bg); }
+.rg-terminos input { flex-shrink: 0; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--color-brand-500); cursor: pointer; }
+.rg-terminos label { font-size: 0.92rem; line-height: 1.5; color: var(--color-slate-700); cursor: pointer; }
+.rg-terminos a { color: var(--color-brand-700); font-weight: 700; }
+
+/* Plan */
+.rg-plan { display: flex; flex-direction: column; gap: 16px; }
+.rg-plan-tarjeta { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--color-brand-200); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--shadow-sm); }
+.rg-plan-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill); background: var(--color-brand-100); color: var(--color-brand-700); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; }
+.rg-plan-precio { margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.rg-plan-precio strong { font: 900 2.4rem var(--font-display); color: var(--text-strong); }
+.rg-plan-precio span { color: var(--text-muted); font-weight: 600; }
+.rg-plan-tarjeta ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rg-plan-tarjeta li { display: flex; align-items: center; gap: 8px; color: var(--color-slate-700); font-weight: 500; }
+.rg-plan-tarjeta li svg { color: var(--color-brand-500); flex-shrink: 0; }
+.rg-plan-tarjeta small { text-align: center; color: var(--text-muted); }
+
+/* Club */
+.rg-seccion { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--color-white); }
+.rg-seccion h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: 800 1.05rem var(--font-body); color: var(--text-strong); }
+.rg-fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rg-perfil { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
+.rg-perfil-texto { display: flex; flex-direction: column; gap: 14px; }
+.rg-logo-col { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; }
+.rg-logo { position: relative; display: grid; place-items: center; width: 160px; height: 160px; overflow: hidden; border: 2px dashed var(--color-slate-300); border-radius: var(--radius-lg); background: var(--color-slate-50); color: var(--text-muted); cursor: pointer; transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+.rg-logo:hover, .rg-logo:focus-within { border-color: var(--color-brand-500); background: var(--color-brand-50); }
+.rg-logo.con-error { border-color: var(--color-danger); }
+.rg-logo span { display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; font-size: 0.88rem; }
+.rg-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+.rg-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--color-slate-50); cursor: pointer; color: var(--text-muted); }
+.rg-toggle span { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.rg-toggle strong { color: var(--text-strong); font-size: 0.95rem; }
+.rg-toggle small { font-size: 0.8rem; }
+.rg-toggle input { appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; width: 44px; height: 26px; margin: 0; border-radius: var(--radius-pill); background: var(--color-slate-300); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.rg-toggle input::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease); }
+.rg-toggle input:checked { background: var(--color-brand-500); }
+.rg-toggle input:checked::after { transform: translateX(18px); }
+.rg-toggle:has(input:checked) svg { color: var(--color-brand-600); }
+
+.rg-redes { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--color-slate-50); }
+.rg-redes legend { padding: 0 6px; color: var(--color-slate-700); font-weight: 700; font-size: 0.9rem; }
+.rg-cuenta { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+@media (max-width: 640px) {
+  .registro-club-container { padding: 20px 12px; }
+  .registro-club-card { padding: 24px 18px; }
+  .registro-titulo { font-size: 1.6rem; }
+  .rg-fila-2, .rg-perfil { grid-template-columns: 1fr; }
+  .rg-seccion { padding: 16px; }
 }
 
-.icono-exito-wrapper {
-  color: #22c55e; /* Verde GridPlay */
-  margin-bottom: 16px;
-  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  filter: drop-shadow(0 4px 10px rgba(34, 197, 94, 0.2));
-}
-
-@keyframes scaleIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.registro-titulo {
-  color: #0f172a;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: -1px;
-  margin: 0 0 12px 0;
-}
-
-.registro-subtitulo {
-  color: #64748b;
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* --- SECCIONES --- */
-.registro-form {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.registro-seccion {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.cuenta-admin-seccion {
-  background-color: #f8fafc;
-  padding: 24px;
-  border-radius: 16px;
-  border: 1px dashed #cbd5e1;
-}
-
-.seccion-titulo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #0f172a;
-  font-size: 1.2rem;
-  font-weight: 800;
-  margin: 0;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 12px;
-}
-
-.seccion-descripcion {
-  font-size: 0.95rem;
-  color: #64748b;
-  margin: -10px 0 10px 0;
-}
-
-/* --- LAYOUT PERFIL (LOGO IZQ, TEXTO DER) --- */
-.club-perfil-layout {
-  display: flex;
-  gap: 24px;
-}
-
-.logo-upload-col {
-  flex: 0 0 160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.logo-upload-box {
-  width: 160px;
-  height: 160px;
-  border: 2px dashed #cbd5e1;
-  border-radius: 20px;
-  background-color: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-/* Hover con Verde Oficial, chau azul por defecto */
-.logo-upload-box:hover {
-  border-color: #22c55e;
-  background-color: #f0fdf4; 
-}
-
-.logo-upload-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #64748b;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-
-.logo-upload-box:hover .logo-upload-placeholder {
-  color: #16a34a; /* Se tiñe de verde al pasar el mouse */
-}
-
-.logo-preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.logo-ayuda {
-  margin: 10px 0 0 0;
-  font-size: 0.8rem;
-  color: #94a3b8;
-  text-align: center;
-}
-
-.texto-info-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* --- INPUTS --- */
-.grid-2-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #334155;
-}
-
-.form-input-reg {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  font-size: 1rem;
-  color: #0f172a;
-  background-color: #f8fafc; /* Fondo grisecito suave para contrastar con el blanco de la tarjeta */
-  box-sizing: border-box;
-  font-family: inherit;
-  transition: all 0.3s ease;
-}
-
-/* Foco Verde GridPlay */
-.form-input-reg:focus {
-  outline: none;
-  border-color: #22c55e;
-  background-color: white;
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
-}
-
-.form-input-reg::placeholder {
-  color: #94a3b8;
-}
-
-.form-textarea-reg {
-  resize: vertical;
-  min-height: 100%;
-  height: 100%;
-}
-
-.input-con-icono {
-  position: relative;
-}
-
-.input-con-icono svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  transition: color 0.3s ease;
-}
-
-/* Que el ícono se pinte de verde al hacer foco */
-.input-con-icono:focus-within svg {
-  color: #22c55e;
-}
-
-.input-con-icono .form-input-reg {
-  padding-left: 42px;
-}
-
-/* --- TOGGLE ESTACIONAMIENTO --- */
-.toggle-servicio-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background-color: #f8fafc;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
-}
-
-.toggle-servicio-container:hover {
-  border-color: #cbd5e1;
-  background-color: white;
-}
-
-.toggle-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.text-green { color: #22c55e; }
-.text-gray { color: #94a3b8; }
-
-.toggle-info strong {
-  display: block;
-  color: #0f172a;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.toggle-info p {
-  margin: 4px 0 0 0;
-  color: #64748b;
-  font-size: 0.85rem;
-}
-
-/* Switch estilo iOS/GridPlay */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-.toggle-switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #e2e8f0;
-  transition: .3s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-input:checked + .slider {
-  background-color: #22c55e;
-}
-
-input:checked + .slider:before {
-  transform: translateX(22px);
-}
-
-/* --- BOTÓN SUBMIT PREMIUM (Verde) --- */
-.btn-submit-registro {
-  width: 100%;
-  background-color: #22c55e;
-  color: white;
-  padding: 18px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  border: none;
-  transition: all 0.2s ease;
-  margin-top: 10px;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-}
-
-.btn-submit-registro.activo {
-  cursor: pointer;
-}
-
-.btn-submit-registro.activo:hover {
-  background-color: #16a34a;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -6px rgba(34, 197, 94, 0.4);
-}
-
-.btn-submit-registro.activo:active {
-  transform: translateY(0);
-}
-
-.btn-submit-registro.cargando {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-
-/* =========================================
-   RESPONSIVE (MAGIA CRO PARA MÓVILES)
-   ========================================= */
-@media (max-width: 768px) {
-  
-  .registro-club-container {
-    padding: 20px 10px;
-  }
-
-  .registro-club-card { 
-    padding: 30px 20px; 
-    border-radius: 20px;
-  }
-
-  .registro-titulo {
-    font-size: 1.8rem;
-  }
-
-  .club-perfil-layout { 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 20px;
-  }
-
-  .logo-upload-col { 
-    flex: 0 0 auto; 
-    width: 100%;
-  }
-
-  /* El input de descripción se encoge en móvil en lugar de heredar altura del logo */
-  .form-textarea-reg {
-    min-height: 120px; 
-  }
-
-  .grid-2-col { 
-    grid-template-columns: 1fr; 
-    gap: 16px;
-  }
-
-  .toggle-info { 
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 8px; 
-  }
-
-  .cuenta-admin-seccion {
-    padding: 20px 16px;
-  }
-}
+@media (prefers-reduced-motion: reduce) { .icono-exito-wrapper { animation: none; } }

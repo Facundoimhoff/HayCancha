@@ -66,3 +66,14 @@ export const postApi = async (ruta, cuerpo = {}, { onLento } = {}) => {
     clearTimeout(temporizadorLento);
   }
 };
+
+/** GET público al backend (sin sesión). Devuelve { ok, status, data }; nunca lanza. */
+export const getApi = async (ruta) => {
+  try {
+    const respuesta = await fetch(`${API_URL}${ruta}`);
+    const data = await respuesta.json().catch(() => ({}));
+    return { ok: respuesta.ok, status: respuesta.status, data };
+  } catch {
+    return { ok: false, status: 0, data: {} };
+  }
+};

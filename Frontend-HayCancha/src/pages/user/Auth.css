@@ -1,0 +1,73 @@
+/* =============================================================================
+   Pantallas de autenticación (LoginCliente, LoginAdmin, ActualizarPassword). Prefijo au-.
+   Campos, botones, alertas y medidor: src/components/user/componentes.css
+   ============================================================================= */
+
+.au-pagina {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 72px 16px 32px;
+  box-sizing: border-box;
+  background: var(--aurora-bg);
+  font-family: var(--font-body);
+}
+
+.au-volver {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--text-strong);
+  font: 700 0.9rem var(--font-body);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.au-volver:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.au-card {
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  padding: 36px 30px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--shadow-glass);
+  animation: au-entra var(--dur-page) var(--ease-out);
+}
+@keyframes au-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.au-header { text-align: center; margin-bottom: 24px; }
+.au-icono { display: inline-grid; place-items: center; width: 60px; height: 60px; margin-bottom: 14px; border-radius: var(--radius-lg); background: var(--color-brand-100); color: var(--color-brand-700); }
+.au-header h1 { margin: 0 0 8px; color: var(--text-strong); font: 900 1.7rem/1.15 var(--font-display); letter-spacing: -0.5px; }
+.au-header p { margin: 0; color: var(--text-muted); font-size: 0.98rem; line-height: 1.5; }
+
+.au-form { display: flex; flex-direction: column; gap: 16px; }
+.au-form .gp-btn { width: 100%; min-height: 48px; }
+.au-enlace { align-self: flex-end; padding: 0; border: 0; background: none; color: var(--color-brand-700); font: 600 0.85rem var(--font-body); cursor: pointer; text-decoration: underline; }
+.au-mensajes { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.au-divisor { display: flex; align-items: center; gap: 12px; margin: 22px 0 16px; color: var(--text-soft); font-size: 0.85rem; }
+.au-divisor::before, .au-divisor::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.au-sumate { text-align: center; }
+.au-sumate p { margin: 0 0 12px; color: var(--text-muted); font-size: 0.95rem; }
+
+@media (max-width: 480px) {
+  .au-card { padding: 28px 20px; }
+  .au-header h1 { font-size: 1.45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) { .au-card { animation: none; } }

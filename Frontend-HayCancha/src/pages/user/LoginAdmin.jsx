@@ -1,193 +1,118 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Mail, Zap, KeyRound, Store } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { precalentarApi } from '../../services/api';
-import { ArrowLeft, Lock, Mail, Zap, KeyRound } from 'lucide-react';
-import './LoginAdmin.css'; // Importamos el nuevo diseño
+import { CampoTexto, CampoPassword } from '../../components/user/Formulario';
+import './Auth.css';
 
+const ROLES_ADMIN = ['admin', 'superadmin'];
+
+/** Ingreso al panel de clubes (y recuperación de contraseña). Las cuentas sin club siguen su alta en /registro-club. */
 const LoginAdmin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
-  
-  // Estado para alternar entre "Iniciar Sesión" y "Recuperar Contraseña"
+  const [error, setError] = useState('');
+  const [mensaje, setMensaje] = useState('');
   const [modoRecuperar, setModoRecuperar] = useState(false);
 
   // Desde acá se llega a Planes y al pago: se despierta el backend con anticipación.
   useEffect(() => { precalentarApi(); }, []);
 
-  // FUNCIÓN 1: INICIAR SESIÓN NORMAL
-  const handleLogin = async (e) => {
+  const cambiarModo = (recuperar) => { setModoRecuperar(recuperar); setError(''); setMensaje(''); };
+
+  const ingresar = async (e) => {
     e.preventDefault();
     setCargando(true);
-    setError(null);
-    setMensaje(null);
-
+    setError('');
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error: errorLogin } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (errorLogin) throw errorLogin;
 
-      if (error) throw error;
-
-      // El rol sale de public.usuarios (lo escribe el servidor). Cuentas sin club terminan su alta en /registro-club.
-      const { data: perfil } = await supabase
-        .from('usuarios')
-        .select('rol')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      navigate(['admin', 'superadmin'].includes(perfil?.rol) ? '/panel' : '/registro-club');
-
-    } catch (error) {
-      setError('Credenciales incorrectas. Por favor, intentá nuevamente.');
+      // El rol sale de public.usuarios (lo escribe el servidor)
+      const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', data.user.id).maybeSingle();
+      navigate(ROLES_ADMIN.includes(perfil?.rol) ? '/panel' : '/registro-club');
+    } catch (err) {
+      const texto = err?.message || '';
+      if (texto.includes('not confirmed')) setError('Tenés que confirmar tu correo antes de ingresar. Revisá tu bandeja de entrada.');
+      else if (texto.includes('rate')) setError('Demasiados intentos. Esperá un momento y probá de nuevo.');
+      else setError('Email o contraseña incorrectos.');
     } finally {
       setCargando(false);
     }
   };
 
-  // FUNCIÓN 2: ENVIAR MAIL DE RECUPERACIÓN
-  const handleRecuperarPassword = async (e) => {
+  const recuperar = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setError("Por favor, ingresá tu email arriba para recuperar la contraseña.");
-      return;
-    }
-
     setCargando(true);
-    setError(null);
-    setMensaje(null);
-
+    setError('');
+    setMensaje('');
     try {
-      // Supabase envía el mail y redirige a la ruta que ya tenés creada (actualizar-password)
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: errorRecuperar } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/actualizar-password`,
       });
-
-      if (error) throw error;
-      
-      setMensaje("Te enviamos un enlace a tu correo. Revisá tu bandeja de entrada o spam.");
-      // Limpiamos el campo para que quede prolijo
-      setPassword(''); 
-      
-    } catch (error) {
-      setError("Hubo un error al intentar enviar el correo. Verificá que esté bien escrito.");
+      if (errorRecuperar) throw errorRecuperar;
+      setMensaje('Te enviamos un enlace a tu correo. Revisá tu bandeja de entrada y el spam.');
+    } catch {
+      setError('No pudimos enviar el correo. Verificá que esté bien escrito.');
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="admin-login-page">
-      
-      {/* BOTÓN VOLVER */}
-      <button onClick={() => navigate('/')} className="btn-volver-inicio">
-        <ArrowLeft size={20} /> Volver al inicio
+    <div className="au-pagina">
+      <button type="button" onClick={() => navigate('/')} className="au-volver">
+        <ArrowLeft size={18} /> Volver al inicio
       </button>
 
-      <div className="admin-login-card">
-        
-        <div className="admin-login-header">
-          <h1>{modoRecuperar ? 'Recuperar Contraseña' : 'Panel de Clubes'}</h1>
-          <p>
-            {modoRecuperar 
-              ? 'Ingresá tu correo y te enviaremos un enlace para crear una nueva.' 
-              : 'Ingresá para gestionar tus reservas y canchas.'}
-          </p>
+      <main className="au-card">
+        <div className="au-header">
+          <div className="au-icono">{modoRecuperar ? <KeyRound size={30} aria-hidden="true" /> : <Store size={30} aria-hidden="true" />}</div>
+          <h1>{modoRecuperar ? 'Recuperar contraseña' : 'Panel de clubes'}</h1>
+          <p>{modoRecuperar ? 'Ingresá tu correo y te enviamos un enlace para crear una nueva.' : 'Ingresá para gestionar tus reservas y canchas.'}</p>
         </div>
 
-        {error && <div className="alerta-error">{error}</div>}
-        {mensaje && <div className="alerta-exito">{mensaje}</div>}
+        <div className="au-mensajes">
+          {error && <p className="gp-alerta gp-alerta--error" role="alert">{error}</p>}
+          {mensaje && <p className="gp-alerta gp-alerta--exito" role="status">{mensaje}</p>}
+        </div>
 
-        {/* EL FORMULARIO CAMBIA SEGÚN EL MODO (LOGIN O RECUPERAR) */}
-        <form onSubmit={modoRecuperar ? handleRecuperarPassword : handleLogin}>
-          
-          <div className="admin-form-group">
-            <label>Email del Administrador</label>
-            <div className="input-wrapper">
-              <Mail size={20} className="input-icon" />
-              <input 
-                type="email" 
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@tuclub.com"
-              />
-            </div>
-          </div>
+        <form onSubmit={modoRecuperar ? recuperar : ingresar} className="au-form">
+          <CampoTexto etiqueta="Email del administrador" icono={Mail} type="email" required autoComplete="email" placeholder="admin@tuclub.com" value={email} onChange={(e) => setEmail(e.target.value)} />
 
           {!modoRecuperar && (
-            <div className="admin-form-group">
-              <label>Contraseña</label>
-              <div className="input-wrapper">
-                <Lock size={20} className="input-icon" />
-                <input 
-                  type="password" 
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
-              <span 
-                className="link-olvido" 
-                onClick={() => { setModoRecuperar(true); setError(null); setMensaje(null); }}
-              >
-                ¿Olvidaste tu contraseña?
-              </span>
-            </div>
+            <>
+              <CampoPassword valor={password} onCambio={setPassword} required placeholder="Tu contraseña" />
+              <button type="button" className="au-enlace" onClick={() => cambiarModo(true)}>¿Olvidaste tu contraseña?</button>
+            </>
           )}
 
-          <button type="submit" disabled={cargando} className="btn-admin-submit">
-            {cargando 
-              ? (modoRecuperar ? 'Enviando enlace...' : 'Ingresando...') 
-              : (modoRecuperar ? 'Enviar enlace de recuperación' : 'Iniciar Sesión')}
+          <button type="submit" disabled={cargando} className="gp-btn gp-btn--primario">
+            {cargando ? (modoRecuperar ? 'Enviando enlace…' : 'Ingresando…') : (modoRecuperar ? 'Enviar enlace de recuperación' : 'Iniciar sesión')}
           </button>
+
+          {modoRecuperar && (
+            <button type="button" className="gp-btn gp-btn--fantasma" onClick={() => cambiarModo(false)}>
+              <ArrowLeft size={16} /> Volver a iniciar sesión
+            </button>
+          )}
         </form>
 
-        {/* BOTÓN PARA VOLVER A LOGIN (Si está en modo recuperar) */}
-        {modoRecuperar && (
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <span 
-              className="link-olvido" 
-              style={{ display: 'inline-block', color: '#64748b' }}
-              onClick={() => { setModoRecuperar(false); setError(null); setMensaje(null); }}
-            >
-              <ArrowLeft size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }}/> 
-              Volver a Iniciar Sesión
-            </span>
-          </div>
-        )}
-
-        {/* SECCIÓN DE REGISTRO / PLANES (Solo se muestra en Login) */}
         {!modoRecuperar && (
           <>
-            <div className="admin-divider">
-              <div className="line"></div>
-              <span>o</span>
-              <div className="line"></div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '12px' }}>
-                ¿Todavía no sumaste tu complejo?
-              </p>
-              <button 
-                onClick={() => navigate('/planes')}
-                className="btn-admin-planes"
-              >
-                <Zap size={20} /> Ver Planes y Sumarme
+            <div className="au-divisor"><span>o</span></div>
+            <div className="au-sumate">
+              <p>¿Todavía no sumaste tu complejo?</p>
+              <button type="button" onClick={() => navigate('/planes')} className="gp-btn gp-btn--secundario">
+                <Zap size={18} /> Ver planes y sumarme
               </button>
             </div>
           </>
         )}
-        
-      </div>
+      </main>
     </div>
   );
 };

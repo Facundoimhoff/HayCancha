@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { Mail, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
+import { Mail, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import { validarPassword, AYUDA_PASSWORD } from '../../utils/validaciones';
+import { validarPassword } from '../../utils/validaciones';
+import { CampoTexto, CampoPassword } from './Formulario';
 import './componentes.css';
 
 /**
- * Ingresar / crear cuenta / recuperar contraseña dentro del flujo de reserva.
- * No devuelve nada: al iniciar sesión, AuthProvider actualiza la sesión y la pantalla que lo contiene continúa sola.
+ * Ingresar / crear cuenta / recuperar contraseña del jugador (en la reserva y en /login-cliente).
+ * Al iniciar sesión AuthProvider actualiza la sesión, así que la pantalla que lo contiene continúa sola;
+ * `onAcceso` es opcional (ej. para navegar a otra ruta). `redireccionEmail` es a dónde vuelve el link del correo
+ * de confirmación y `redireccionGoogle` a dónde vuelve el login con Google.
  */
-export default function AuthReserva() {
+export default function FormularioAcceso({ redireccionEmail, redireccionGoogle, onAcceso }) {
   const [modo, setModo] = useState('ingresar'); // ingresar | crear | recuperar
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [verPassword, setVerPassword] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState('');
   const [aviso, setAviso] = useState('');
@@ -36,16 +38,19 @@ export default function AuthReserva() {
         const { data, error: errorRegistro } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { full_name: nombre.trim() }, emailRedirectTo: window.location.origin },
+          options: { data: { full_name: nombre.trim() }, emailRedirectTo: redireccionEmail || window.location.origin },
         });
         if (errorRegistro) throw errorRegistro;
         if (data.user && !data.session) {
-          setAviso('¡Cuenta creada! Revisá tu correo para confirmarla y después ingresá para terminar tu reserva.');
+          setAviso('¡Cuenta creada! Revisá tu correo (y el spam) para confirmarla y después ingresá.');
           setModo('ingresar');
+        } else {
+          onAcceso?.();
         }
       } else if (modo === 'ingresar') {
         const { error: errorLogin } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (errorLogin) throw errorLogin;
+        onAcceso?.();
       } else {
         const { error: errorRecuperar } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: `${window.location.origin}/actualizar-password`,
@@ -69,7 +74,7 @@ export default function AuthReserva() {
     setError('');
     const { error: errorGoogle } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href },
+      options: { redirectTo: redireccionGoogle || window.location.href },
     });
     if (errorGoogle) setError('No pudimos conectar con Google. Probá con tu correo.');
   };
@@ -92,45 +97,25 @@ export default function AuthReserva() {
 
       <form onSubmit={enviar} className="gp-form">
         {modo === 'crear' && (
-          <label className="gp-campo">
-            <span>Nombre y apellido</span>
-            <div className="gp-input-icono">
-              <UserIcon size={18} />
-              <input type="text" required autoComplete="name" maxLength={80} placeholder="Ej: Lucas Pérez" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-            </div>
-          </label>
+          <CampoTexto etiqueta="Nombre y apellido" icono={UserIcon} type="text" required autoComplete="name" maxLength={80} placeholder="Ej: Lucas Pérez" value={nombre} onChange={(e) => setNombre(e.target.value)} />
         )}
 
-        <label className="gp-campo">
-          <span>Email</span>
-          <div className="gp-input-icono">
-            <Mail size={18} />
-            <input type="email" required autoComplete="email" placeholder="tu@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-        </label>
+        <CampoTexto etiqueta="Email" icono={Mail} type="email" required autoComplete="email" placeholder="tu@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
 
         {modo !== 'recuperar' && (
-          <label className="gp-campo">
-            <span>Contraseña</span>
-            <div className="gp-input-icono">
-              <Lock size={18} />
-              <input
-                type={verPassword ? 'text' : 'password'}
-                required
-                minLength={modo === 'crear' ? 8 : undefined}
-                autoComplete={modo === 'crear' ? 'new-password' : 'current-password'}
-                placeholder={modo === 'crear' ? AYUDA_PASSWORD : 'Tu contraseña'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button type="button" className="gp-input-ojo" onClick={() => setVerPassword((v) => !v)} aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
-                {verPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+          <>
+            <CampoPassword
+              valor={password}
+              onCambio={setPassword}
+              nueva={modo === 'crear'}
+              medidor={modo === 'crear'}
+              required
+              placeholder={modo === 'crear' ? 'Creá una contraseña' : 'Tu contraseña'}
+            />
             {modo === 'ingresar' && (
               <button type="button" className="gp-auth-link" onClick={() => cambiarModo('recuperar')}>¿Olvidaste tu contraseña?</button>
             )}
-          </label>
+          </>
         )}
 
         {error && <p className="gp-alerta gp-alerta--error" role="alert">{error}</p>}

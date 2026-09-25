@@ -31,19 +31,6 @@
 .rc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 20px; align-items: center; }
 .rc-calif { box-shadow: none; border: 1px solid var(--border-subtle); background: var(--color-white); }
 
-/* Progreso */
-.rc-pasos { display: flex; align-items: center; gap: 8px; list-style: none; margin: 0 0 20px; padding: 0; }
-.rc-pasos li { display: flex; align-items: center; gap: 8px; flex: 1; color: var(--text-soft); font-size: 0.85rem; font-weight: 700; }
-.rc-pasos li::after { content: ''; flex: 1; height: 2px; margin-left: 4px; border-radius: 2px; background: var(--color-slate-200); }
-.rc-pasos li:last-child { flex: 0 0 auto; }
-.rc-pasos li:last-child::after { display: none; }
-.rc-pasos li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-slate-200); color: var(--color-slate-500); font-size: 0.8rem; }
-.rc-pasos li.actual { color: var(--text-strong); }
-.rc-pasos li.actual span { background: var(--color-brand-500); color: #fff; box-shadow: var(--ring-brand); }
-.rc-pasos li.hecho { color: var(--color-brand-700); }
-.rc-pasos li.hecho span { background: var(--color-brand-100); color: var(--color-brand-700); }
-.rc-pasos li.hecho::after { background: var(--color-brand-500); }
-
 /* Secciones */
 .rc-seccion { display: flex; flex-direction: column; gap: 16px; animation: rc-entra var(--dur-base) var(--ease-out); }
 .rc-seccion h2 { margin: 0; font: 800 1.2rem var(--font-body); }
@@ -175,7 +162,6 @@
   .rc-cabecera-texto h1 { font-size: 1.25rem; }
   .rc-precio-hora { flex-direction: row; align-items: baseline; gap: 6px; flex-basis: 100%; padding-left: 54px; }
   .rc-fila-2 { grid-template-columns: 1fr; }
-  .rc-pasos li { font-size: 0.78rem; gap: 6px; }
   .rc-horas { grid-template-columns: repeat(3, 1fr); }
 }
 

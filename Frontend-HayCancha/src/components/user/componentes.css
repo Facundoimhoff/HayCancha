@@ -346,3 +346,35 @@
 /* Tarjeta sin foto: fondo de marca en lugar de una imagen remota */
 .gp-tc-media--vacio { background: linear-gradient(135deg, var(--color-slate-800) 0%, var(--color-brand-700) 100%); }
 .gp-tc-marca { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.16); }
+
+/* ---------- Formularios: campo con error, medidor de contraseña, pasos ---------- */
+.gp-campo > label { font-size: 0.9rem; font-weight: 600; color: var(--color-slate-700); }
+.gp-input-icono.sin-icono input { padding-left: 14px; }
+.gp-campo-error { color: #b91c1c; font-weight: 600; font-size: 0.82rem; }
+.gp-campo-ayuda { color: var(--text-muted); font-weight: 500; font-size: 0.82rem; }
+.gp-solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.gp-medidor { display: flex; flex-direction: column; gap: 6px; margin-top: -4px; }
+.gp-medidor-barra { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.gp-medidor-barra span { height: 5px; border-radius: var(--radius-pill); background: var(--color-slate-200); transition: background var(--dur-base) var(--ease); }
+.gp-medidor-barra[data-nivel="1"] span.activa { background: var(--color-danger); }
+.gp-medidor-barra[data-nivel="2"] span.activa { background: var(--color-warning); }
+.gp-medidor-barra[data-nivel="3"] span.activa { background: var(--color-brand-500); }
+.gp-medidor-barra[data-nivel="4"] span.activa { background: var(--color-brand-700); }
+.gp-medidor-nivel { margin: 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
+.gp-medidor-reglas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.gp-medidor-reglas li { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.78rem; }
+.gp-medidor-reglas li.cumple { color: var(--color-brand-700); font-weight: 600; }
+
+.gp-pasos { display: flex; align-items: center; gap: 8px; list-style: none; margin: 0 0 20px; padding: 0; }
+.gp-pasos li { display: flex; align-items: center; gap: 8px; flex: 1; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
+.gp-pasos li::after { content: ''; flex: 1; height: 2px; margin-left: 4px; border-radius: 2px; background: var(--color-slate-200); }
+.gp-pasos li:last-child { flex: 0 0 auto; }
+.gp-pasos li:last-child::after { display: none; }
+.gp-pasos li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-slate-200); color: var(--color-slate-600); font-size: 0.8rem; }
+.gp-pasos li.actual { color: var(--text-strong); }
+.gp-pasos li.actual span { background: var(--color-brand-500); color: #fff; box-shadow: var(--ring-brand); }
+.gp-pasos li.hecho { color: var(--color-brand-700); }
+.gp-pasos li.hecho span { background: var(--color-brand-100); color: var(--color-brand-700); }
+.gp-pasos li.hecho::after { background: var(--color-brand-500); }
+@media (max-width: 560px) { .gp-pasos li { font-size: 0.78rem; gap: 6px; } }

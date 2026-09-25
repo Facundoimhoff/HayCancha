@@ -5,6 +5,10 @@
 // vite.config.js lo activa únicamente con --mode demo; nunca entra al build de producción.
 // =============================================================================
 
+// Escenario de sesión para probar pantallas de alta: localStorage.setItem('demoRol', 'anon' | 'cliente' | 'cliente-pago')
+//   anon = sin sesión (paso 1 del registro) · cliente = cuenta sin plan (paso 2) · cliente-pago = cuenta con plan activo (paso 3)
+const ESCENARIO = (typeof localStorage !== 'undefined' && localStorage.getItem('demoRol')) || 'admin';
+
 const ID_USUARIO = 'demo-admin';
 const ID_CLUB = 'demo-club';
 
@@ -170,14 +174,14 @@ const resenas = resenasBase.map(([club_id, autor, estrellas, comentario, delta])
 }));
 
 const tablas = {
-  usuarios: [{ id: ID_USUARIO, nombre_completo: 'Admin Demo', telefono: null, rol: 'admin' }],
+  usuarios: [{ id: ID_USUARIO, nombre_completo: 'Admin Demo', telefono: null, rol: ESCENARIO.startsWith('cliente') ? 'cliente' : 'admin' }],
   clubes: [club, ...clubesJugador],
   canchas: [...canchas, ...canchasJugador],
   turnos: [...generarTurnos(), ...turnosJugador()],
   productos: [...productos, ...productosJugador],
   resenas,
   kiosco: [],
-  suscripciones: [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full' }],
+  suscripciones: ESCENARIO === 'cliente' ? [] : [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full' }],
 };
 
 /** Constructor de consultas encadenables mínimo: select/eq/in/gte/lte/or/order/limit/single/maybeSingle. */
@@ -295,10 +299,16 @@ export const supabase = {
   from: (tabla) => new Consulta(tabla),
   rpc: (nombre, args = {}) => Promise.resolve(rpcs[nombre] ? rpcs[nombre](args) : { data: null, error: null }),
   auth: {
-    getSession: () => Promise.resolve({ data: { session: sesion } }),
+    getSession: () => Promise.resolve({ data: { session: ESCENARIO === 'anon' ? null : sesion } }),
     getUser: () => Promise.resolve({ data: { user: sesion.user } }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     signOut: () => Promise.resolve({ error: null }),
+    // Solo para ver la interfaz: un correo que contenga "existe" simula una cuenta ya registrada
+    signUp: ({ email }) => Promise.resolve({ data: { user: { identities: email.includes('existe') ? [] : [{}] }, session: null }, error: null }),
+    signInWithPassword: () => Promise.resolve({ data: { user: sesion.user }, error: { message: 'Invalid login credentials' } }),
+    resetPasswordForEmail: () => Promise.resolve({ error: null }),
+    signInWithOAuth: () => Promise.resolve({ error: null }),
+    updateUser: () => Promise.resolve({ error: null }),
   },
   storage: {
     from: () => ({

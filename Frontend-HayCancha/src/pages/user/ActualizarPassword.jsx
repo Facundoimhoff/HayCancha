@@ -1,125 +1,96 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { KeyRound, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import { KeyRound, Lock, ArrowLeft } from 'lucide-react';
-import './ActualizarPassword.css'; 
+import { CampoPassword } from '../../components/user/Formulario';
+import { evaluarPassword } from '../../utils/validaciones';
+import './Auth.css';
 
+/** Cambio de contraseña desde el enlace del correo de recuperación. */
 const ActualizarPassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmacion, setConfirmacion] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
+  const [errores, setErrores] = useState({});
+  const [errorGeneral, setErrorGeneral] = useState('');
+  const [listo, setListo] = useState(false);
+  const temporizador = useRef(null);
 
-  const handleSubmit = async (e) => {
+  useEffect(() => () => clearTimeout(temporizador.current), []);
+
+  const enviar = async (e) => {
     e.preventDefault();
-    setError(null);
-    setMensaje(null);
+    setErrorGeneral('');
 
-    // 1. Validamos que las contraseñas coincidan
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden. Verificalas por favor.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
+    const nuevos = {};
+    if (!evaluarPassword(password).valida) nuevos.password = 'Completá todos los requisitos de la contraseña.';
+    if (password !== confirmacion) nuevos.confirmacion = 'Las contraseñas no coinciden.';
+    setErrores(nuevos);
+    if (Object.keys(nuevos).length) return;
 
     setCargando(true);
-
     try {
-      // 2. Le pedimos a Supabase que actualice la clave del usuario actual
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
 
-      // 3. Éxito: Mostramos mensaje y redirigimos al Login Admin
-      setMensaje('¡Contraseña actualizada con éxito! Redirigiendo...');
-      
-      // Esperamos 2 segundos para que el usuario lea el mensaje y lo mandamos al login
-      setTimeout(() => {
-        navigate('/login-admin');
-      }, 2000);
-
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      setError('Hubo un error al actualizar tu contraseña. Es posible que el enlace haya expirado.');
+      setListo(true);
+      temporizador.current = setTimeout(() => navigate('/login-admin'), 2000);
+    } catch (err) {
+      console.error('Error al actualizar la contraseña:', err);
+      const texto = err?.message || '';
+      if (err?.code === 'weak_password' || texto.toLowerCase().includes('password should')) setErrores({ password: 'La contraseña no cumple los requisitos de seguridad.' });
+      else if (texto.includes('same')) setErrores({ password: 'La nueva contraseña tiene que ser distinta de la anterior.' });
+      else setErrorGeneral('No pudimos actualizar tu contraseña. Es posible que el enlace haya expirado: pedí uno nuevo desde “¿Olvidaste tu contraseña?”.');
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="actualizar-page">
-      <div className="actualizar-card">
-        
-        <div className="actualizar-header">
-          <div className="icono-wrapper">
-            <KeyRound size={32} />
-          </div>
-          <h1>Nueva Contraseña</h1>
-          <p>Ingresá una nueva clave para tu cuenta</p>
+    <div className="au-pagina">
+      <main className="au-card">
+        <div className="au-header">
+          <div className="au-icono"><KeyRound size={30} aria-hidden="true" /></div>
+          <h1>Nueva contraseña</h1>
+          <p>Elegí una clave segura para tu cuenta.</p>
         </div>
 
-        {error && <div className="alerta-error">{error}</div>}
-        {mensaje && <div className="alerta-exito">{mensaje}</div>}
+        <div className="au-mensajes">
+          {errorGeneral && <p className="gp-alerta gp-alerta--error" role="alert">{errorGeneral}</p>}
+          {listo && <p className="gp-alerta gp-alerta--exito" role="status">¡Contraseña actualizada! Te llevamos al ingreso…</p>}
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          
-          <div className="form-group-act">
-            <label>Nueva Contraseña</label>
-            <div className="input-box-act">
-              <Lock size={20} className="input-icon-act" />
-              <input 
-                type="password" 
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                disabled={mensaje !== null} // Se bloquea si ya tuvo éxito
-              />
-            </div>
-          </div>
+        <form onSubmit={enviar} className="au-form" noValidate>
+          <CampoPassword
+            etiqueta="Nueva contraseña"
+            valor={password}
+            onCambio={(v) => { setPassword(v); setErrores((p) => ({ ...p, password: undefined })); }}
+            nueva
+            medidor
+            required
+            disabled={listo}
+            error={errores.password}
+          />
+          <CampoPassword
+            etiqueta="Confirmar contraseña"
+            valor={confirmacion}
+            onCambio={(v) => { setConfirmacion(v); setErrores((p) => ({ ...p, confirmacion: undefined })); }}
+            nueva
+            required
+            disabled={listo}
+            placeholder="Repetí la contraseña"
+            error={errores.confirmacion}
+          />
 
-          <div className="form-group-act">
-            <label>Confirmar Contraseña</label>
-            <div className="input-box-act">
-              <Lock size={20} className="input-icon-act" />
-              <input 
-                type="password" 
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repetí la contraseña"
-                disabled={mensaje !== null}
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn-actualizar" 
-            disabled={cargando || mensaje !== null}
-          >
-            {cargando ? 'Guardando...' : 'Actualizar Clave'}
+          <button type="submit" className="gp-btn gp-btn--primario" disabled={cargando || listo}>
+            {cargando ? 'Guardando…' : 'Actualizar contraseña'}
           </button>
-          
-          <button 
-            type="button" 
-            onClick={() => navigate('/login-admin')} 
-            className="btn-cancelar"
-            disabled={cargando || mensaje !== null}
-          >
+          <button type="button" onClick={() => navigate('/login-admin')} className="gp-btn gp-btn--fantasma" disabled={cargando || listo}>
             <ArrowLeft size={16} /> Cancelar y volver
           </button>
-
         </form>
-      </div>
+      </main>
     </div>
   );
 };
