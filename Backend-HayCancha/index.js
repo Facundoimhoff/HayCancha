@@ -3,7 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
-import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, PREFIJO_MOTIVO } from './lib/mercadopago.js';
+import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
 
@@ -82,6 +82,12 @@ async function usuarioDeLaSolicitud(req) {
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+// Precio de cada plan para mostrarlo en el frontend (la única fuente es PLANES / PRECIO_PLAN_FULL)
+app.get('/api/planes', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ planes: catalogoPublico(PLANES) });
+});
 
 // --- 1) INICIAR SUSCRIPCIÓN: devuelve el link de pago de Mercado Pago (requiere sesión) ---
 // Link de cada plan: variable de entorno (MP_PLAN_LINK_FULL) > caché en memoria > plan ya creado en Mercado Pago > plan nuevo.

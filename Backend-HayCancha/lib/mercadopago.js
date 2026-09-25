@@ -61,3 +61,8 @@ export function buscarPlanCompatible(planes, { reason, precio, backUrl }) {
     && typeof p.init_point === 'string' && p.init_point.startsWith('https://')
   ) ?? null;
 }
+
+/** Catálogo público de planes (solo lo que el frontend puede mostrar): { Full: { precio: 50000 } } */
+export function catalogoPublico(planes) {
+  return Object.fromEntries(Object.entries(planes).map(([nombre, { precio }]) => [nombre, { precio }]));
+}

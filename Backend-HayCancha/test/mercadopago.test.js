@@ -65,3 +65,12 @@ test('buscarPlanCompatible reutiliza solo planes activos con mismo motivo, preci
   assert.equal(buscarPlanCompatible([plan({ init_point: 'javascript:1' })], base), null);
   assert.equal(buscarPlanCompatible(undefined, base), null);
 });
+
+import { catalogoPublico } from '../lib/mercadopago.js';
+
+test('catalogoPublico expone solo el precio de cada plan', () => {
+  assert.deepEqual(
+    catalogoPublico({ Full: { precio: 50000, secreto: 'x' }, Pro: { precio: 80000 } }),
+    { Full: { precio: 50000 }, Pro: { precio: 80000 } },
+  );
+});
