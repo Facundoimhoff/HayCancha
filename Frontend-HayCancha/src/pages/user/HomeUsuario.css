@@ -1,273 +1,87 @@
-/* =========================================================
-   HomeUsuario.css (Estilo App Nativa Premium)
-   ========================================================= */
+/* =============================================================================
+   Explorar clubes (HomeUsuario). Prefijo hu-. La tarjeta y los filtros son componentes
+   compartidos (src/components/user/componentes.css).
+   ============================================================================= */
 
-.home-usuario-container {
+.hu-pagina {
   min-height: 100vh;
-  background-color: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--surface-page);
+  font-family: var(--font-body);
 }
 
-/* --- NAVBAR SUPERIOR --- */
-.navbar-superior {
-  background-color: #ffffff;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.hu-navbar {
   position: sticky;
   top: 0;
-  z-index: 10;
-}
-
-.navbar-izq {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-volver-home {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: #111827;
-  transition: transform 0.2s ease;
-}
-
-.btn-volver-home:hover {
-  transform: translateX(-3px);
-}
-
-.titulo-app {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.4rem;
-  color: #0f172a;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-}
-
-.titulo-resalte {
-  color: #22c55e; /* Verde Premium */
-}
-
-.subtitulo-ubicacion {
-  margin: 0;
-  font-size: 0.7rem;
-  color: #94a3b8;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-mis-reservas {
-  background-color: #111827; /* Botón oscuro premium */
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-mis-reservas:hover {
-  background-color: #1f2937;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.btn-mis-reservas:active {
-  transform: scale(0.98);
-}
-
-/* --- LISTA DE CLUBES --- */
-.lista-clubes-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 24px 20px;
-}
-
-.texto-estado {
-  text-align: center;
-  color: #64748b;
-  margin-top: 40px;
-  font-weight: 600;
-}
-
-.grid-clubes {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-/* --- TARJETA DEL CLUB --- */
-.tarjeta-club {
-  background-color: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-}
-
-.tarjeta-club:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-  border-color: #d1d5db;
-}
-
-.tarjeta-imagen-wrapper {
-  position: relative;
-  height: 220px;
-  background-color: #e2e8f0;
-  overflow: hidden;
-}
-
-.tarjeta-imagen {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.7s ease;
-}
-
-.tarjeta-club:hover .tarjeta-imagen {
-  transform: scale(1.05);
-}
-
-.tarjeta-degradado {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(17,24,39,0.9) 0%, rgba(17,24,39,0.2) 50%, transparent 100%);
-}
-
-.etiqueta-reservas {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background-color: #ffffff;
-  color: #16a34a; /* Verde oscuro para texto sobre blanco */
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.info-superior {
-  position: absolute;
-  bottom: 15px;
-  left: 20px;
-  right: 20px;
-}
-
-.tarjeta-nombre {
-  margin: 0;
-  color: #ffffff;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
-
-.tarjeta-direccion {
-  margin: 8px 0 0 0;
-  color: #e2e8f0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-/* --- FOOTER TARJETA --- */
-.tarjeta-footer {
-  padding: 16px 20px;
+  z-index: var(--z-sticky);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border-bottom: 1px solid var(--border-subtle);
 }
+.hu-navbar-izq { display: flex; align-items: center; gap: 12px; }
+.hu-volver { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--text-strong); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.hu-volver:hover { background: var(--color-slate-100); }
+.hu-titulo { margin: 0; font: 900 1.4rem var(--font-display); letter-spacing: -0.5px; color: var(--text-strong); }
+.hu-titulo span { color: var(--color-brand-500); }
+.hu-ubicacion { margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-soft); }
 
-.etiqueta-canchas {
-  display: flex;
+.hu-mis-reservas {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.texto-canchas {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #4b5563;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.icono-canchas {
-  color: #22c55e;
-}
-
-.btn-ver-turnos {
-  background: none;
-  border: none;
-  color: #2563eb;
-  font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-slate-900);
+  color: #fff;
+  font: 700 0.85rem var(--font-body);
   cursor: pointer;
-  padding: 0;
-  transition: all 0.2s ease;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.hu-mis-reservas:hover { background: var(--color-slate-700); }
+
+.hu-contenido { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.hu-filtros { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.hu-conteo { margin: 0; padding-left: 4px; color: var(--text-muted); font-size: 0.88rem; font-weight: 600; }
+
+.hu-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px; }
+
+.hu-esqueleto {
+  height: 330px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(100deg, var(--color-slate-100) 30%, var(--color-slate-50) 50%, var(--color-slate-100) 70%);
+  background-size: 200% 100%;
+  animation: hu-brillo 1.4s linear infinite;
+}
+@keyframes hu-brillo { to { background-position: -200% 0; } }
+
+.hu-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  border: 1px dashed var(--color-slate-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  color: var(--text-muted);
+  text-align: center;
+}
+.hu-vacio h2 { margin: 0; font: 800 1.2rem var(--font-body); color: var(--text-strong); }
+.hu-vacio p { margin: 0; }
+
+@media (max-width: 600px) {
+  .hu-navbar { padding: 12px 14px; }
+  .hu-contenido { padding: 14px; }
+  .hu-titulo { font-size: 1.25rem; }
 }
 
-.tarjeta-club:hover .btn-ver-turnos {
-  color: #1d4ed8;
-  transform: translateX(4px);
-}
-
-/* --- ESTILOS RESPONSIVOS PARA CELULARES EN FILTROS Y TARJETAS --- */
-@media (max-width: 768px) {
-  /* La barra de filtros pasa a columna para que no se achiquen mal los selects */
-  .home-usuario-container div[style*="flex-wrap: wrap"] {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-
-  .home-usuario-container select, 
-  .home-usuario-container label {
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-
-  /* Ajuste de títulos en celulares */
-  .titulo-app {
-    font-size: 1.3rem !important;
-  }
-  
-  .subtitulo-ubicacion {
-    font-size: 0.85rem !important;
-  }
-
-  /* Las tarjetas ocupan todo el ancho disponible */
-  .grid-clubes {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .hu-esqueleto { animation: none; }
 }

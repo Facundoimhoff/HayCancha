@@ -10,8 +10,12 @@ const aqui = path.dirname(fileURLToPath(import.meta.url))
 const supabaseDemo = () => ({
   name: 'supabase-demo',
   enforce: 'pre',
-  resolveId(source) {
-    if (/services\/supabase$/.test(source)) return path.join(aqui, 'src/services/supabaseDemo.js')
+  resolveId(source, importer) {
+    // '../../services/supabase' desde las pantallas, o './supabase' desde otro archivo de src/services
+    const esDeServices = /[\\/]src[\\/]services[\\/]/.test(importer || '')
+    if (/services\/supabase$/.test(source) || (esDeServices && source === './supabase')) {
+      return path.join(aqui, 'src/services/supabaseDemo.js')
+    }
     return null
   },
 })

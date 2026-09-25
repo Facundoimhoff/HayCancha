@@ -6,6 +6,8 @@ import {
   Image as ImageIcon, Phone, Mail, CheckCircle2, Car,
   Users, Layers, CloudRain, MessageCircle 
 } from 'lucide-react';
+import { Calificacion } from '../../components/user/Estrellas';
+import SeccionResenas from '../../components/user/SeccionResenas';
 import './PerfilClub.css';
 
 const PerfilClub = () => {
@@ -15,6 +17,7 @@ const PerfilClub = () => {
   const [club, setClub] = useState(null);
   const [canchas, setCanchas] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [resumenResenas, setResumenResenas] = useState(null);
 
   const [canchaSeleccionada, setCanchaSeleccionada] = useState(null);
   const [imagenActualIdx, setImagenActualIdx] = useState(0);
@@ -122,6 +125,7 @@ const PerfilClub = () => {
           )}
           <div className="perfil-textos-header">
             <h1 style={{ fontSize: '2.2rem', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>{club.nombre}</h1>
+            <Calificacion resumen={resumenResenas} />
           </div>
         </div>
       </div>
@@ -318,10 +322,13 @@ const PerfilClub = () => {
           </div>
         </div>
 
+        {/* 6. RESEÑAS */}
+        <SeccionResenas club={club} onResumen={setResumenResenas} />
+
       </div>
 
       {/* ========================================================= */}
-      {/* 6. MODAL DETALLE DE CANCHA                                */}
+      {/* 7. MODAL DETALLE DE CANCHA                                */}
       {/* ========================================================= */}
       {canchaSeleccionada && (
         <div className="modal-cancha-overlay" onClick={cerrarModal}>

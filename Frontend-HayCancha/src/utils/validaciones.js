@@ -43,6 +43,11 @@ const MENSAJES_SERVIDOR = {
   UBICACION_INVALIDA: 'Completá provincia, ciudad y dirección.',
   IMAGEN_INVALIDA: 'La imagen del club no es válida.',
   REDES_INVALIDAS: 'Las redes sociales no son válidas.',
+  TURNO_NO_ENCONTRADO: 'No encontramos esa reserva.',
+  SIN_TURNO_JUGADO: 'Solo pueden calificar quienes ya jugaron en este club.',
+  ESTRELLAS_INVALIDAS: 'Elegí una calificación de 1 a 5 estrellas.',
+  CLUB_NO_ENCONTRADO: 'No encontramos ese club.',
+  NO_PERMITIDO: 'No podés calificar tu propio club.',
 };
 
 /** Traduce los códigos que lanzan las funciones SQL (`raise exception 'CODIGO'`) a texto para el usuario. */

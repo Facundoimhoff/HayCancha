@@ -358,3 +358,17 @@
     flex-shrink: 0; /* Evita que los botones se achiquen */
   }
 }
+/* --- Resultados con tarjetas compartidas (prefijo buscar-) --- */
+.buscar-page { background: var(--surface-page); min-height: 100vh; padding-bottom: 40px; }
+.buscar-header-content { display: flex; flex-direction: column; gap: 16px; }
+.buscar-resultado-titulo { margin: 4px 0 0; font-size: 1.4rem; color: #fff; }
+.buscar-main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.buscar-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px; }
+.buscar-estado { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 56px 20px; border: 1px dashed var(--color-slate-300); border-radius: var(--radius-lg); background: var(--color-white); color: var(--text-soft); text-align: center; }
+.buscar-estado h2 { margin: 0; font-size: 1.15rem; color: var(--text-strong); }
+.buscar-estado p { margin: 0; color: var(--text-muted); }
+.buscar-estado--error { border-style: solid; border-color: #fecaca; background: var(--color-danger-bg); }
+.buscar-estado--error h2, .buscar-estado--error p { color: #b91c1c; }
+.buscar-spinner { color: var(--color-brand-500); animation: buscar-giro 1s linear infinite; }
+@keyframes buscar-giro { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .buscar-spinner { animation: none; } }

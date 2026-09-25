@@ -1,237 +1,111 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Calendar, ArrowLeft, SearchX } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import { MapPin, Calendar, LayoutGrid, ChevronRight, ArrowLeft } from 'lucide-react';
+import { resumenPorClub } from '../../services/resenas';
+import { filtrarYOrdenar, hayFiltros, FILTROS_INICIALES } from '../../utils/filtrosClubes';
+import TarjetaClub from '../../components/user/TarjetaClub';
+import FiltrosClubes from '../../components/user/FiltrosClubes';
 import './HomeUsuario.css';
 
 const HomeUsuario = () => {
   const { provincia, ciudad } = useParams();
   const navigate = useNavigate();
   const [clubes, setClubes] = useState([]);
+  const [resumenes, setResumenes] = useState({});
   const [cargando, setCargando] = useState(true);
-
-  // ESTADOS PARA LOS FILTROS
-  const [filtroDeporte, setFiltroDeporte] = useState('');
-  const [filtroJugadores, setFiltroJugadores] = useState('');
-  const [filtroTechada, setFiltroTechada] = useState(false);
-  const [ordenPrecio, setOrdenPrecio] = useState(''); 
+  const [error, setError] = useState('');
+  const [filtros, setFiltros] = useState(FILTROS_INICIALES);
 
   useEffect(() => {
-    const cargarClubes = async () => {
-      // 👇 CAMBIO IMPORTANTE: Pedimos 'canchas(*)' para traer toda la info de las canchas por las dudas
-      const { data, error } = await supabase
+    let cancelado = false;
+
+    (async () => {
+      setCargando(true);
+      setError('');
+      const { data, error: errorClubes } = await supabase
         .from('clubes')
-        .select('*, canchas(*)') 
+        .select('*, canchas(*)')
         .eq('provincia', provincia)
         .eq('ciudad', ciudad);
+      if (cancelado) return;
 
-      if (!error) {
-        setClubes(data || []);
+      if (errorClubes) {
+        console.error('Error al cargar los clubes:', errorClubes);
+        setError('No pudimos cargar los clubes. Revisá tu conexión e intentá de nuevo.');
+        setCargando(false);
+        return;
       }
+
+      const lista = (data || []).map((c) => ({ ...c, canchas: (c.canchas || []).filter((k) => k.activa !== false) }));
+      setClubes(lista);
       setCargando(false);
-    };
-    cargarClubes();
+
+      // Las calificaciones llegan aparte: la lista no espera por ellas
+      const calificaciones = await resumenPorClub(lista.map((c) => c.id));
+      if (!cancelado) setResumenes(calificaciones);
+    })();
+
+    return () => { cancelado = true; };
   }, [provincia, ciudad]);
 
-  // ==========================================
-  // LÓGICA DE FILTRADO INTELIGENTE
-  // ==========================================
-  
-  // Función mágica para quitar tildes y mayúsculas ("Fútbol" -> "futbol")
-  const normalizar = (texto) => {
-    if (!texto) return '';
-    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  };
-
-  let clubesFiltrados = [...clubes];
-
-  if (filtroDeporte) {
-    const busqueda = normalizar(filtroDeporte);
-    clubesFiltrados = clubesFiltrados.filter(club => {
-      const deporteClub = normalizar(club.deporte);
-      // Chequeamos también si ALGUNA de sus canchas tiene ese deporte
-      const canchasTienenDeporte = club.canchas?.some(c => normalizar(c.deporte).includes(busqueda));
-      
-      return deporteClub.includes(busqueda) || canchasTienenDeporte;
-    });
-  }
-
-  if (filtroJugadores) {
-    const cantBuscada = parseInt(filtroJugadores);
-    clubesFiltrados = clubesFiltrados.filter(club => {
-      const cantClub = club.cantidad_jugadores === cantBuscada;
-      const cantCanchas = club.canchas?.some(c => c.cantidad_jugadores === cantBuscada);
-      return cantClub || cantCanchas;
-    });
-  }
-
-  if (filtroTechada) {
-    clubesFiltrados = clubesFiltrados.filter(club => {
-      const techadaClub = club.techada === true;
-      const techadaCanchas = club.canchas?.some(c => c.techada === true);
-      return techadaClub || techadaCanchas;
-    });
-  }
-
-  // Ordenamiento por precio (busca el precio del club o el más barato de sus canchas)
-  const obtenerPrecio = (club) => {
-    if (club.precio_hora) return Number(club.precio_hora);
-    if (club.canchas && club.canchas.length > 0) {
-      const precios = club.canchas.map(c => Number(c.precio_hora) || 0).filter(p => p > 0);
-      return precios.length > 0 ? Math.min(...precios) : 0;
-    }
-    return 0;
-  };
-
-  if (ordenPrecio === 'menor') {
-    clubesFiltrados.sort((a, b) => obtenerPrecio(a) - obtenerPrecio(b));
-  } else if (ordenPrecio === 'mayor') {
-    clubesFiltrados.sort((a, b) => obtenerPrecio(b) - obtenerPrecio(a));
-  }
-  // ==========================================
+  const visibles = useMemo(() => filtrarYOrdenar(clubes, filtros, resumenes), [clubes, filtros, resumenes]);
 
   return (
-    <div className="home-usuario-container">
-      
-      {/* NAVBAR SUPERIOR */}
-      <div className="navbar-superior">
-        <div className="navbar-izq">
-          <button onClick={() => navigate(-1)} className="btn-volver-home">
+    <div className="hu-pagina">
+      <header className="hu-navbar">
+        <div className="hu-navbar-izq">
+          <button type="button" onClick={() => navigate(-1)} className="hu-volver" aria-label="Volver">
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="titulo-app">
-              Hay<span className="titulo-resalte">Cancha</span>
-            </h1>
-            <p className="subtitulo-ubicacion">
-              {ciudad}, {provincia === 'Córdoba' ? 'CBA' : provincia.substring(0,3).toUpperCase()}
-            </p>
+            <h1 className="hu-titulo">Hay<span>Cancha</span></h1>
+            <p className="hu-ubicacion">{ciudad}, {provincia === 'Córdoba' ? 'CBA' : provincia.substring(0, 3).toUpperCase()}</p>
           </div>
         </div>
 
-        <button onClick={() => navigate('/mis-reservas')} className="btn-mis-reservas">
+        <button type="button" onClick={() => navigate('/mis-reservas')} className="hu-mis-reservas">
           <Calendar size={16} /> Mis Reservas
         </button>
-      </div>
+      </header>
 
-      {/* BARRA DE FILTROS VISUAL */}
-      {!cargando && clubes.length > 0 && (
-        <div style={{ maxWidth: '1200px', margin: '0 auto 20px auto', padding: '0 20px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            
-            <select 
-              value={filtroDeporte} 
-              onChange={(e) => setFiltroDeporte(e.target.value)}
-              style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', flex: '1', minWidth: '140px', outline: 'none', backgroundColor: '#f8fafc', color: '#334155', fontWeight: '500', cursor: 'pointer' }}
-            >
-              <option value="">Todos los deportes</option>
-              <option value="Fútbol">Fútbol</option>
-              <option value="Pádel">Pádel</option>
-              <option value="Tenis">Tenis</option>
-            </select>
-
-            <select 
-              value={filtroJugadores} 
-              onChange={(e) => setFiltroJugadores(e.target.value)}
-              style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', flex: '1', minWidth: '140px', outline: 'none', backgroundColor: '#f8fafc', color: '#334155', fontWeight: '500', cursor: 'pointer' }}
-            >
-              <option value="">Jugadores</option>
-              <option value="5">Fútbol 5</option>
-              <option value="7">Fútbol 7</option>
-              <option value="11">Fútbol 11</option>
-              <option value="4">Dobles (Pádel/Tenis)</option>
-            </select>
-
-            <select 
-              value={ordenPrecio} 
-              onChange={(e) => setOrdenPrecio(e.target.value)}
-              style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', flex: '1', minWidth: '140px', outline: 'none', backgroundColor: '#f8fafc', color: '#334155', fontWeight: '500', cursor: 'pointer' }}
-            >
-              <option value="">Ordenar por precio</option>
-              <option value="menor">Menor a mayor</option>
-              <option value="mayor">Mayor a menor</option>
-            </select>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '10px 16px', background: filtroTechada ? '#dcfce7' : '#f8fafc', borderRadius: '8px', border: `1px solid ${filtroTechada ? '#22c55e' : '#cbd5e1'}`, transition: 'all 0.2s', userSelect: 'none' }}>
-              <input 
-                type="checkbox" 
-                checked={filtroTechada} 
-                onChange={(e) => setFiltroTechada(e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: '#22c55e', cursor: 'pointer' }}
-              />
-              <span style={{ fontWeight: '600', color: filtroTechada ? '#16a34a' : '#475569' }}>Techada</span>
-            </label>
-
-          </div>
-        </div>
-      )}
-
-      {/* LISTA DE CLUBES */}
-      <div className="lista-clubes-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-        {cargando ? (
-          <p className="texto-estado">Buscando clubes en {ciudad}...</p>
-        ) : clubes.length === 0 ? (
-          <p className="texto-estado">No hay clubes disponibles en esta ciudad.</p>
-        ) : clubesFiltrados.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ color: '#0f172a', margin: '0 0 10px 0' }}>No hay clubes con esos filtros</h3>
-            <p style={{ color: '#64748b', marginBottom: '20px' }}>Intentá quitar algunos filtros para ver más opciones.</p>
-            <button 
-              onClick={() => {setFiltroDeporte(''); setFiltroJugadores(''); setFiltroTechada(false); setOrdenPrecio('');}}
-              style={{ padding: '10px 20px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        ) : (
-          <div className="grid-clubes">
-            {clubesFiltrados.map(club => {
-              const cantidadCanchas = club.canchas ? club.canchas.length : 0;
-
-              return (
-                <div key={club.id} className="tarjeta-club" onClick={() => navigate(`/club/${club.id}`)} style={{cursor: 'pointer'}}>
-                  
-                  <div className="tarjeta-imagen-wrapper">
-                    <img 
-                      src={club.imagen_url || "https://images.unsplash.com/photo-1574629810360-7efbb1925536?q=80&w=1000&auto=format&fit=crop"} 
-                      alt={club.nombre}
-                      className="tarjeta-imagen"
-                    />
-                    
-                    <div className="tarjeta-degradado"></div>
-
-                    <div className="etiqueta-reservas">
-                      RESERVAS ABIERTAS
-                    </div>
-
-                    <div className="info-superior">
-                      <h2 className="tarjeta-nombre">
-                        {club.nombre}
-                      </h2>
-                      <p className="tarjeta-direccion">
-                        <MapPin size={16} /> {club.direccion || ciudad}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="tarjeta-footer">
-                    <div className="etiqueta-canchas">
-                      <LayoutGrid size={16} className="icono-canchas" />
-                      <span className="texto-canchas">
-                        {cantidadCanchas} {cantidadCanchas === 1 ? 'cancha' : 'canchas'}
-                      </span>
-                    </div>
-
-                    <button className="btn-ver-turnos">
-                      Ver turnos <ChevronRight size={18} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+      <main className="hu-contenido">
+        {!cargando && clubes.length > 0 && (
+          <div className="hu-filtros">
+            <FiltrosClubes filtros={filtros} onCambio={setFiltros} />
+            <p className="hu-conteo" aria-live="polite">
+              {visibles.length} {visibles.length === 1 ? 'club' : 'clubes'} en {ciudad}
+            </p>
           </div>
         )}
-      </div>
+
+        {cargando ? (
+          <div className="hu-grilla" aria-busy="true" aria-label="Buscando clubes">
+            {[0, 1, 2].map((i) => <div key={i} className="hu-esqueleto" />)}
+          </div>
+        ) : error ? (
+          <div className="hu-vacio" role="alert">
+            <h2>{error}</h2>
+            <button type="button" className="gp-btn gp-btn--primario" onClick={() => window.location.reload()}>Reintentar</button>
+          </div>
+        ) : clubes.length === 0 ? (
+          <div className="hu-vacio">
+            <SearchX size={40} aria-hidden="true" />
+            <h2>Todavía no hay clubes en {ciudad}</h2>
+            <p>Probá con otra ciudad o volvé más tarde.</p>
+          </div>
+        ) : visibles.length === 0 ? (
+          <div className="hu-vacio">
+            <SearchX size={40} aria-hidden="true" />
+            <h2>No hay clubes con esos filtros</h2>
+            {hayFiltros(filtros) && <button type="button" className="gp-btn gp-btn--primario" onClick={() => setFiltros(FILTROS_INICIALES)}>Limpiar filtros</button>}
+          </div>
+        ) : (
+          <div className="hu-grilla">
+            {visibles.map((club) => <TarjetaClub key={club.id} club={club} resumen={resumenes[club.id]} />)}
+          </div>
+        )}
+      </main>
     </div>
   );
 };
