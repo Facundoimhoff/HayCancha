@@ -228,6 +228,84 @@ for (let i = 0; i < 12; i++) {
 }
 ok('Un jugador no puede acaparar más de 10 reservas futuras', bloqueado);
 
+// ---------- 10b. Reseñas y extras editables ----------
+await raiz();
+// Turno YA JUGADO de "cliente" en Sani (lo carga el sistema) y uno de otra persona sin turnos en Sport
+await db.query(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente, usuario_id) values ('${C67}', '2026-01-10', '10:00', 'Laura Gomez', '3564111111', '${U.cliente}')`);
+
+await como('authenticated', U.cliente);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 5, '  Muy buena cancha  ')`);
+ok('Reseñas: quien jugó puede calificar el club', !a.e, a.e);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 3, 'Cambié de opinión')`);
+ok('Reseñas: recalificar actualiza la misma reseña (una por jugador y club)', !a.e, a.e);
+a = await intenta(`select count(*)::int n, min(estrellas) e from public.resenas`);
+ok('Reseñas: queda una sola fila con la última calificación', a.r?.rows[0].n === 1 && a.r.rows[0].e === 3, JSON.stringify(a.r?.rows));
+a = await intenta(`select public.calificar_club('${CLUB_SPORT}', 5, 'x')`);
+ok('Reseñas: NO puede calificar un club donde nunca jugó', a.e?.includes('SIN_TURNO_JUGADO'), a.e);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 6, 'x')`);
+ok('Reseñas: estrellas fuera de 1-5 rechazadas', a.e?.includes('ESTRELLAS_INVALIDAS'), a.e);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 4, '${'a'.repeat(700)}')`);
+ok('Reseñas: el comentario se recorta a 600 caracteres', !a.e && (await db.query('select char_length(comentario)::int n from public.resenas')).rows[0].n === 600, a.e);
+a = await intenta(`insert into public.resenas (club_id, usuario_id, estrellas) values ('${CLUB_SANI}', '${U.cliente}', 5)`);
+ok('Reseñas: NO se inserta directo en la tabla (solo por RPC)', !!a.e, a.e);
+a = await intenta(`update public.resenas set estrellas = 5`);
+ok('Reseñas: NO se edita directo en la tabla', !!a.e, a.e);
+
+await como('anon');
+a = await intenta(`select * from public.resenas`);
+ok('Reseñas: anónimo NO lee la tabla', !!a.e, a.e);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 5, 'x')`);
+ok('Reseñas: anónimo NO puede calificar', !!a.e, a.e);
+a = await intenta(`select * from public.resumen_resenas(array['${CLUB_SANI}','${CLUB_SPORT}']::uuid[])`);
+ok('Reseñas: anónimo ve promedio y cantidad por club', a.r?.rows.length === 1 && a.r.rows[0].cantidad === 1 && Number(a.r.rows[0].promedio) === 4, JSON.stringify(a.r?.rows));
+a = await intenta(`select * from public.resenas_club('${CLUB_SANI}')`);
+ok('Reseñas: el autor se publica abreviado (nombre + inicial) y sin ids', a.r?.rows.length === 1 && /^[^ ]+ [A-Z]\.$/.test(a.r.rows[0].autor) && a.r.rows[0].es_mia === false && !('usuario_id' in a.r.rows[0]), JSON.stringify(a.r?.rows).slice(0, 200));
+a = await intenta(`select * from public.distribucion_resenas('${CLUB_SANI}')`);
+ok('Reseñas: distribución por estrellas', a.r?.rows.length === 1 && a.r.rows[0].estrellas === 4, JSON.stringify(a.r?.rows));
+
+await como('authenticated', U.cliente);
+a = await intenta(`select es_mia from public.resenas_club('${CLUB_SANI}')`);
+ok('Reseñas: el autor reconoce la suya (es_mia)', a.r?.rows[0]?.es_mia === true);
+
+await como('authenticated', U.sani);
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 5, 'x')`);
+ok('Reseñas: el admin NO puede calificar su propio club', a.e?.includes('NO_PERMITIDO'), a.e);
+
+await raiz();
+await db.query(`update public.resenas set oculta = true`);
+await como('anon');
+a = await intenta(`select * from public.resumen_resenas(array['${CLUB_SANI}']::uuid[])`);
+ok('Reseñas: una reseña oculta por moderación no cuenta ni se muestra', a.r?.rows.length === 0, JSON.stringify(a.r?.rows));
+await como('authenticated', U.cliente);
+a = await intenta(`delete from public.resenas returning id`);
+ok('Reseñas: el autor puede borrar la suya', a.r?.rows.length === 1, a.e);
+
+// Extras editables en una reserva futura
+await como('authenticated', U.cliente);
+a = await intenta(`select public.crear_reserva('${C67}', '${sumar(20)}', '12:00', 'Laura Gomez', '3564111111', '[{"id":1,"cantidad":1}]'::jsonb) as id`);
+const turnoFuturo = a.r?.rows[0]?.id;
+ok('Extras: reserva futura creada con un extra', !!turnoFuturo, a.e);
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[{"id":1,"cantidad":2},{"id":2,"cantidad":3}]'::jsonb) as e`);
+const ex = a.r?.rows[0]?.e || [];
+ok('Extras: agrega y cambia cantidades con precio del servidor', !a.e && ex.length === 2 && ex.find(x => x.id === 1)?.subtotal === 12000 && ex.find(x => x.id === 2)?.subtotal === 9000, a.e || JSON.stringify(ex));
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[{"id":1,"cantidad":1,"precio_unitario":1}]'::jsonb) as e`);
+ok('Extras: ignora un precio enviado por el cliente', a.r?.rows[0]?.e?.[0]?.precio_unitario === 6000, a.e || JSON.stringify(a.r?.rows));
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[{"id":1,"cantidad":1},{"id":1,"cantidad":2}]'::jsonb)`);
+ok('Extras: rechaza productos repetidos', a.e?.includes('EXTRAS_INVALIDOS'), a.e);
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[{"id":999,"cantidad":1}]'::jsonb)`);
+ok('Extras: rechaza productos inexistentes o de otro club', a.e?.includes('EXTRAS_INVALIDOS'), a.e);
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[{"id":1,"cantidad":100}]'::jsonb)`);
+ok('Extras: rechaza cantidades absurdas', a.e?.includes('EXTRAS_INVALIDOS'), a.e);
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[]'::jsonb) as e`);
+ok('Extras: lista vacía quita todos', !a.e && (await db.query(`select extras is null as n from public.turnos where id = ${turnoFuturo}`)).rows[0].n === true, a.e);
+a = await intenta(`select public.actualizar_extras(1, '[]'::jsonb)`);
+ok('Extras: NO puede editar el turno de otra persona', a.e?.includes('TURNO_NO_ENCONTRADO'), a.e);
+a = await intenta(`select public.actualizar_extras((select id from public.turnos where fecha = '2026-01-10' and cancha_id = '${C67}'), '[]'::jsonb)`);
+ok('Extras: NO puede editar un turno que ya pasó', a.e?.includes('TURNO_PASADO'), a.e);
+await como('anon');
+a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[]'::jsonb)`);
+ok('Extras: anónimo NO puede editar extras', !!a.e, a.e);
+
 // ---------- 11. Bucket ----------
 await raiz();
 const b = (await db.query("select file_size_limit::int l, allowed_mime_types m from storage.buckets where id='imagenes'")).rows[0];
