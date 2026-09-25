@@ -1,606 +1,436 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, ChevronDown, Mail, Lock, User as UserIcon } from 'lucide-react';
+import {
+  ArrowLeft, CheckCircle2, Users, Layers, CloudRain, CalendarPlus, Navigation, MessageCircle,
+  ChevronRight, Sunrise, Sun, Moon, CalendarDays, Clock,
+} from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import HeaderCliente from './HeaderCliente';
-import { validarPassword, validarTelefono, mensajeDeServidor, fechaLocalISO, AYUDA_PASSWORD } from '../../utils/validaciones';
+import { useAuth } from '../../context/authContext';
+import { resumenPorClub } from '../../services/resenas';
+import { validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
+import {
+  moneda, proximosDias, fechaLarga, fechaCorta, totalSeleccion, extrasParaEnviar,
+  enlaceCalendario, enlaceMapa, enlaceWhatsApp,
+} from '../../utils/reservas';
+import { Calificacion } from '../../components/user/Estrellas';
+import EditorExtras from '../../components/user/EditorExtras';
+import AuthReserva from '../../components/user/AuthReserva';
 import './ReservaCancha.css';
+
+const PASOS = ['Horario', 'Confirmar', 'Listo'];
+const FRANJAS = [
+  { id: 'manana', nombre: 'Mañana', Icono: Sunrise, desde: 0, hasta: 13 },
+  { id: 'tarde', nombre: 'Tarde', Icono: Sun, desde: 13, hasta: 19 },
+  { id: 'noche', nombre: 'Noche', Icono: Moon, desde: 19, hasta: 24 },
+];
+
+const generarHoras = (apertura, cierre) => {
+  const desde = parseInt(String(apertura || '08:00').split(':')[0], 10);
+  const hasta = parseInt(String(cierre || '23:00').split(':')[0], 10);
+  const horas = [];
+  for (let h = desde; h < hasta; h++) horas.push(`${String(h).padStart(2, '0')}:00`);
+  return horas;
+};
 
 const ReservaCancha = () => {
   const { idCancha } = useParams();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { user, perfil, cargando: cargandoSesion, recargarPerfil } = useAuth();
+
   const [cancha, setCancha] = useState(null);
-  const [club, setClub] = useState(null); 
+  const [club, setClub] = useState(null);
+  const [productos, setProductos] = useState([]);
+  const [resumen, setResumen] = useState(null);
+  const [ocupados, setOcupados] = useState(() => new Set());
   const [cargando, setCargando] = useState(true);
-  
+  const [errorCarga, setErrorCarga] = useState(false);
+
+  const dias = useMemo(() => proximosDias(14), []);
+  const hoy = dias[0].fecha;
+
   const [paso, setPaso] = useState(1);
-  const [diaExpandido, setDiaExpandido] = useState(null); 
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
-  const [horaSeleccionada, setHoraSeleccionada] = useState(null);
-  
-  // Estados para autenticación en el paso 2
-  const [user, setUser] = useState(null);
-  const [esRegistro, setEsRegistro] = useState(false);
-  const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [telefono, setTelefono] = useState('');
+  const [diaVisible, setDiaVisible] = useState(hoy);
+  const [seleccion, setSeleccion] = useState(null); // { fecha, hora }
+  const [aviso, setAviso] = useState('');
+
+  // Solo se guarda lo que el usuario edita; si no tocó nada, se usa lo del perfil
+  const [nombreEditado, setNombreEditado] = useState(null);
+  const [telefonoEditado, setTelefonoEditado] = useState(null);
+  const nombre = nombreEditado ?? (perfil?.nombre_completo || user?.user_metadata?.full_name || '');
+  const telefono = telefonoEditado ?? (perfil?.telefono || '');
+  const [cantidades, setCantidades] = useState({});
   const [guardando, setGuardando] = useState(false);
-  const [errorAuth, setErrorAuth] = useState('');
-  const [mensajeExitoAuth, setMensajeExitoAuth] = useState('');
+  const [errorReserva, setErrorReserva] = useState('');
+  const [reserva, setReserva] = useState(null);
 
-  const [turnosOcupados, setTurnosOcupados] = useState([]);
-
-  // Estados del Kiosco
-  const [productosClub, setProductosClub] = useState([]); 
-  const [extrasSeleccionados, setExtrasSeleccionados] = useState({}); 
-
-  const generarProximosDias = () => {
-    const dias = [];
-    for (let i = 0; i < 7; i++) {
-      const fecha = new Date();
-      fecha.setDate(fecha.getDate() + i);
-      
-      const fechaBD = fechaLocalISO(fecha);
-      const nombreDia = fecha.toLocaleDateString('es-AR', { weekday: 'long' }); 
-      const numeroDia = fecha.getDate();
-      const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' }); 
-
-      dias.push({
-        fechaBD,
-        textoMostrar: `${nombreDia} ${numeroDia} de ${nombreMes}`
-      });
-    }
-    return dias;
-  };
-
-  const diasSemana = generarProximosDias();
-  const hoyBD = diasSemana[0].fechaBD; 
-
-  // Los turnos de otras personas no son legibles (RLS): la disponibilidad sale de una RPC que solo devuelve slots ocupados.
-  const cargarOcupados = async () => {
+  // Los turnos de otras personas no son legibles (RLS): la disponibilidad sale de una RPC que solo devuelve horarios ocupados.
+  const cargarOcupados = useCallback(async () => {
     const { data, error } = await supabase.rpc('disponibilidad_cancha', {
       p_cancha_id: idCancha,
-      p_desde: hoyBD,
-      p_hasta: diasSemana[diasSemana.length - 1].fechaBD,
+      p_desde: dias[0].fecha,
+      p_hasta: dias[dias.length - 1].fecha,
     });
     if (error) throw error;
-    setTurnosOcupados(data || []);
-  };
+    setOcupados(new Set((data || []).map((t) => `${t.fecha}|${String(t.hora_inicio).slice(0, 5)}`)));
+  }, [idCancha, dias]);
 
   useEffect(() => {
-    const cargarDatos = async () => {
+    let cancelado = false;
+
+    (async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser(session.user);
-          if (session.user.user_metadata?.full_name) {
-            setNombre(session.user.user_metadata.full_name);
-          }
-        }
-
-        const { data: dataCancha, error: errorCancha } = await supabase
-          .from('canchas')
-          .select('*')
-          .eq('id', idCancha)
-          .single();
-
+        const { data: dataCancha, error: errorCancha } = await supabase.from('canchas').select('*').eq('id', idCancha).single();
         if (errorCancha) throw errorCancha;
+        if (cancelado) return;
         setCancha(dataCancha);
 
-        // BUSCAMOS LOS DATOS DEL CLUB Y SUS PRODUCTOS
         if (dataCancha?.club_id) {
-          const { data: dataClub, error: errorClub } = await supabase
-            .from('clubes')
-            .select('*')
-            .eq('id', dataCancha.club_id)
-            .single();
-            
-          if (!errorClub && dataClub) {
-            setClub(dataClub);
-
-            const { data: dataProductos } = await supabase
-              .from('productos')
-              .select('*')
-              .eq('club_id', dataClub.id)
-            
-            setProductosClub(dataProductos || []);
-          }
+          const { data: dataClub } = await supabase.from('clubes').select('*').eq('id', dataCancha.club_id).single();
+          const { data: dataProductos } = await supabase.from('productos').select('*').eq('club_id', dataCancha.club_id);
+          if (cancelado) return;
+          setClub(dataClub || null);
+          setProductos((dataProductos || []).filter((p) => p.activo !== false));
+          resumenPorClub([dataCancha.club_id]).then((r) => { if (!cancelado) setResumen(r[dataCancha.club_id] || null); });
         }
-
-        if (!diaExpandido) setDiaExpandido(hoyBD);
 
         await cargarOcupados();
-
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
+      } catch (err) {
+        console.error('Error al cargar datos de la reserva:', err);
+        if (!cancelado) setErrorCarga(true);
       } finally {
-        setCargando(false);
+        if (!cancelado) setCargando(false);
       }
-    };
-    
-    cargarDatos();
-  }, [idCancha, hoyBD]);
+    })();
 
-  const handleAuthSubmit = async (e) => {
+    return () => { cancelado = true; };
+  }, [idCancha, cargarOcupados]);
+
+  // Si dejó la pestaña abierta un rato, al volver se refresca la disponibilidad
+  useEffect(() => {
+    const alVolver = () => { if (document.visibilityState === 'visible') cargarOcupados().catch(() => {}); };
+    document.addEventListener('visibilitychange', alVolver);
+    return () => document.removeEventListener('visibilitychange', alVolver);
+  }, [cargarOcupados]);
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [paso]);
+
+  const horas = useMemo(() => (cancha ? generarHoras(cancha.hora_apertura, cancha.hora_cierre) : []), [cancha]);
+  const horaActual = new Date().getHours();
+
+  const estadoHora = (fecha, hora) => {
+    if (fecha === hoy && Number(hora.slice(0, 2)) <= horaActual) return 'pasado';
+    return ocupados.has(`${fecha}|${hora}`) ? 'ocupado' : 'libre';
+  };
+
+  const libresDelDia = (fecha) => horas.filter((h) => estadoHora(fecha, h) === 'libre').length;
+  const libresHoy = libresDelDia(diaVisible);
+
+  const precioCancha = Number(cancha?.precio_hora) || 0;
+  const totalExtrasElegidos = totalSeleccion(productos, cantidades);
+  const total = precioCancha + totalExtrasElegidos;
+  const lineasExtras = productos.filter((p) => (cantidades[p.id] || 0) > 0);
+
+  const elegirHora = (hora) => {
+    setAviso('');
+    setSeleccion({ fecha: diaVisible, hora });
+  };
+
+  const confirmar = async (e) => {
     e.preventDefault();
-    setErrorAuth('');
-    setMensajeExitoAuth('');
-
-    if (esRegistro) {
-      const errorPassword = validarPassword(password);
-      if (errorPassword) { setErrorAuth(errorPassword); return; }
-    }
-
-    setGuardando(true);
-
-    try {
-      if (esRegistro) {
-        const { data, error: errorRegistro } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: nombre },
-            emailRedirectTo: window.location.origin
-          }
-        });
-        if (errorRegistro) throw errorRegistro;
-
-        if (data.user && !data.session) {
-          setErrorAuth('✅ ¡Cuenta creada! Revisá tu correo para confirmarla e iniciar sesión.');
-          setEsRegistro(false);
-          return;
-        }
-        if (data.user) {
-          setUser(data.user);
-          if (nombre) setNombre(nombre);
-        }
-
-      } else {
-        const { data, error: errorLogin } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (errorLogin) throw errorLogin;
-        if (data.user) {
-          setUser(data.user);
-          if (data.user.user_metadata?.full_name) {
-            setNombre(data.user.user_metadata.full_name);
-          }
-        }
-      }
-    } catch (err) {
-      const mensaje = err?.message || 'Ocurrió un error en la autenticación.';
-      if (mensaje.includes('Invalid login')) {
-        setErrorAuth('Email o contraseña incorrectos.');
-      } else {
-        setErrorAuth(mensaje);
-      }
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  const handleRecuperarPassword = async (e) => {
-    e.preventDefault();
-    setErrorAuth('');
-    setMensajeExitoAuth('');
-    setGuardando(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/actualizar-password',
-      });
-      if (error) throw error;
-      setMensajeExitoAuth('✅ ¡Te enviamos un enlace para restablecer tu contraseña!');
-    } catch (err) {
-      setErrorAuth('Hubo un problema al enviar el correo. Verificá que esté bien escrito.');
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.href }
-      });
-      if (error) throw error;
-    } catch (err) {
-      setErrorAuth('Error al conectar con Google.');
-    }
-  };
-
-  const generarHorariosDisponibles = (apertura, cierre) => {
-    const horarios = [];
-    const horaInicioStr = apertura || '08:00';
-    const horaFinStr = cierre || '23:00';
-
-    let horaActual = parseInt(horaInicioStr.split(':')[0]); 
-    const horaFin = parseInt(horaFinStr.split(':')[0]);    
-
-    while (horaActual < horaFin) {
-      horarios.push(`${horaActual.toString().padStart(2, '0')}:00`);
-      horaActual++;
-    }
-    return horarios;
-  };
-
-  const horariosBase = cancha ? generarHorariosDisponibles(cancha.hora_apertura, cancha.hora_cierre) : [];
-
-  const confirmarReserva = async (e) => {
-    e.preventDefault();
+    setErrorReserva('');
 
     if (!validarTelefono(telefono)) {
-      alert('Ingresá un teléfono válido (solo números, entre 6 y 20 dígitos).');
+      setErrorReserva('Ingresá un teléfono válido (solo números, entre 6 y 20 dígitos).');
       return;
     }
 
+    setGuardando(true);
     try {
-      setGuardando(true);
-
       // Solo se mandan ids y cantidades: nombre, precio y totales los calcula el servidor.
-      const extras = Object.entries(extrasSeleccionados)
-        .filter(([, cantidad]) => cantidad > 0)
-        .map(([idProd, cantidad]) => ({ id: Number(idProd), cantidad }));
-
+      const extras = extrasParaEnviar(cantidades).filter((x) => x.cantidad > 0);
       const { error } = await supabase.rpc('crear_reserva', {
         p_cancha_id: idCancha,
-        p_fecha: fechaSeleccionada,
-        p_hora: horaSeleccionada,
+        p_fecha: seleccion.fecha,
+        p_hora: seleccion.hora,
         p_nombre: nombre,
         p_telefono: telefono,
         p_extras: extras,
       });
-
       if (error) throw error;
+
+      setReserva({ ...seleccion, nombre, total });
       setPaso(3);
-    } catch (error) {
-      console.error("Error al guardar la reserva:", error);
-      alert(mensajeDeServidor(error, 'Hubo un error al procesar el turno. Intentá de nuevo.'));
-      if (error?.message?.includes('SLOT_OCUPADO') || error?.message?.includes('TURNO_PASADO')) {
-        setHoraSeleccionada(null);
+
+      // Guarda el teléfono en el perfil para no pedirlo la próxima vez (si falla, no afecta la reserva)
+      if (user && perfil?.telefono !== telefono) {
+        supabase.from('usuarios').update({ telefono }).eq('id', user.id).then(() => recargarPerfil?.());
+      }
+    } catch (err) {
+      console.error('Error al guardar la reserva:', err);
+      const horarioPerdido = err?.message?.includes('SLOT_OCUPADO') || err?.message?.includes('TURNO_PASADO');
+      if (horarioPerdido) {
+        setSeleccion(null);
         setPaso(1);
+        setAviso(mensajeDeServidor(err));
         cargarOcupados().catch(() => {});
+      } else {
+        setErrorReserva(mensajeDeServidor(err, 'Hubo un error al procesar el turno. Intentá de nuevo.'));
       }
     } finally {
       setGuardando(false);
     }
   };
 
-  const seleccionarTurno = (fecha, hora) => {
-    setFechaSeleccionada(fecha);
-    setHoraSeleccionada(hora);
+  const reservarOtro = () => {
+    setReserva(null);
+    setSeleccion(null);
+    setCantidades({});
+    setErrorReserva('');
+    setPaso(1);
+    cargarOcupados().catch(() => {});
   };
 
-  const obtenerRutaVuelta = () => {
-    if (club && club.provincia && club.ciudad) {
-      return `/explorar/${encodeURIComponent(club.provincia)}/${encodeURIComponent(club.ciudad)}`;
-    }
-    return '/'; 
-  };
+  const rutaVuelta = club?.provincia && club?.ciudad
+    ? `/explorar/${encodeURIComponent(club.provincia)}/${encodeURIComponent(club.ciudad)}`
+    : '/';
 
   if (cargando) return <div className="estado-carga">Cargando disponibilidad...</div>;
-  if (!cancha) return <div className="estado-carga">Cancha no encontrada</div>;
+  if (errorCarga || !cancha) {
+    return (
+      <div className="estado-carga">
+        <p>No pudimos cargar esta cancha. Puede que ya no exista o que haya un problema de conexión.</p>
+        <Link to="/" className="gp-btn gp-btn--primario">Volver al inicio</Link>
+      </div>
+    );
+  }
+
+  const superficie = cancha.superficie || (cancha.deporte === 'Pádel' ? 'Blindex / Sintético' : 'Sintético');
 
   return (
-    <div className="reserva-container">
-      <div className="header-reserva">
-        <button onClick={() => navigate(-1)} className="btn-volver-reserva">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="titulo-cancha">{cancha.nombre}</h1>
-      </div>
-
-      <div className="stepper-reserva">
-        <div className={`stepper-item ${paso >= 1 ? 'activo' : ''}`}>
-          <span className="stepper-numero">1</span>
-          <span className="stepper-label">Horario</span>
-        </div>
-        <div className="stepper-linea"></div>
-        <div className={`stepper-item ${paso >= 2 ? 'activo' : ''}`}>
-          <span className="stepper-numero">2</span>
-          <span className="stepper-label">Cuenta y Datos</span>
-        </div>
-        <div className="stepper-linea"></div>
-        <div className={`stepper-item ${paso >= 3 ? 'activo' : ''}`}>
-          <span className="stepper-numero">3</span>
-          <span className="stepper-label">Listo</span>
-        </div>
-      </div>
-
-      {paso === 1 && (
-        <div className="paso-horarios">
-          <h2 className="titulo-paso">Elegí día y horario</h2>
-          
-          <div className="lista-dias">
-            {diasSemana.map((dia) => {
-              const estaAbierto = diaExpandido === dia.fechaBD;
-              
-              return (
-                <div key={dia.fechaBD} className="dia-card">
-                  <div 
-                    onClick={() => setDiaExpandido(estaAbierto ? null : dia.fechaBD)}
-                    className={`dia-header ${estaAbierto ? 'abierto' : ''}`}
-                  >
-                    <span className="dia-texto">{dia.textoMostrar}</span>
-                    <ChevronDown size={20} className={`flecha-icono ${estaAbierto ? 'abierta' : ''}`} />
-                  </div>
-
-                  {estaAbierto && (
-                    <div className="animacion-acordeon">
-                      {horariosBase.map((hora) => {
-                        const yaPaso = dia.fechaBD === hoyBD && Number(hora.slice(0, 2)) <= new Date().getHours();
-                        const estaOcupado = yaPaso || turnosOcupados.some(t => t.fecha === dia.fechaBD && t.hora_inicio === hora);
-                        const estaSeleccionado = fechaSeleccionada === dia.fechaBD && horaSeleccionada === hora;
-
-                        let claseBoton = 'btn-hora disponible';
-                        if (estaOcupado) claseBoton = 'btn-hora ocupado';
-                        else if (estaSeleccionado) claseBoton = 'btn-hora seleccionado';
-
-                        return (
-                          <button
-                            key={hora}
-                            disabled={estaOcupado}
-                            onClick={() => seleccionarTurno(dia.fechaBD, hora)}
-                            className={claseBoton}
-                          >
-                            <span>{hora}</span>
-                            <span className="hora-estado">
-                              {estaOcupado ? 'Ocupado' : estaSeleccionado ? 'Elegido' : 'Libre'}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+    <div className="rc-pagina">
+      <div className="rc-contenedor">
+        <header className="rc-cabecera">
+          <button type="button" onClick={() => navigate(-1)} className="rc-volver" aria-label="Volver">
+            <ArrowLeft size={22} />
+          </button>
+          <div className="rc-cabecera-texto">
+            <h1>{cancha.nombre}</h1>
+            {club && <Link to={`/club/${club.id}`}>{club.nombre}</Link>}
           </div>
-
-          {horaSeleccionada && (
-            <button onClick={() => setPaso(2)} className="btn-continuar">
-              Continuar
-            </button>
-          )}
-        </div>
-      )}
-
-      {paso === 2 && (
-        <div className="paso-datos">
-          <h2 className="titulo-paso">
-            {user ? 'Confirmar tus datos' : (mostrarRecuperar ? 'Recuperar Contraseña' : (esRegistro ? 'Creá tu cuenta' : 'Iniciá sesión para reservar'))}
-          </h2>
-          
-          <div className="info-reserva-box">
-            <p className="info-reserva-texto">
-              Turno seleccionado: <strong>{fechaSeleccionada?.split('-').reverse().join('/')}</strong> a las <strong>{horaSeleccionada} hs</strong>
-            </p>
+          <div className="rc-precio-hora">
+            <strong>{moneda(precioCancha)}</strong>
+            <small>por hora</small>
           </div>
+        </header>
 
-          {errorAuth && <div className="alerta-error-cli" style={{color: '#ef4444', marginBottom: '15px', fontSize: '0.9rem'}}>{errorAuth}</div>}
-          {mensajeExitoAuth && <div className="alerta-error-cli exito" style={{color: '#16a34a', marginBottom: '15px', fontSize: '0.9rem'}}>{mensajeExitoAuth}</div>}
+        <div className="rc-chips">
+          <span className="gp-chip gp-chip--marca">{cancha.deporte}</span>
+          <span className="gp-chip"><Users size={13} /> {cancha.cantidad_jugadores || 5} jugadores</span>
+          <span className="gp-chip"><Layers size={13} /> {superficie}</span>
+          {cancha.techada && <span className="gp-chip"><CloudRain size={13} /> Techada</span>}
+          {club && <Calificacion resumen={resumen} className="rc-calif" />}
+        </div>
 
-          {!user ? (
-            <div>
-              {mostrarRecuperar ? (
-                <form onSubmit={handleRecuperarPassword}>
-                  <div className="form-group">
-                    <label className="form-label">Email de recuperación</label>
-                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-                      <Mail size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
-                      <input 
-                        type="email" 
-                        required 
-                        placeholder="tu@correo.com" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="form-input"
-                        style={{paddingLeft: '40px'}}
-                      />
-                    </div>
-                  </div>
+        <ol className="rc-pasos" aria-label="Progreso de la reserva">
+          {PASOS.map((nombrePaso, i) => (
+            <li key={nombrePaso} className={paso === i + 1 ? 'actual' : paso > i + 1 ? 'hecho' : ''} aria-current={paso === i + 1 ? 'step' : undefined}>
+              <span>{paso > i + 1 ? '✓' : i + 1}</span>{nombrePaso}
+            </li>
+          ))}
+        </ol>
 
-                  <button type="submit" className="btn-confirmar" disabled={guardando} style={{marginTop: '10px'}}>
-                    {guardando ? 'Enviando...' : 'Enviar enlace'}
-                  </button>
+        {/* ---------------- PASO 1: HORARIO ---------------- */}
+        {paso === 1 && (
+          <section className="rc-seccion">
+            <h2>Elegí día y horario</h2>
+            {aviso && <p className="gp-alerta gp-alerta--aviso" role="alert">{aviso}</p>}
 
-                  <button 
-                    type="button" 
-                    onClick={() => { setMostrarRecuperar(false); setErrorAuth(''); setMensajeExitoAuth(''); }} 
-                    className="btn-atras"
-                    style={{width: '100%', marginTop: '10px', textAlign: 'center'}}
+            <div className="rc-dias" role="tablist" aria-label="Días disponibles">
+              {dias.map((dia) => {
+                const libres = libresDelDia(dia.fecha);
+                const activo = diaVisible === dia.fecha;
+                return (
+                  <button
+                    key={dia.fecha}
+                    type="button"
+                    role="tab"
+                    aria-selected={activo}
+                    className={`rc-dia ${activo ? 'activo' : ''} ${libres === 0 ? 'completo' : ''}`}
+                    onClick={() => setDiaVisible(dia.fecha)}
                   >
-                    Volver a iniciar sesión
+                    <span className="rc-dia-semana">{dia.etiqueta || dia.corto}</span>
+                    <span className="rc-dia-numero">{dia.numero}</span>
+                    <span className="rc-dia-mes">{libres === 0 ? 'Completo' : dia.mes}</span>
                   </button>
-                </form>
-              ) : (
-                <form onSubmit={handleAuthSubmit}>
-                  {esRegistro && (
-                    <div className="form-group">
-                      <label className="form-label">Nombre y Apellido</label>
-                      <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-                        <UserIcon size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
-                        <input 
-                          type="text" 
-                          required 
-                          placeholder="Ej: Lucas Pérez" 
-                          value={nombre}
-                          onChange={(e) => setNombre(e.target.value)}
-                          className="form-input"
-                          style={{paddingLeft: '40px'}}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-                      <Mail size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
-                      <input 
-                        type="email" 
-                        required 
-                        placeholder="tu@correo.com" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="form-input"
-                        style={{paddingLeft: '40px'}}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Contraseña</label>
-                    <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-                      <Lock size={18} style={{position: 'absolute', left: '12px', color: '#64748b'}} />
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder={esRegistro ? AYUDA_PASSWORD : 'Tu contraseña'}
-                        autoComplete={esRegistro ? 'new-password' : 'current-password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        minLength={esRegistro ? 8 : undefined}
-                        className="form-input"
-                        style={{paddingLeft: '40px'}}
-                      />
-                    </div>
-                    {!esRegistro && (
-                      <div style={{textAlign: 'right', marginTop: '5px'}}>
-                        <button type="button" onClick={() => { setMostrarRecuperar(true); setErrorAuth(''); }} style={{background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '0.85rem'}}>
-                          ¿Olvidaste tu contraseña?
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="btn-group" style={{marginTop: '15px'}}>
-                    <button type="button" onClick={() => setPaso(1)} className="btn-atras">
-                      Atrás
-                    </button>
-                    <button type="submit" className="btn-confirmar" disabled={guardando}>
-                      {guardando ? 'Procesando...' : (esRegistro ? 'Registrarse' : 'Iniciar Sesión')}
-                    </button>
-                  </div>
-
-                  <div style={{textAlign: 'center', margin: '20px 0 10px', color: '#64748b', fontSize: '0.9rem'}}>O ingresá con</div>
-
-                  <button onClick={handleGoogleLogin} type="button" style={{width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: '600', cursor: 'pointer'}}>
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
-                    Google
-                  </button>
-
-                  <div style={{textAlign: 'center', marginTop: '20px', fontSize: '0.9rem'}}>
-                    {esRegistro ? '¿Ya tenés una cuenta?' : '¿No tenés una cuenta?'} {' '}
-                    <button type="button" onClick={() => { setEsRegistro(!esRegistro); setErrorAuth(''); }} style={{background: 'none', border: 'none', color: '#16a34a', fontWeight: 'bold', cursor: 'pointer'}}>
-                      {esRegistro ? 'Iniciá sesión' : 'Registrate gratis'}
-                    </button>
-                  </div>
-                </form>
-              )}
+                );
+              })}
             </div>
-          ) : (
-            <form onSubmit={confirmarReserva}>
-              <p style={{marginBottom: '15px', color: '#475162', fontSize: '0.95rem'}}>
-                Conectado como: <strong>{user.email}</strong>
-              </p>
 
-              <div className="form-group">
-                <label className="form-label">Nombre y Apellido</label>
-                <input 
-                  type="text" 
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej: Juan Pérez"
-                  className="form-input"
-                  required
-                />
+            <p className="rc-dia-titulo">
+              <CalendarDays size={16} /> {fechaLarga(diaVisible)}
+              <span>{libresHoy === 0 ? 'Sin horarios libres' : `${libresHoy} ${libresHoy === 1 ? 'horario libre' : 'horarios libres'}`}</span>
+            </p>
+
+            {libresHoy === 0 && (
+              <div className="rc-sin-turnos">
+                <Clock size={22} aria-hidden="true" />
+                <p>No quedan horarios este día. Probá con otro: los que tienen <strong>Completo</strong> ya no tienen lugar.</p>
               </div>
+            )}
 
-              <div className="form-group">
-                <label className="form-label">Teléfono (WhatsApp)</label>
-                <input 
-                  type="tel" 
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  placeholder="Ej: 3564..."
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              {/* SECCIÓN DEL KIOSCO / EXTRAS */}
-              {productosClub.length > 0 && (
-                <div style={{ margin: '20px 0', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem', color: '#0f172a' }}>¿Te falta algo para el partido? 🥤</h4>
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '12px' }}>Agregá bebidas o alquileres para tenerlos listos al llegar.</p>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {productosClub.map(prod => {
-                      const cantidadActual = extrasSeleccionados[prod.id] || 0;
+            {FRANJAS.map(({ id, nombre: nombreFranja, Icono, desde, hasta }) => {
+              const deLaFranja = horas.filter((h) => Number(h.slice(0, 2)) >= desde && Number(h.slice(0, 2)) < hasta);
+              if (deLaFranja.length === 0) return null;
+              return (
+                <div key={id} className="rc-franja">
+                  <h3><Icono size={15} /> {nombreFranja}</h3>
+                  <div className="rc-horas">
+                    {deLaFranja.map((hora) => {
+                      const estado = estadoHora(diaVisible, hora);
+                      const elegida = seleccion?.fecha === diaVisible && seleccion?.hora === hora;
                       return (
-                        <div key={prod.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                          <div>
-                            <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{prod.nombre}</span>
-                            <span style={{ display: 'block', color: '#16a34a', fontSize: '0.85rem', fontWeight: 'bold' }}>${prod.precio}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <button 
-                              type="button"
-                              onClick={() => setExtrasSeleccionados(prev => ({ ...prev, [prod.id]: Math.max(0, cantidadActual - 1) }))}
-                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-                            >
-                              -
-                            </button>
-                            <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>{cantidadActual}</span>
-                            <button 
-                              type="button"
-                              onClick={() => setExtrasSeleccionados(prev => ({ ...prev, [prod.id]: cantidadActual + 1 }))}
-                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #22c55e', background: '#22c55e', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
+                        <button
+                          key={hora}
+                          type="button"
+                          disabled={estado !== 'libre'}
+                          aria-pressed={elegida}
+                          className={`rc-hora ${estado} ${elegida ? 'elegida' : ''}`}
+                          onClick={() => elegirHora(hora)}
+                        >
+                          <strong>{hora}</strong>
+                          <span>{elegida ? 'Elegido' : estado === 'libre' ? 'Libre' : estado === 'ocupado' ? 'Ocupado' : 'Pasó'}</span>
+                        </button>
                       );
                     })}
                   </div>
                 </div>
+              );
+            })}
+
+            <div className={`rc-barra ${seleccion ? 'visible' : ''}`} aria-hidden={!seleccion}>
+              {seleccion && (
+                <>
+                  <div>
+                    <strong>{fechaCorta(seleccion.fecha)} · {seleccion.hora} hs</strong>
+                    <span>{moneda(precioCancha)} · 1 hora</span>
+                  </div>
+                  <button type="button" className="gp-btn gp-btn--primario" onClick={() => setPaso(2)}>
+                    Continuar <ChevronRight size={18} />
+                  </button>
+                </>
               )}
+            </div>
+          </section>
+        )}
 
-              <div className="btn-group" style={{marginTop: '20px'}}>
-                <button type="button" onClick={() => setPaso(1)} className="btn-atras">
-                  Atrás
-                </button>
-                <button type="submit" className="btn-confirmar" disabled={!telefono || !nombre || guardando}>
-                  {guardando ? 'Guardando...' : 'Confirmar Turno'}
-                </button>
+        {/* ---------------- PASO 2: CONFIRMAR ---------------- */}
+        {paso === 2 && seleccion && (
+          <section className="rc-seccion">
+            <h2>{user ? 'Confirmá tu reserva' : 'Ingresá para reservar'}</h2>
+
+            <div className="rc-resumen">
+              <div className="rc-resumen-fila">
+                <span>Turno</span>
+                <strong>{fechaLarga(seleccion.fecha)} · {seleccion.hora} hs</strong>
               </div>
-            </form>
-          )}
-        </div>
-      )}
+              <div className="rc-resumen-fila">
+                <span>Cancha</span>
+                <strong>{cancha.nombre}{club ? ` · ${club.nombre}` : ''}</strong>
+              </div>
+              <button type="button" className="rc-cambiar" onClick={() => setPaso(1)}>Cambiar horario</button>
+            </div>
 
-      {paso === 3 && (
-        <div className="paso-exito">
-          <CheckCircle size={60} color="#22c55e" className="icono-exito" />
-          <h2 className="titulo-exito">¡Reserva Confirmada!</h2>
-          <p className="texto-exito">Te esperamos el {fechaSeleccionada?.split('-').reverse().join('/')} a las {horaSeleccionada} hs. ¡A jugar!</p>
-          
-          <div style={{display: 'flex', gap: '15px', marginTop: '20px', justifyContent: 'center'}}>
-            <Link to="/mis-reservas" className="btn-confirmar" style={{textDecoration: 'none', padding: '12px 24px'}}>
-              Ver mis reservas
-            </Link>
-            <Link to={obtenerRutaVuelta()} className="btn-atras" style={{textDecoration: 'none', padding: '12px 24px', display: 'flex', alignItems: 'center'}}>
-              Volver a los clubes
-            </Link>
-          </div>
-        </div>
-      )}
+            {!user ? (
+              cargandoSesion ? <p className="rc-cargando">Cargando…</p> : <AuthReserva />
+            ) : (
+              <form onSubmit={confirmar} className="gp-form">
+                <p className="rc-conectado">Conectado como <strong>{user.email}</strong></p>
+
+                <div className="rc-fila-2">
+                  <label className="gp-campo">
+                    <span>Nombre y apellido</span>
+                    <input type="text" required maxLength={80} autoComplete="name" value={nombre} onChange={(e) => setNombreEditado(e.target.value)} placeholder="Ej: Juan Pérez" />
+                  </label>
+                  <label className="gp-campo">
+                    <span>Teléfono (WhatsApp)</span>
+                    <input type="tel" required inputMode="tel" autoComplete="tel" value={telefono} onChange={(e) => setTelefonoEditado(e.target.value)} placeholder="Ej: 3564123456" />
+                  </label>
+                </div>
+
+                {productos.length > 0 && (
+                  <div className="rc-extras">
+                    <h3>¿Te falta algo para el partido? <span>Opcional</span></h3>
+                    <p>Bebidas o alquileres: los dejan listos para cuando llegues.</p>
+                    <EditorExtras productos={productos} cantidades={cantidades} onCambio={(id, n) => setCantidades((c) => ({ ...c, [id]: n }))} />
+                  </div>
+                )}
+
+                <div className="rc-total">
+                  <div className="rc-total-fila"><span>Cancha (1 hora)</span><span>{moneda(precioCancha)}</span></div>
+                  {lineasExtras.map((p) => (
+                    <div key={p.id} className="rc-total-fila"><span>{cantidades[p.id]} × {p.nombre}</span><span>{moneda(p.precio * cantidades[p.id])}</span></div>
+                  ))}
+                  <div className="rc-total-fila rc-total-final"><span>Total</span><strong>{moneda(total)}</strong></div>
+                  <small>El total se abona en el club.</small>
+                </div>
+
+                {errorReserva && <p className="gp-alerta gp-alerta--error" role="alert">{errorReserva}</p>}
+
+                <div className="rc-acciones">
+                  <button type="button" className="gp-btn gp-btn--fantasma" onClick={() => setPaso(1)} disabled={guardando}>Atrás</button>
+                  <button type="submit" className="gp-btn gp-btn--primario" disabled={guardando || !nombre.trim() || !telefono.trim()}>
+                    {guardando ? 'Reservando…' : `Confirmar turno · ${moneda(total)}`}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {!user && !cargandoSesion && (
+              <div className="rc-acciones">
+                <button type="button" className="gp-btn gp-btn--fantasma" onClick={() => setPaso(1)}>Atrás</button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ---------------- PASO 3: LISTO ---------------- */}
+        {paso === 3 && reserva && (
+          <section className="rc-seccion rc-exito">
+            <CheckCircle2 size={64} className="rc-exito-icono" aria-hidden="true" />
+            <h2>¡Reserva confirmada!</h2>
+            <p>Te esperamos. Guardamos tu turno en “Mis reservas”.</p>
+
+            <div className="rc-resumen rc-resumen--exito">
+              <div className="rc-resumen-fila"><span>Cuándo</span><strong>{fechaLarga(reserva.fecha)} · {reserva.hora} hs</strong></div>
+              <div className="rc-resumen-fila"><span>Dónde</span><strong>{cancha.nombre}{club ? ` · ${club.nombre}` : ''}</strong></div>
+              {club?.direccion && <div className="rc-resumen-fila"><span>Dirección</span><strong>{club.direccion}, {club.ciudad}</strong></div>}
+              <div className="rc-resumen-fila"><span>Total a abonar</span><strong>{moneda(reserva.total)}</strong></div>
+            </div>
+
+            <div className="rc-atajos">
+              <a className="gp-btn gp-btn--secundario" target="_blank" rel="noreferrer"
+                href={enlaceCalendario({ fecha: reserva.fecha, hora: reserva.hora, titulo: `${cancha.deporte} en ${club?.nombre || cancha.nombre}`, lugar: [club?.direccion, club?.ciudad].filter(Boolean).join(', ') })}>
+                <CalendarPlus size={18} /> Agregar al calendario
+              </a>
+              {enlaceMapa(club) && (
+                <a className="gp-btn gp-btn--secundario" href={enlaceMapa(club)} target="_blank" rel="noreferrer"><Navigation size={18} /> Cómo llegar</a>
+              )}
+              {enlaceWhatsApp(club?.telefono_contacto, `¡Hola! Reservé ${cancha.nombre} el ${fechaLarga(reserva.fecha)} a las ${reserva.hora} hs a nombre de ${reserva.nombre}.`) && (
+                <a className="gp-btn gp-btn--secundario" target="_blank" rel="noreferrer"
+                  href={enlaceWhatsApp(club.telefono_contacto, `¡Hola! Reservé ${cancha.nombre} el ${fechaLarga(reserva.fecha)} a las ${reserva.hora} hs a nombre de ${reserva.nombre}.`)}>
+                  <MessageCircle size={18} /> Avisar al club
+                </a>
+              )}
+            </div>
+
+            <div className="rc-acciones rc-acciones--centro">
+              <Link to="/mis-reservas" className="gp-btn gp-btn--primario">Ver mis reservas</Link>
+              <button type="button" className="gp-btn gp-btn--fantasma" onClick={reservarOtro}>Reservar otro horario</button>
+              <Link to={rutaVuelta} className="gp-btn gp-btn--fantasma">Volver a los clubes</Link>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 };
