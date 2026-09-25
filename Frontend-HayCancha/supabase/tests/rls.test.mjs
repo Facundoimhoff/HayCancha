@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const MIGRACION = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../migrations/20260924000001_seguridad_base.sql');
+const DIR_MIGRACIONES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../migrations');
 const db = new PGlite();
 
 const U = {
@@ -91,10 +91,13 @@ await db.exec("insert into public.turnos (id, cancha_id, fecha, hora_inicio, nom
 
 // ---------- 3. Aplicar la migración ----------
 try {
-  await db.exec(fs.readFileSync(MIGRACION, 'utf8'));
-  ok('La migración se aplica sin errores', true);
+  // Se aplican TODAS las migraciones en orden, igual que en producción
+  for (const archivo of fs.readdirSync(DIR_MIGRACIONES).filter((f) => f.endsWith('.sql')).sort()) {
+    await db.exec(fs.readFileSync(path.join(DIR_MIGRACIONES, archivo), 'utf8'));
+  }
+  ok('Las migraciones se aplican sin errores', true);
 } catch (e) {
-  ok('La migración se aplica sin errores', false, e.message);
+  ok('Las migraciones se aplican sin errores', false, e.message);
   console.log(JSON.stringify(resultados, null, 1));
   process.exit(1);
 }
@@ -123,6 +126,7 @@ a = await intenta('select count(*)::int n from public.productos'); ok('Anónimo 
 a = await intenta('select * from public.turnos'); ok('Anónimo NO puede leer turnos', !!a.e, a.e);
 a = await intenta('select * from public.usuarios'); ok('Anónimo NO puede leer usuarios', !!a.e, a.e);
 a = await intenta('select * from public.reservas'); ok('Anónimo NO puede leer la tabla legacy', !!a.e, a.e);
+a = await intenta('select * from public.suscripciones'); ok('Anónimo NO puede leer suscripciones', !!a.e, a.e);
 a = await intenta('delete from public.turnos'); ok('Anónimo NO puede borrar turnos', !!a.e, a.e);
 a = await intenta("update public.clubes set nombre='hack'"); ok('Anónimo NO puede editar clubes', !!a.e, a.e);
 a = await intenta("insert into public.clubes (nombre, admin_id) values ('x', '" + U.dueno + "')"); ok('Anónimo NO puede crear clubes', !!a.e, a.e);
@@ -146,7 +150,7 @@ ok('El extra se recalcula en servidor (2 x 6000 = 12000)', t?.extras?.[0]?.subto
 ok('La reserva queda a nombre del jugador', t?.usuario_id === U.cliente);
 a = await intenta(`select public.crear_reserva('${C67}', '${sumar(1)}', '10:00', 'Otro', '3564123456')`); ok('No se puede reservar un horario ocupado', a.e?.includes('SLOT_OCUPADO'), a.e);
 a = await intenta(`select public.crear_reserva('${C67}', '${sumar(1)}', '11:00', 'Otro', '3564123456', '[{"id":999,"cantidad":1}]'::jsonb)`); ok('Producto inexistente rechazado', a.e?.includes('EXTRAS_INVALIDOS'), a.e);
-a = await intenta(`select public.crear_reserva('${C67}', '${sumar(-1)}', '11:00', 'Otro', '3564123456')`); ok('Fecha pasada rechazada', a.e?.includes('FECHA_INVALIDA'), a.e);
+a = await intenta(`select public.crear_reserva('${C67}', '${sumar(-3)}', '11:00', 'Otro', '3564123456')`); ok('Fecha pasada rechazada', a.e?.includes('FECHA_INVALIDA'), a.e);
 a = await intenta(`select public.crear_reserva('${C67}', '${sumar(1)}', '03:00', 'Otro', '3564123456')`); ok('Fuera del horario de la cancha rechazado', a.e?.includes('FUERA_DE_HORARIO'), a.e);
 a = await intenta(`select public.crear_reserva('${C67}', '${sumar(1)}', '12:00', 'Otro', 'BLOQUEO')`); ok('Teléfono "BLOQUEO" rechazado', a.e?.includes('TELEFONO_INVALIDO'), a.e);
 a = await intenta(`select public.crear_reserva('${C67}', '${sumar(1)}', '12:30', 'Otro', '3564123456')`); ok('Hora que no es en punto rechazada', a.e?.includes('HORA_INVALIDA'), a.e);
@@ -165,6 +169,22 @@ a = await intenta(`delete from public.turnos where id = ${idRes} returning id`);
 
 // ---------- 7. Se vuelve admin por el camino oficial ----------
 await como('authenticated', U.cliente);
+a = await intenta(`select public.registrar_club('Club Test','desc','Córdoba','San Francisco','Calle 1','3564000000',true,'Parrilla','{}','','a@b.com')`);
+ok('SIN suscripción activa no se puede registrar un club', a.e?.includes('SUSCRIPCION_REQUERIDA'), a.e);
+a = await intenta(`insert into public.suscripciones (user_id, plan, estado) values ('${U.cliente}','Full','activa')`);
+ok('El jugador NO puede activarse una suscripción a sí mismo', !!a.e, a.e);
+a = await intenta(`update public.suscripciones set estado = 'activa'`);
+ok('Nadie puede editar suscripciones desde el cliente', !!a.e, a.e);
+a = await intenta('select count(*)::int n from public.suscripciones');
+ok('El jugador no ve suscripciones (solo las propias, y no tiene)', a.r?.rows[0].n === 0);
+// El backend (service_role, verificó el pago contra Mercado Pago) registra la suscripción:
+await raiz();
+await db.query(`insert into public.suscripciones (user_id, mp_preapproval_id, plan, estado, monto) values ('${U.cliente}', 'mp-123', 'Full', 'activa', 50000)`);
+a = await intenta(`insert into public.suscripciones (user_id, mp_preapproval_id, plan, estado) values ('${U.sani}', 'mp-123', 'Full', 'activa')`);
+ok('Una misma suscripción de Mercado Pago no puede reclamarse dos veces', !!a.e, a.e);
+await como('authenticated', U.cliente);
+a = await intenta('select count(*)::int n from public.suscripciones');
+ok('Con suscripción activa, el jugador ve la suya', a.r?.rows[0].n === 1);
 a = await intenta(`select public.registrar_club('Club Test','desc','Córdoba','San Francisco','Calle 1','3564000000',true,'Parrilla','{"instagram":"@x"}','https://x/y.png','a@b.com') id`);
 ok('registrar_club crea el club', !a.e, a.e);
 a = await intenta(`select public.registrar_club('Club 2','','a','b','c','3564000000',true,'','{}','','a@b.com')`); ok('No puede registrar un segundo club', a.e?.includes('CLUB_EXISTENTE'), a.e);
@@ -189,6 +209,10 @@ a = await intenta(`insert into public.canchas (club_id, nombre, deporte, precio_
 a = await intenta(`insert into public.productos (club_id, nombre, precio) values ('${CLUB_SANI}', 'Agua', 1500) returning activo`); ok('Admin crea productos (activo por defecto)', a.r?.rows[0].activo === true, a.e);
 a = await intenta(`insert into public.productos (club_id, nombre, precio) values ('${CLUB_SPORT}', 'Agua', 1500)`); ok('Admin Sani NO crea productos en otro club', !!a.e, a.e);
 a = await intenta(`delete from public.turnos where cancha_id = '${C67}' and hora_inicio = '16:00' and fecha = '${sumar(3)}' returning id`); ok('Admin puede liberar un bloqueo', a.r?.rows.length === 1, a.e);
+
+await como('authenticated', U.sani);
+a = await intenta("select estado, plan from public.suscripciones");
+ok('Los clubes existentes quedaron con suscripción activa (legado) y ven solo la suya', a.r?.rows.length === 1 && a.r.rows[0].estado === 'activa' && a.r.rows[0].plan === 'legado', JSON.stringify(a.r?.rows));
 
 // ---------- 9. Admin SPORT ----------
 await como('authenticated', U.sport);
