@@ -614,8 +614,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.6); /* Fondo oscurecido */
-  backdrop-filter: blur(4px); /* Efecto borroso elegante */
+  background: var(--overlay-bg); /* Fondo oscurecido */
+  -webkit-backdrop-filter: var(--overlay-filter);
+  backdrop-filter: var(--overlay-filter); /* Efecto borroso elegante */
   display: flex;
   justify-content: center;
   align-items: center;

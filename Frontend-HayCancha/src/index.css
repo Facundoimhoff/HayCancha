@@ -3,11 +3,30 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: inherit; /* la tipografía se define una vez en html (tokens) */
+}
+
+html {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background-color: #F8FAFC;
+  background-color: var(--surface-page);
+  color: var(--text-strong);
+}
+
+/* Foco visible y consistente para quien navega con teclado */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+/* Microinteracción de "presionar" en todos los botones (especificidad mínima: cualquier estilo propio la pisa) */
+:where(button:not(:disabled), [role="button"]):active {
+  transform: scale(0.98);
 }
 
 /* --- ESTILOS DEL HOME --- */
@@ -967,17 +986,24 @@ body {
 /* =========================================================
    ANIMACIÓN GLOBAL DE CAMBIO DE PANTALLA
    ========================================================= */
+/* Solo opacidad: cualquier `transform` en un ancestro convierte a ese ancestro en el "marco" de los
+   elementos position: fixed (menús flotantes, barras, modales) y los hace saltar durante la animación. */
 .animacion-cambio-pantalla {
-  animation: pageFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageFade var(--dur-page) var(--ease-out) both;
 }
 
-@keyframes pageFadeUp {
-  0% {
-    opacity: 0;
-    transform: translateY(15px); 
-  }
-  100% {
-    opacity: 1;
-    transform: none; /* <-- ¡ESTA ES LA PALABRA MÁGICA! Libera el botón flotante */
+@keyframes pageFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Respeto a quien pidió menos movimiento en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
+

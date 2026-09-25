@@ -1,37 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Montserrat:ital,wght@0,700;0,800;0,900;1,800;1,900&display=swap');
+/* Tipografías: se cargan una sola vez en index.html */
 
 /* 
 ======================================================
 1. VARIABLES Y ANIMACIONES
 ====================================================== 
 */
-:root {
-  --font-body: 'Inter', sans-serif;
-  --font-display: 'Montserrat', sans-serif; 
-  --font-mono: 'Inter', monospace;
-  
-  --paper: #f8fafc; 
-  --ink: #475162; 
-  --ink-dark: #1e293b; 
-  --paper-card: #ffffff; 
-  --line: #e2e8f0; 
-  
-  --turf: #22c55e;
-  --turf-100: #dcfce7;
-  --turf-600: #16a34a;
-  --turf-700: #15803d;
-  --flash: #84cc16;
-  
-  --text-muted: #64748b;
-  --text-soft: #94a3b8;
-  
-  --radius-pill: 9999px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --ease: ease-in-out;
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
+/* Variables de diseño: ver src/styles/tokens.css */
 
 @keyframes hc-fade-up {
   from { opacity: 0; transform: translateY(15px); }
@@ -92,7 +66,10 @@
   top: 0;
   left: 0;
   width: 100%;
-  background-color: #000000;
+  background: var(--glass-bg-dark);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-bottom: 1px solid var(--glass-border-dark);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -644,7 +621,7 @@
 .menu-flotante-opciones.abierto .btn-planes { transition-delay: 0.1s; }
 
 .opcion-tooltip {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--glass-bg-strong);
   color: #0f172a;
   padding: 10px 18px;
   border-radius: 12px;
@@ -652,8 +629,8 @@
   font-weight: 700;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
   transition: transform 0.2s ease, background 0.2s ease;
   white-space: nowrap; /* Evita que el texto se rompa en dos líneas si se achica la pantalla */
 }
