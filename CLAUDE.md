@@ -17,6 +17,13 @@ Agente autónomo por fases (Pensar → Herramientas → Observar → Actuar). Al
 
 **Pendiente de configuración del usuario:** confirmar en Render las variables SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MP_WEBHOOK_SECRET, CORS_ORIGINS, FRONTEND_URL, y que PRECIO_PLAN_FULL esté en 50000 o borrada. Tabla suscripciones: puede tener una fila de prueba (plan Full) de la cuenta que hizo el pago.
 
+## Rama `fase-3-reservas` (2026-09-25, SIN subir ni mergear; 4 commits sobre `main` local)
+- **Pago rápido (bloque A)**: backend reutiliza el plan de MP (`MP_PLAN_LINK_FULL` opcional > caché de promesa > búsqueda de plan activo compatible > crear) y lo precalienta al arrancar; frontend `precalentarApi()` (GET /health) en Planes/RegistroClub/LoginAdmin, `postApi` con timeout 60 s + 1 reintento + `onLento`; Planes con progreso y errores inline. El cold start de Render (plan gratis) solo se elimina con un ping externo (UptimeRobot a `/health`, cada 5 min) o plan pago. Sin probar contra MP real (la búsqueda de planes cae a crear si falla).
+- **Reseñas + extras editables — MIGRACIÓN `20260926000001_resenas_y_extras.sql` NO APLICADA a producción** (la aplica el usuario; probada en réplica local, `npm run test:db` 100/100). Tabla `resenas` (una por jugador y club, solo quien ya jugó, `oculta` para moderación manual del dueño), RPC `calificar_club`, `resumen_resenas`, `distribucion_resenas`, `resenas_club` (autor abreviado) y `actualizar_extras` (lista completa deseada; cantidad 0 quita). Mientras no se aplique, la UI degrada a "Sin reseñas todavía" y "Agregar extras" falla con mensaje.
+- **UI del jugador** (`src/components/user/`, estilos `componentes.css`, prefijo `gp-`): Estrellas/Calificacion/EstrellasInput, Hoja (modal), EditorExtras, TarjetaClub (compartida por Explorar y Buscar), FiltrosClubes, ModalResena, SeccionResenas (en la ficha del club), ModalExtras, AuthReserva. `ReservaCancha` (prefijo `rc-`) y `MisReservas` (`mr-`) reescritas; `HomeUsuario` (`hu-`) y `Buscar` usan las tarjetas nuevas. Lógica pura con tests en `src/utils/reservas.js` y `filtrosClubes.js` (`npm run test:unit`, 22).
+- **Modo demo** (`npm run dev:demo`) ahora cubre el jugador: `/explorar/Córdoba/Freyre`, `/club/demo-club-freyre`, `/reservar/cf1`, `/mis-reservas` (RPC simuladas en `supabaseDemo.js`). Ojo: el plugin de Vite solo reemplaza `services/supabase` y `./supabase` dentro de `src/services`.
+- Decisiones pendientes del usuario: política de anticipación para cancelar (hoy libre hasta que el turno empieza); moderación de reseñas (hoy solo manual por SQL); si el admin puede responder reseñas.
+
 ## Arquitectura
 Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha"):
 - `Frontend-HayCancha/` — React 19 + Vite 8 + react-router 7 (SPA, Vercel con rewrite a `/`). Proyecto Supabase CLI también acá (`supabase/`).
@@ -75,6 +82,7 @@ Etapas 1-3 HECHAS (tokens, vidrio, animaciones); 4 (formularios) y 5 (limpieza C
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso (por orden)
+0. **Reservas/reseñas**: el usuario sube `main` y `fase-3-reservas` (merge a main), **aplica la migración `20260926000001`** (SQL editor o `supabase db push`), prueba en producción reservar, "Mis reservas", agregar extras y calificar; opcional: UptimeRobot a `/health`.
 1. El usuario sube con `git push origin main` y prueba el panel publicado; ajustar según lo que vea.
 2. Reescribir `views/MiClub.jsx` y `GestorKiosco.jsx` con el sistema de diseño nuevo (hoy tienen 53 y 29 estilos en línea).
 3. Fase 3 etapa 4: formularios con errores inline, medidor de contraseña y stepper Cuenta → Plan → Club en el registro; reemplazar alert() restantes.
