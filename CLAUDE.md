@@ -31,6 +31,13 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - Helpers en schema `private` (no expuesto por PostgREST). Storage `imagenes`: solo jpeg/png/webp ≤5MB, escritura solo en carpeta `<uid>/`; sin listado público.
 - Clubes reales: SPORT AUTOMOVIL CLUB (admin sport@gmail.com) y SANI (sani@gmail.com); sus `admin_id` apuntaban al dueño (facuimhoff2112) → la migración los reasigna por email. Dueño del proyecto pasa a rol `superadmin`.
 
+## Fase 2b — Pago verificado (CÓDIGO LISTO, sin desplegar; commits locales)
+- Tabla `suscripciones(user_id, mp_preapproval_id UNIQUE, plan, estado pendiente|activa|pausada|cancelada, monto)`: solo la escribe el backend (service_role); el usuario lee la suya. Migración `20260925000001_suscripciones.sql` (los clubes existentes quedan con plan `legado` activo). `registrar_club` exige suscripción activa o rol superadmin (error SUSCRIPCION_REQUERIDA).
+- Flujo: cuenta (paso 1) → /planes → `POST /api/crear-suscripcion` (JWT) → link de MP → vuelve a /registro-club?preapproval_id=… → `POST /api/vincular-suscripcion` (el backend consulta a MP con su access token que exista y esté `authorized`; una suscripción = una cuenta) → paso 2 (datos del club). Botón "Verificar mi pago" (busca por mail) por si MP no devuelve el id. `POST /api/webhooks/mercadopago` (firma x-signature HMAC-SHA256) mantiene el estado (cancelada/pausada).
+- Backend: env nuevas SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (¡secreta!), MP_WEBHOOK_SECRET. Sin ellas los endpoints responden 503. Tests: `npm test` (Backend) y `npm run test:db` (Frontend, 73 casos).
+- Pendiente de decisión de negocio: qué pasa con un club cuya suscripción se cancela (hoy solo se registra el estado; no se bloquean reservas).
+- Supuesto no verificado en vivo: que MP devuelva `preapproval_id` en la back_url del plan (si no, funciona el botón de verificación por mail).
+
 ## Pendientes de configuración (manuales, dashboards)
 1. Render (backend): variables CORS_ORIGINS=https://gridplay-x.vercel.app, FRONTEND_URL=https://gridplay-x.vercel.app, MP_ACCESS_TOKEN; redeploy (el backend nuevo falla al arrancar sin MP_ACCESS_TOKEN).
 2. Supabase Auth: password mínimo 8 con minúscula+mayúscula+dígito+símbolo (YA CONFIGURADO por el usuario; el front lo valida igual), NO activar Captcha (rompería login: la web no envía captchaToken), Leaked password protection (en Email provider; puede ser función de pago), Redirect URLs (/login-admin, /login-cliente, /actualizar-password, /), decidir confirmación de mail.
@@ -41,7 +48,7 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - Frontend: `npm run build` OK; ESLint limpio en archivos nuevos (el resto del repo tenía 43 errores previos de lint).
 
 ## Pendientes / deuda conocida
-- **Registro de club sin pago verificado**: `registrar_club` está abierto a cualquier cuenta (TODO fase 2b: webhook de Mercado Pago + estado de suscripción). Hoy `/registro-club` ya no dice "¡Pago exitoso!".
+- Registro de club sin pago verificado: RESUELTO en código (Fase 2b), falta desplegar y probar con un pago real.
 - `xlsx@0.18.5` tiene advisories conocidos (prototype pollution/ReDoS); se reemplaza al rehacer reportes (Fase 7).
 - `PerfilClub`/redes sociales: revisar que no armen `href` con input sin validar (Fase 3).
 - Dashboard descarga TODOS los turnos históricos al navegador (Fase 7: `metricas_mensuales` + poda).
@@ -50,4 +57,4 @@ Monorepo sin workspaces, raíz `GridPlay/` (carpetas con nombre viejo "HayCancha
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso
-Configurar Render/Supabase Auth (ver Pendientes), y elegir entre: Fase 2b (webhook de Mercado Pago que verifique el pago antes de registrar_club) o Fase 3 (UX/UI Stripe/Linear).
+Desplegar Fase 2b (migración en SQL Editor → env en Render → configurar webhook en Mercado Pago → Manual Deploy → git push) y probar un pago real; luego Fase 3 (UX/UI Stripe/Linear).

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send, ChevronLeft, ChevronRight } from 'lucide-react';
-import { supabase } from '../../services/supabase';
+import { postApi } from '../../services/api';
+import { useAuth } from '../../context/authContext';
 import './Planes.css';
 
 const Planes = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [cargando, setCargando] = useState(false);
   
   // Estados para el formulario de contacto
@@ -26,19 +28,17 @@ const Planes = () => {
  const iniciarPago = async () => {
     setCargando(true);
     try {
-      // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://haycancha.onrender.com';
-      const response = await fetch(`${apiUrl}/api/crear-suscripcion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ plan: 'Full' })
-      });
+      // Hace falta una cuenta: la suscripción se asocia a tu usuario cuando volvés de pagar.
+      if (!user) {
+        alert('Primero creá tu cuenta de administrador; después elegís el plan y pagás.');
+        navigate('/registro-club');
+        return;
+      }
 
-      const data = await response.json();
-      
-      if (data && data.linkPago) {
+      // El precio lo define el backend según el plan: el cliente solo indica cuál quiere.
+      const { ok, data } = await postApi('/api/crear-suscripcion', { plan: 'Full' });
+
+      if (ok && data?.linkPago) {
         // Redirigimos a Mercado Pago
         window.location.href = data.linkPago; 
       } else {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { postApi } from '../../services/api';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { useAuth } from '../../context/authContext';
 import { validarPassword, validarTelefono, mensajeDeServidor, AYUDA_PASSWORD } from '../../utils/validaciones';
@@ -33,6 +34,12 @@ const AceptaTerminos = ({ checked, onChange }) => (
 const RegistroClub = () => {
   const navigate = useNavigate();
   const { user, rol, cargando: cargandoSesion, recargarPerfil } = useAuth();
+  const [searchParams] = useSearchParams();
+  const idPago = searchParams.get('preapproval_id'); // Mercado Pago lo agrega al volver de pagar
+
+  // Estado de la suscripción de esta cuenta: cargando | activa | ninguna | verificando
+  const [suscripcion, setSuscripcion] = useState('cargando');
+  const [errorPago, setErrorPago] = useState('');
 
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
@@ -62,6 +69,43 @@ const RegistroClub = () => {
   }, [cargandoSesion, user, rol, navigate]);
 
   useEffect(() => () => { if (previewLogo) URL.revokeObjectURL(previewLogo); }, [previewLogo]);
+
+  const leerSuscripcion = async (userId) => {
+    const { data } = await supabase
+      .from('suscripciones')
+      .select('estado')
+      .eq('user_id', userId)
+      .eq('estado', 'activa')
+      .limit(1);
+    return data?.length ? 'activa' : 'ninguna';
+  };
+
+  // Si vuelve de Mercado Pago, el servidor VERIFICA el pago; después se lee el estado real (RLS: solo la propia).
+  useEffect(() => {
+    if (cargandoSesion || !user || ROLES_ADMIN.includes(rol)) return undefined;
+    let cancelado = false;
+
+    (async () => {
+      if (idPago) {
+        const { ok, data } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
+        if (cancelado) return;
+        if (!ok) setErrorPago(data?.error || 'No pudimos verificar el pago.');
+      }
+      const estado = await leerSuscripcion(user.id);
+      if (!cancelado) setSuscripcion(estado);
+    })();
+
+    return () => { cancelado = true; };
+  }, [cargandoSesion, user, rol, idPago]);
+
+  // Botón "Ya pagué": el servidor busca la suscripción autorizada de esta cuenta en Mercado Pago
+  const verificarPago = async () => {
+    setErrorPago('');
+    setSuscripcion('verificando');
+    const { ok, data } = await postApi('/api/vincular-suscripcion', {});
+    if (!ok) setErrorPago(data?.error || 'No pudimos verificar el pago.');
+    setSuscripcion(await leerSuscripcion(user.id));
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -218,6 +262,38 @@ const RegistroClub = () => {
               ¿Ya tenés cuenta? <a href="/login-admin" style={{ color: '#16a34a', fontWeight: 600 }}>Ingresá</a>
             </p>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Sin suscripción activa no se puede registrar el club (la base de datos también lo rechaza)
+  if (suscripcion !== 'activa') {
+    const verificando = suscripcion === 'cargando' || suscripcion === 'verificando';
+    return (
+      <div className="registro-club-container">
+        <div className="registro-club-card">
+          <div className="registro-header">
+            <h1 className="registro-titulo">{verificando ? 'Verificando tu suscripción...' : 'Elegí tu plan'}</h1>
+            <p className="registro-subtitulo">
+              {verificando
+                ? 'Estamos confirmando el pago con Mercado Pago.'
+                : 'Para registrar tu complejo necesitás una suscripción activa. Es un pago mensual y podés cancelarlo cuando quieras.'}
+            </p>
+          </div>
+
+          {errorPago && <div className="alerta-error" role="alert" style={{ color: '#dc2626', margin: '12px 0', fontSize: '0.95rem' }}>{errorPago}</div>}
+
+          {!verificando && (
+            <>
+              <button type="button" className="btn-submit-registro activo" onClick={() => navigate('/planes')}>
+                Ver planes y suscribirme
+              </button>
+              <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.9rem', color: '#64748b' }}>
+                ¿Ya pagaste? <button type="button" onClick={verificarPago} style={{ background: 'none', border: 'none', color: '#16a34a', fontWeight: 600, cursor: 'pointer' }}>Verificar mi pago</button>
+              </p>
+            </>
+          )}
         </div>
       </div>
     );

@@ -39,6 +39,7 @@ const MENSAJES_SERVIDOR = {
   EXTRAS_INVALIDOS: 'Alguno de los productos elegidos ya no está disponible.',
   SLOT_OCUPADO: 'Alguien reservó ese horario recién. Elegí otro.',
   CLUB_EXISTENTE: 'Tu cuenta ya tiene un club registrado.',
+  SUSCRIPCION_REQUERIDA: 'Necesitás una suscripción activa para registrar tu club.',
   UBICACION_INVALIDA: 'Completá provincia, ciudad y dirección.',
   IMAGEN_INVALIDA: 'La imagen del club no es válida.',
   REDES_INVALIDAS: 'Las redes sociales no son válidas.',
