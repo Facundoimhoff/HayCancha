@@ -391,3 +391,12 @@
 .gp-carrusel-puntos { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px; }
 .gp-carrusel-puntos button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.6); cursor: pointer; box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.25); }
 .gp-carrusel-puntos button.activo { background: var(--color-brand-500); }
+
+/* ---------- Botón "Volver" y barra de sesión (compartidos por las pantallas de exploración) ---------- */
+.gp-volver { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--color-white); color: var(--color-slate-700); font: 700 0.9rem var(--font-body); cursor: pointer; box-shadow: var(--shadow-sm); transition: background var(--dur-fast) var(--ease); }
+.gp-volver:hover { background: var(--color-slate-100); color: var(--text-strong); }
+
+.gp-barra-usuario { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); background: var(--color-white); color: var(--text-strong); }
+.gp-barra-usuario strong { color: var(--color-brand-700); }
+.gp-barra-usuario button { padding: 6px 4px; border: 0; background: none; color: var(--color-danger); font: 700 0.9rem var(--font-body); cursor: pointer; }
+.gp-barra-usuario button:hover { text-decoration: underline; }

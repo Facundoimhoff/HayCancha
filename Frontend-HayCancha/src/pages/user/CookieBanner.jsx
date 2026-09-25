@@ -1,16 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './CookieBanner.css';
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    // Revisamos si el usuario ya contestó antes
-    const consent = localStorage.getItem('gridplay_cookies');
-    if (!consent) {
-      setVisible(true);
-    }
-  }, []);
+  // Se muestra solo si el usuario todavía no contestó (si el navegador bloquea el almacenamiento, también se muestra)
+  const [visible, setVisible] = useState(() => {
+    try { return !localStorage.getItem('gridplay_cookies'); } catch { return true; }
+  });
 
   const aceptarCookies = () => {
     localStorage.setItem('gridplay_cookies', 'accepted');

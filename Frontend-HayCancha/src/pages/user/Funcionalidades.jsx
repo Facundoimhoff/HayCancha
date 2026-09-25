@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ArrowRight, CalendarDays, ShieldCheck, CreditCard, 
+  ArrowLeft, ArrowRight, CalendarDays, ShieldCheck, 
   Store, PieChart, TrendingUp, Smartphone, CheckCircle2, 
   Lock, ChevronRight, Zap
 } from 'lucide-react';

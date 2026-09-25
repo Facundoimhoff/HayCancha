@@ -5,18 +5,18 @@
   --green-500: #10b981;
   --green-600: #059669;
   --blue-500: #3b82f6;
-  --blue-600: #2563eb;
-  --amber-500: #f59e0b;
+  --blue-600: var(--color-info);
+  --amber-500: var(--color-warning);
   --amber-600: #d97706;
   --purple-500: #8b5cf6;
   --purple-600: #7c3aed;
   
   --bg-main: #fafafa;
   --bg-surface: #ffffff;
-  --bg-alt: #f1f5f9;
+  --bg-alt: var(--color-slate-100);
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: var(--color-slate-900);
+  --text-muted: var(--color-slate-500);
   --border-color: rgba(15, 23, 42, 0.06);
   --glass-shadow: 0 20px 40px -15px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02);
 }
@@ -59,7 +59,7 @@
 .text-amber { color: var(--amber-600); }
 .text-purple { color: var(--purple-600); }
 
-.tag-emerald { background: #dcfce7; color: var(--green-600); }
+.tag-emerald { background: var(--color-brand-100); color: var(--green-600); }
 .tag-blue { background: #dbeafe; color: var(--blue-600); }
 .tag-amber { background: #fef3c7; color: var(--amber-600); }
 .tag-purple { background: #f3e8ff; color: var(--purple-600); }
@@ -189,22 +189,22 @@
 /* Detalles internos de los Mockups (Limpios y minimalistas) */
 .mockup-top-bar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
 .window-dots { display: flex; gap: 6px; }
-.window-dots span { width: 10px; height: 10px; border-radius: 50%; background: #e2e8f0; }
+.window-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--color-slate-200); }
 .window-dots span:nth-child(1) { background: #ef4444; }
-.window-dots span:nth-child(2) { background: #f59e0b; }
+.window-dots span:nth-child(2) { background: var(--color-warning); }
 .window-dots span:nth-child(3) { background: #10b981; }
 .window-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
 
 /* Pulso para el botón EN VIVO */
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-.pulse-anim { animation: pulse 2s infinite; font-size: 0.7rem; font-weight: 800; color: var(--green-600); background: #dcfce7; padding: 4px 8px; border-radius: 12px; }
+.pulse-anim { animation: pulse 2s infinite; font-size: 0.7rem; font-weight: 800; color: var(--green-600); background: var(--color-brand-100); padding: 4px 8px; border-radius: 12px; }
 
 /* AGENDA */
 .mockup-calendar-frame { padding: 24px; }
 .calendar-grid-ui { display: flex; gap: 12px; }
 .time-column { display: flex; flex-direction: column; justify-content: space-between; padding: 30px 0 10px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
 .courts-columns { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.court-slot-column { background: #f8fafc; border-radius: 12px; padding: 10px; position: relative; min-height: 220px; border: 1px solid var(--border-color); }
+.court-slot-column { background: var(--color-slate-50); border-radius: 12px; padding: 10px; position: relative; min-height: 220px; border: 1px solid var(--border-color); }
 .court-name-header { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; text-align: center; }
 .booking-card { padding: 12px; border-radius: 10px; color: white; position: absolute; left: 8px; right: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.2s; }
 .booking-card:hover { transform: scale(1.02); z-index: 10;}
@@ -225,7 +225,7 @@
 .highlight-seña { font-size: 1.05rem; padding: 14px; background: #eff6ff; border-radius: 10px; display: flex; justify-content: space-between; margin-bottom: 15px;}
 .blue-border { border: 1px solid #bfdbfe; }
 .pay-option { border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-.blue-active { border-color: var(--blue-500); background: #f8fafc; }
+.blue-active { border-color: var(--blue-500); background: var(--color-slate-50); }
 .pay-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-color); }
 .pay-radio.checked { border: 5px solid var(--blue-600); }
 .payment-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;}
@@ -251,10 +251,10 @@
 .stats-mini-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
 .stats-top-header h3 { font-size: 2rem; font-weight: 800; margin-top: 4px; }
 .stats-trend-badge { font-size: 0.8rem; font-weight: 700; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
-.bg-emerald-subtle { background: #dcfce7; }
+.bg-emerald-subtle { background: var(--color-brand-100); }
 .chart-visual-bars { display: flex; justify-content: space-between; align-items: flex-end; height: 140px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
 .bar-wrapper { width: 100%; height: 100%; display: flex; align-items: flex-end; margin: 0 4px; }
-.bar-fill { width: 100%; background: #e2e8f0; border-radius: 6px 6px 0 0; transition: height 1s ease-out; }
+.bar-fill { width: 100%; background: var(--color-slate-200); border-radius: 6px 6px 0 0; transition: height 1s ease-out; }
 .active-purple { background: linear-gradient(180deg, var(--purple-500), var(--purple-600)); }
 
 /* TARJETITAS FLOTANTES */
@@ -275,7 +275,7 @@
 .cta-gradient-text {
   font-size: 2.8rem; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px;
 }
-.func-bottom-cta p { font-size: 1.2rem; color: #94a3b8; max-width: 500px; margin: 0 auto 40px; }
+.func-bottom-cta p { font-size: 1.2rem; color: var(--color-slate-400); max-width: 500px; margin: 0 auto 40px; }
 .cta-buttons-wrapper { display: flex; justify-content: center; }
 .btn-cta-emerald {
   background: var(--green-500); color: white; border: none; padding: 18px 36px;

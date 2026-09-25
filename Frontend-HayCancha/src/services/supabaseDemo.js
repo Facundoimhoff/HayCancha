@@ -207,6 +207,7 @@ class Consulta {
   eq(col, val) { this.filtros.push((f) => f[col] === val); return this; }
   in(col, vals) { this.filtros.push((f) => vals.includes(f[col])); return this; }
   gte(col, val) { this.filtros.push((f) => f[col] >= val); return this; }
+  ilike(col, val) { const patron = String(val).replaceAll('%', '').toLowerCase(); this.filtros.push((f) => String(f[col] ?? '').toLowerCase().includes(patron)); return this; }
   lte(col, val) { this.filtros.push((f) => f[col] <= val); return this; }
   or(texto) {
     const terminos = texto.split(',').map((p) => p.split('.ilike.')).filter((p) => p.length === 2)

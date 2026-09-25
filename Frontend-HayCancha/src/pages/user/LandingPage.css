@@ -119,26 +119,6 @@
   color: white;
 }
 
-.btn-admin {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.75);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  padding: 12px 24px;
-  border-radius: var(--radius-pill);
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-  font-family: var(--font-body);
-}
-
-.btn-admin:hover {
-  color: white;
-  border-color: var(--turf);
-  background: rgba(31, 173, 92, 0.12);
-  transform: translateY(-1px);
-}
-
 .hero-content {
   position: relative;
   z-index: 10;
@@ -362,11 +342,6 @@
 */
 @media (max-width: 768px) {
   .navbar { padding: 20px 16px; }
-  
-  .btn-admin {
-    padding: 8px 16px;
-    font-size: 0.75rem;
-  }
 
   .hero-content { padding: 50px 16px 20px; }
   .hero-title {
@@ -390,14 +365,6 @@
   .contact-title { font-size: 2.8rem; }
   .contact-description { font-size: 1rem; }
   .contact-form-block { padding: 24px 16px; }
-
-  .sports-carousel-section { padding: 0 16px 60px; }
-  .carousel-slide { height: 300px; }
-  .slide-overlay { padding: 24px; }
-  .slide-overlay h3 { font-size: 2.2rem; }
-  .carousel-btn { width: 44px; height: 44px; }
-  .carousel-btn.left { left: 12px; }
-  .carousel-btn.right { right: 12px; }
 }
 
 /* 
@@ -405,103 +372,16 @@
 5. CARRUSEL DE DEPORTES
 ====================================================== 
 */
-.sports-carousel-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px 80px;
-  text-align: left; 
-}
-
-.carousel-container {
-  position: relative;
-  width: 100%;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  background-color: var(--ink);
-}
-
-.carousel-track-wrapper {
-  overflow: hidden;
-  width: 100%;
-}
-
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.carousel-slide {
-  min-width: 100%;
-  height: 450px;
-  position: relative;
-}
-
-.carousel-slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.slide-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(30, 41, 59, 0.95) 0%, transparent 60%);
-  display: flex;
-  align-items: flex-end;
-  padding: 40px 50px;
-}
-
-.slide-overlay h3 {
-  font-family: var(--font-display);
-  font-size: 3.5rem;
-  font-weight: 900;
-  font-style: italic;
-  color: white;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: -1.5px;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.2s var(--ease);
-}
-
-.carousel-btn:hover {
-  background: var(--turf);
-  border-color: var(--turf);
-  color: var(--ink-dark);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.carousel-btn.left { left: 24px; }
-.carousel-btn.right { right: 24px; }
 
 /* =========================================
    Footer Institucional
    ========================================= */
 .landing-footer {
-  background-color: #0f172a;
+  background-color: var(--color-slate-900);
   padding: 60px 20px 40px 20px;
   color: white;
   text-align: center;
-  border-top: 1px solid #1e293b;
+  border-top: 1px solid var(--color-slate-800);
 }
 
 .footer-content {
@@ -520,7 +400,7 @@
 }
 
 .footer-tagline {
-  color: #94a3b8;
+  color: var(--color-slate-400);
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 24px;
@@ -538,7 +418,7 @@
   gap: 8px;
   color: white;
   text-decoration: none;
-  background-color: #1e293b;
+  background-color: var(--color-slate-800);
   padding: 10px 20px;
   border-radius: 30px;
   font-weight: 600;
@@ -546,19 +426,19 @@
 }
 
 .footer-link:hover {
-  background-color: #22c55e;
+  background-color: var(--color-brand-500);
   transform: translateY(-2px);
 }
 
 .footer-divisor {
   width: 100%;
   height: 1px;
-  background-color: #1e293b;
+  background-color: var(--color-slate-800);
   margin-bottom: 24px;
 }
 
 .footer-copyright {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 0.9rem;
 }
 
@@ -622,7 +502,7 @@
 
 .opcion-tooltip {
   background: var(--glass-bg-strong);
-  color: #0f172a;
+  color: var(--color-slate-900);
   padding: 10px 18px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -648,7 +528,7 @@
   flex-shrink: 0;
 }
 
-.icon-circle.bg-dark { background: #1e293b; }
+.icon-circle.bg-dark { background: var(--color-slate-800); }
 
 /* NUEVO: Círculo verde para WhatsApp */
 .icon-circle.bg-whatsapp { background: #25D366; }
@@ -678,7 +558,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #16a34a; 
+  background: var(--color-brand-600); 
   color: white;
   border: none;
   display: flex;
@@ -691,17 +571,17 @@
 
 .menu-flotante-principal:hover {
   transform: scale(1.08);
-  background: #15803d;
+  background: var(--color-brand-700);
 }
 
 .menu-flotante-principal.abierto {
-  background: #0f172a; 
+  background: var(--color-slate-900); 
   transform: rotate(180deg);
   box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
 }
 
 .menu-flotante-principal.abierto:hover {
-  background: #0f172a;
+  background: var(--color-slate-900);
   transform: rotate(180deg) scale(1.08);
 }
 
@@ -710,8 +590,8 @@
    ========================================= */
 .btn-soy-admin {
   font-weight: 800;
-  border: 2px solid #22c55e;
-  color: #22c55e;
+  border: 2px solid var(--color-brand-500);
+  color: var(--color-brand-500);
   border-radius: 8px;
   padding: 8px 20px;
   background: transparent;
@@ -721,7 +601,7 @@
 }
 
 .btn-soy-admin:hover {
-  background-color: #22c55e;
+  background-color: var(--color-brand-500);
   color: white;
 }
 
@@ -744,7 +624,7 @@
 
 .provincia-card-btn {
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   border-left: 6px solid transparent; 
   border-radius: 12px;
   padding: 16px 20px;
@@ -755,20 +635,20 @@
   font-family: inherit;
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-slate-900);
   transition: all 0.2s ease;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
 }
 
 .provincia-card-btn:hover {
-  border-left-color: #22c55e; 
-  background-color: #f0fdf4;
+  border-left-color: var(--color-brand-500); 
+  background-color: var(--color-brand-50);
   transform: translateX(6px); 
   box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.15);
 }
 
 .provincia-icon {
-  color: #22c55e;
+  color: var(--color-brand-500);
   flex-shrink: 0;
 }
 
@@ -776,63 +656,6 @@
    ⭐ NUEVO: dropdown de autosugerencias
    del buscador del header (desktop)
    ========================================= */
-.buscador-desktop-wrapper {
-  position: relative;
-  display: none; /* se activa a partir de 1024px, junto con .buscador-desktop-flotante */
-}
-
-.dropdown-sugerencias-header {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  width: 100%;
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  overflow-y: auto;
-  max-height: 280px;
-  z-index: 3000;
-  animation: hc-fade-up 0.2s ease;
-  border: 1px solid var(--line);
-}
-
-.sugerencia-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 16px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ink-dark);
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.sugerencia-item:last-child { border-bottom: none; }
-
-.sugerencia-item svg {
-  color: var(--turf);
-  flex-shrink: 0;
-}
-
-.sugerencia-item:hover {
-  background-color: var(--turf-100);
-  color: var(--turf-700);
-}
-
-.sugerencia-vacia {
-  padding: 18px 16px;
-  color: var(--text-soft);
-  font-size: 0.85rem;
-  text-align: center;
-  margin: 0;
-}
 
 /* =========================================
    ⭐ NUEVO: buscador de provincias en mobile
@@ -928,7 +751,7 @@
   margin: 0;
 }
 
-.mobile-only, .provincias-dropdown-mobile {
+.provincias-dropdown-mobile {
   display: block;
 }
 
@@ -938,7 +761,6 @@
 .btn-hamburguesa-landing { display: none; }
 .sidebar-overlay-landing { display: none; }
 .sidebar-landing { display: none; }
-.buscador-desktop-flotante { display: none; }
 
 /* =========================================================
    ⭐ ÚNICO BREAKPOINT MOBILE/DESKTOP PARA BÚSQUEDA Y UBICACIÓN
@@ -961,7 +783,7 @@
     padding: 0;
   }
 
-  .nav-buttons, .ocultar-movil, .buscador-desktop-wrapper {
+  .nav-buttons, .ocultar-movil {
     display: none !important;
   }
 
@@ -1004,7 +826,7 @@
     background: none;
     border: none;
     text-align: left;
-    color: #f8fafc;
+    color: var(--color-slate-50);
     font-size: 1.1rem;
     font-weight: 500;
     padding: 20px 24px;
@@ -1019,7 +841,7 @@
 
   .btn-soy-admin-sidebar {
     width: 100%;
-    background-color: #22c55e; 
+    background-color: var(--color-brand-500); 
     color: white;
     border: none;
     padding: 16px;
@@ -1031,8 +853,7 @@
     box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
   }
 
-  .provincias-container-modern,
-  .sports-carousel-section {
+  .provincias-container-modern {
     text-align: center !important; 
     padding: 50px 20px;
   }
@@ -1049,7 +870,7 @@
   }
 
   .section-subtitle {
-    color: #64748b !important; 
+    color: var(--color-slate-500) !important; 
     font-size: 1rem !important; 
     font-weight: 500 !important; 
     font-style: normal !important; 
@@ -1127,58 +948,12 @@
   .buscador-provincia-mobile-wrapper {
     display: none !important;
   }
-
-  .buscador-desktop-wrapper {
-    display: block;
-    width: 380px;
-  }
-
-  .buscador-desktop-flotante {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background-color: #334155; 
-    border: 1px solid #475569; 
-    padding: 10px 20px;
-    border-radius: 50px;
-    width: 100%;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-  }
-
-  .buscador-desktop-flotante:focus-within {
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-  }
-
-  .icono-lupa {
-    color: #94a3b8; 
-    flex-shrink: 0;
-    transition: color 0.3s ease;
-  }
-
-  .buscador-desktop-flotante:focus-within .icono-lupa {
-    color: #22c55e; 
-  }
-
-  .input-buscador-header {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #f8fafc; 
-    width: 100%;
-    font-size: 0.95rem;
-  }
-
-  .input-buscador-header::placeholder {
-    color: #94a3b8; 
-  }
 }
 
 .footer-link {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--color-slate-400);
   font-size: 0.85rem;
   /* etc... */
 }
@@ -1217,7 +992,7 @@
 
 .software-highlight-section {
   padding: 80px 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-slate-200) 100%);
   overflow: hidden;
 }
 
@@ -1239,7 +1014,7 @@
   display: inline-block;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #16a34a;
+  color: var(--color-brand-600);
   letter-spacing: 1.5px;
   margin-bottom: 12px;
 }
@@ -1247,14 +1022,14 @@
 .software-title {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900);
   line-height: 1.1;
   margin-bottom: 20px;
 }
 
 .software-desc {
   font-size: 1.1rem;
-  color: #475569;
+  color: var(--color-slate-600);
   line-height: 1.6;
   margin-bottom: 30px;
 }
@@ -1269,7 +1044,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #16a34a;
+  background-color: var(--color-brand-600);
   color: white;
   border: none;
   padding: 14px 24px;
@@ -1282,14 +1057,14 @@
 }
 
 .btn-software-primary:hover {
-  background-color: #15803d;
+  background-color: var(--color-brand-700);
   transform: translateY(-2px);
 }
 
 .btn-software-secondary {
   background-color: transparent;
-  color: #0f172a;
-  border: 2px solid #cbd5e1;
+  color: var(--color-slate-900);
+  border: 2px solid var(--color-slate-300);
   padding: 14px 24px;
   border-radius: 12px;
   font-size: 1rem;
@@ -1299,8 +1074,8 @@
 }
 
 .btn-software-secondary:hover {
-  background-color: #f1f5f9;
-  border-color: #94a3b8;
+  background-color: var(--color-slate-100);
+  border-color: var(--color-slate-400);
 }
 
 /* Lado Izquierdo: Visual (Mockup Dashboard) */
@@ -1314,7 +1089,7 @@
   background-color: white;
   border-radius: 16px;
   box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   overflow: hidden;
   position: relative;
   z-index: 2;
@@ -1327,9 +1102,9 @@
 }
 
 .mockup-header {
-  background-color: #f8fafc;
+  background-color: var(--color-slate-50);
   padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-slate-200);
   display: flex;
   align-items: center;
 }
@@ -1343,18 +1118,18 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #cbd5e1;
+  background-color: var(--color-slate-300);
 }
 
 .mockup-header .dots span:nth-child(1) { background-color: #ef4444; }
 .mockup-header .dots span:nth-child(2) { background-color: #eab308; }
-.mockup-header .dots span:nth-child(3) { background-color: #22c55e; }
+.mockup-header .dots span:nth-child(3) { background-color: var(--color-brand-500); }
 
 .mockup-title-bar {
   flex: 1;
   text-align: center;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--color-slate-400);
   font-weight: 600;
   margin-right: 40px; /* Para compensar los dots y centrar bien */
 }
@@ -1364,7 +1139,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background-color: #f1f5f9;
+  background-color: var(--color-slate-100);
 }
 
 .mockup-card-metric {
@@ -1394,12 +1169,12 @@
 }
 .metric-text span {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-slate-500);
   font-weight: 500;
 }
 .metric-text strong {
   font-size: 1.4rem;
-  color: #0f172a;
+  color: var(--color-slate-900);
 }
 
 /* Tarjetitas Flotantes animadas */
@@ -1414,7 +1189,7 @@
   gap: 10px;
   font-weight: 600;
   font-size: 0.9rem;
-  color: #334155;
+  color: var(--color-slate-700);
   z-index: 3;
   animation: floatCard 6s ease-in-out infinite;
 }
@@ -1496,8 +1271,8 @@
 }
 
 .opcion-flotante:hover { transform: scale(1.1); }
-.btn-planes { background-color: #0f172a; }
-.btn-planes:hover { background-color: #1e293b; }
+.btn-planes { background-color: var(--color-slate-900); }
+.btn-planes:hover { background-color: var(--color-slate-800); }
 .btn-wp { background-color: #25D366; }
 .btn-wp:hover { background-color: #20b858; }
 
@@ -1507,14 +1282,14 @@
   background: var(--glass-bg-strong);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
-  color: #0f172a;
+  color: var(--color-slate-900);
   padding: 8px 14px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.9rem;
   white-space: nowrap;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   opacity: 0;
   pointer-events: none;
   transform: translateX(10px);
@@ -1530,7 +1305,7 @@
   width: 65px;
   height: 65px;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: var(--color-brand-500);
   color: white;
   border: none;
   display: flex;
@@ -1548,7 +1323,7 @@
 }
 
 .menu-flotante-principal.abierto {
-  background-color: #0f172a;
+  background-color: var(--color-slate-900);
   box-shadow: 0 5px 20px rgba(15, 23, 42, 0.4);
   transform: rotate(90deg);
 }

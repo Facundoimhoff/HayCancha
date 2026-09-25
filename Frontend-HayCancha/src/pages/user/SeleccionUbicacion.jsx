@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { MapPin, ChevronRight, ArrowLeft, Search } from 'lucide-react';
+import '../../components/user/componentes.css';
 import './SeleccionUbicacion.css';
 
 const SeleccionUbicacion = () => {
@@ -9,13 +10,9 @@ const SeleccionUbicacion = () => {
   const { provincia } = useParams(); 
   
   const [ubicaciones, setUbicaciones] = useState([]);
-  const [provinciaSelec, setProvinciaSelec] = useState(provincia ? decodeURIComponent(provincia) : null);
+  const provinciaSelec = provincia ? decodeURIComponent(provincia) : null;
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState(''); 
-
-  useEffect(() => {
-    if (provincia) setProvinciaSelec(decodeURIComponent(provincia));
-  }, [provincia]);
 
   useEffect(() => {
     const cargarUbicaciones = async () => {
@@ -47,7 +44,7 @@ const SeleccionUbicacion = () => {
       
       {/* ENCABEZADO Y BUSCADOR */}
       <div className="ubicacion-header-amplio">
-        <button onClick={() => navigate('/')} className="btn-flotante-volver" style={{ marginBottom: '20px' }}>
+        <button type="button" onClick={() => navigate('/')} className="gp-volver">
           <ArrowLeft size={18} /> Volver al Inicio
         </button>
         

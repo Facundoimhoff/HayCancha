@@ -2,7 +2,7 @@
 
 .legales-page {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--color-slate-50);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -12,7 +12,7 @@
   align-items: center;
   padding: 20px 40px;
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-slate-200);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -24,16 +24,16 @@
   gap: 8px;
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--color-slate-500);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
   transition: color 0.2s;
 }
 
-.btn-volver-legal:hover { color: #0f172a; }
-.legales-logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: #0f172a; font-style: italic;}
-.text-green { color: #22c55e; }
+.btn-volver-legal:hover { color: var(--color-slate-900); }
+.legales-logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--color-slate-900); font-style: italic;}
+.text-green { color: var(--color-brand-500); }
 
 .legales-container {
   max-width: 800px; /* Ancho ideal para lectura */
@@ -55,13 +55,13 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 3rem;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--color-slate-900);
   letter-spacing: -1px;
   margin: 0 0 10px 0;
 }
 
 .legales-header p {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-weight: 500;
 }
 
@@ -70,29 +70,29 @@
   padding: 50px;
   border-radius: 20px;
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
 }
 
 .legales-content h2 {
   font-size: 1.3rem;
-  color: #0f172a;
+  color: var(--color-slate-900);
   font-weight: 800;
   margin: 40px 0 15px 0;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--color-slate-100);
   padding-bottom: 10px;
 }
 
 .legales-content h2:first-child { margin-top: 0; }
 
 .legales-content p {
-  color: #475569;
+  color: var(--color-slate-600);
   font-size: 1.05rem;
   line-height: 1.7;
   margin-bottom: 15px;
 }
 
 .legales-content ul {
-  color: #475569;
+  color: var(--color-slate-600);
   font-size: 1.05rem;
   line-height: 1.7;
   padding-left: 20px;
@@ -100,7 +100,7 @@
 }
 
 .legales-content li { margin-bottom: 10px; }
-.legales-content strong { color: #0f172a; }
+.legales-content strong { color: var(--color-slate-900); }
 
 /* Responsive para celulares */
 @media (max-width: 768px) {

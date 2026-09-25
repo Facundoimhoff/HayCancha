@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 
 // Tus importaciones de páginas
@@ -6,7 +6,6 @@ import HomeUsuario from './pages/user/HomeUsuario';
 import PerfilClub from './pages/user/PerfilClub'; 
 import ReservaCancha from './pages/user/ReservaCancha';
 import LandingPage from './pages/user/LandingPage'; 
-import DashboardAdmin from './pages/admin/DashboardAdmin';
 import MisReservas from './pages/user/MisReservas';
 import Planes from './pages/user/Planes';
 import RegistroClub from './pages/user/RegistroClub';
@@ -14,17 +13,18 @@ import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
-import HeaderCliente from './pages/user/HeaderCliente';
 import Buscar from './pages/user/Buscar';
 import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 import LoginAdmin from './pages/user/LoginAdmin';
 import Privacidad from './pages/user/Privacidad'; 
 import Terminos from './pages/user/Terminos';
 import CookieBanner from './pages/user/CookieBanner';
-import FAQ from './pages/user/FAQ';
 import Funcionalidades from './pages/user/Funcionalidades';
 import { AuthProvider } from './context/AuthProvider';
 import RutaProtegida from './components/RutaProtegida';
+
+// El panel del administrador arrastra gráficos, PDF y Excel: se descarga solo cuando un admin entra
+const DashboardAdmin = lazy(() => import('./pages/admin/DashboardAdmin'));
 
 // --- NUEVO COMPONENTE QUE ANIMA LAS RUTAS ---
 function RutasAnimadas() {
@@ -43,7 +43,7 @@ function RutasAnimadas() {
         <Route path="/explorar/:provincia/:ciudad" element={<HomeUsuario />} /> 
         <Route path="/club/:id" element={<PerfilClub />} />
         <Route path="/reservar/:idCancha" element={<ReservaCancha />} />
-        <Route path="/panel" element={<RutaProtegida rol="admin"><DashboardAdmin /></RutaProtegida>} />
+        <Route path="/panel" element={<RutaProtegida rol="admin"><Suspense fallback={<div className="estado-carga">Cargando panel…</div>}><DashboardAdmin /></Suspense></RutaProtegida>} />
         <Route path="/mis-reservas" element={<RutaProtegida><MisReservas /></RutaProtegida>} />
         <Route path="/planes" element={<Planes />} />
         <Route path="/onboarding" element={<RegistroClub />} />

@@ -24,13 +24,13 @@
 }
 
 .subtitulo-amplio {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 1.1rem;
   margin-bottom: 24px;
 }
 
 .text-green {
-  color: #22c55e;
+  color: var(--color-brand-500);
 }
 
 /* Buscador de ciudades */
@@ -44,14 +44,14 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--color-slate-400);
 }
 
 .input-buscador-ciudades {
   width: 100%;
   padding: 16px 16px 16px 48px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -59,7 +59,7 @@
 }
 
 .input-buscador-ciudades:focus {
-  border-color: #22c55e;
+  border-color: var(--color-brand-500);
 }
 
 /* Grilla de ciudades */
@@ -73,7 +73,7 @@
   background: white;
   padding: 24px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,7 +83,7 @@
 }
 
 .ciudad-card:hover {
-  border-color: #22c55e;
+  border-color: var(--color-brand-500);
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.15);
 }
@@ -98,7 +98,7 @@
 
 .ciudad-card p {
   margin: 0;
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -106,19 +106,19 @@
 }
 
 .ciudad-card .icono-flecha {
-  color: #22c55e;
+  color: var(--color-brand-500);
 }
 
 .estado-carga {
   text-align: left;
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 1.1rem;
 }
 
 /* Estado Vacío */
 .mensaje-vacio-ubicacion {
   text-align: center;
-  color: #64748b;
+  color: var(--color-slate-500);
   background: white;
   padding: 40px;
   border-radius: 16px;
@@ -127,13 +127,13 @@
 }
 
 .mensaje-vacio-ubicacion .icono-vacio {
-  color: #cbd5e1;
+  color: var(--color-slate-300);
   margin-bottom: 16px;
 }
 
 .btn-volver-vacio {
   margin-top: 20px;
-  background-color: #22c55e;
+  background-color: var(--color-brand-500);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -144,5 +144,6 @@
 }
 
 .btn-volver-vacio:hover {
-  background-color: #16a34a;
+  background-color: var(--color-brand-600);
 }
+.ubicacion-header-amplio .gp-volver { margin-bottom: 20px; }

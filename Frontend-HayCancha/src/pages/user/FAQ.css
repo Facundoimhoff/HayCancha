@@ -1,24 +1,22 @@
 /* ==========================================================================
-   SISTEMA DE DISEÑO (Basado en Bootstrap Architecture)
+   SISTEMA DE DISEÑO (alias de los tokens de GridPlay)
    ========================================================================== */
 :root {
-  /* Paleta Semántica */
-  --sys-primary: #0d6efd;       /* Azul Bootstrap (Acción/Enfoque) */
-  --sys-primary-hover: #0b5ed7; /* Estado Hover */
-  --sys-primary-bg: #e7f1ff;    /* Fondo suave activo */
-  
-  /* Escala de Grises Neutrales */
-  --sys-dark: #212529;          /* Títulos principales (WCAG AAA) */
-  --sys-secondary: #6c757d;     /* Texto secundario/párrafos (WCAG AA) */
-  --sys-border: #dee2e6;        /* Bordes sutiles */
-  --sys-bg-light: #f8f9fa;      /* Fondo de la sección */
-  --sys-white: #ffffff;         /* Superficies elevadas */
-  
-  /* Tipografía y Espaciado (Grilla 8px) */
-  --sys-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Paleta: alias de los tokens de GridPlay (src/styles/tokens.css) */
+  --sys-primary: var(--color-brand-700);       /* Acción/enfoque (contraste AA sobre blanco) */
+  --sys-primary-hover: var(--color-brand-600);
+  --sys-primary-bg: var(--color-brand-50);     /* Fondo suave activo */
+
+  --sys-dark: var(--color-slate-900);          /* Títulos */
+  --sys-secondary: var(--color-slate-600);     /* Texto secundario */
+  --sys-border: var(--color-slate-200);
+  --sys-bg-light: var(--color-slate-50);
+  --sys-white: var(--color-white);
+
+  --sys-font-sans: var(--font-body);
   --sys-transition-base: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --sys-radius-lg: 1rem;        /* 16px */
-  --sys-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --sys-radius-lg: var(--radius-lg);
+  --sys-shadow-sm: var(--shadow-sm);
 }
 
 /* ==========================================================================
@@ -105,7 +103,7 @@
 
 .sys-accordion-button:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 3px rgba(13, 110, 253, 0.25); /* Accesibilidad visual */
+  box-shadow: inset 0 0 0 3px rgba(34, 197, 94, 0.35); /* Accesibilidad visual (verde de marca) */
 }
 
 /* Estado activo del botón */
