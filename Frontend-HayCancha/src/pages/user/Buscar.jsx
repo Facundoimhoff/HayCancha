@@ -99,11 +99,9 @@ export default function Buscar() {
             <button type="submit" className="btn-search">BUSCAR</button>
           </form>
 
-          {query && !cargando && (
-            <h2 className="buscar-resultado-titulo">
-              Clubes en <strong>&ldquo;{query}&rdquo;</strong>
-            </h2>
-          )}
+          <h1 className={query && !cargando ? 'buscar-resultado-titulo' : 'gp-solo-lector'}>
+            {query ? <>Clubes en <strong>&ldquo;{query}&rdquo;</strong></> : 'Buscar clubes'}
+          </h1>
 
           {resultados.length > 0 && <FiltrosClubes filtros={filtros} onCambio={setFiltros} />}
         </div>

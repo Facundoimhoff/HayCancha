@@ -97,7 +97,7 @@ const VistaGeneral = ({ club, turnos, canchas, hoy, onNuevoTurno, onBloqueo, onD
         <KpiCard icono={CalendarCheck} tono="azul" etiqueta="Turnos del mes" valor={datos.actual.turnos}
           variacion={datos.variacionTurnos} comparaCon={datos.periodo.comparaCon} serie={datos.serieTurnos} />
         <KpiCard icono={Gauge} tono="violeta" etiqueta="Ocupación" valor={`${datos.ocupacionTotal}%`} ayuda="de las horas disponibles este mes">
-          <Progreso valor={datos.ocupacionTotal} tono="violeta" />
+          <Progreso valor={datos.ocupacionTotal} tono="violeta" etiqueta="Ocupación total del mes" />
         </KpiCard>
         <KpiCard icono={CalendarClock} tono="ambar" etiqueta="Reservado a futuro" valor={moneda(datos.reservado)}
           ayuda={pluralizar(datos.futurosValidos, 'turno próximo', 'turnos próximos')} />
@@ -134,7 +134,7 @@ const VistaGeneral = ({ club, turnos, canchas, hoy, onNuevoTurno, onBloqueo, onD
                     <span className="dash-ocupacion-nombre">{c.nombre}</span>
                     <strong>{c.porcentaje}%</strong>
                   </div>
-                  <Progreso valor={c.porcentaje} tono={c.porcentaje >= 70 ? 'verde' : c.porcentaje >= 35 ? 'azul' : 'gris'} />
+                  <Progreso valor={c.porcentaje} etiqueta={`Ocupación de ${c.nombre}`} tono={c.porcentaje >= 70 ? 'verde' : c.porcentaje >= 35 ? 'azul' : 'gris'} />
                   <div className="dash-ocupacion-pie">
                     <span>{pluralizar(c.ocupados, 'turno', 'turnos')}</span>
                     <span>{moneda(c.ingresos)}</span>

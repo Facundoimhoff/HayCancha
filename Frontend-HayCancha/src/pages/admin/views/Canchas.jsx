@@ -20,7 +20,7 @@ const TarjetaCancha = ({ cancha, onEditar, onEliminar }) => {
       </div>
       <div className="dash-cancha-cuerpo">
         <div className="dash-cancha-titulo">
-          <h3>{cancha.nombre}</h3>
+          <h2>{cancha.nombre}</h2>
           <strong className="dash-cancha-precio">{moneda(cancha.precio_hora)}<small> / hora</small></strong>
         </div>
         <ul className="dash-cancha-datos">

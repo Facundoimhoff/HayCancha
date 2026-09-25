@@ -56,7 +56,7 @@ const Clientes = ({ turnos }) => {
                   <th className="num">Turnos</th>
                   <th className="num">Gastado</th>
                   <th className="ocultar-sm">Última visita</th>
-                  <th aria-label="Contactar" />
+                  <th><span className="dash-solo-lector">Contactar</span></th>
                 </tr>
               </thead>
               <tbody>

@@ -8,7 +8,7 @@ const FormularioContacto = () => {
   const { enviar, enviando, enviado, error } = useFormspree('https://formspree.io/f/xrengjgv', { mensajeOk: 3000 });
 
   return (
-    <div className="contacto-container">
+    <main className="contacto-container">
       
       {/* Botón para volver a la Landing */}
       <div className="contacto-header-wrapper">
@@ -23,7 +23,7 @@ const FormularioContacto = () => {
           <div className="contacto-icono-box">
             <MessageSquare size={30} color="#2563eb" />
           </div>
-          <h2 className="contacto-titulo">Contacto</h2>
+          <h1 className="contacto-titulo">Contacto</h1>
           <p className="contacto-subtitulo">
             ¿Sos un club y querés este sistema? ¿Tenés alguna sugerencia? Escribinos y te contactamos a la brevedad.
           </p>
@@ -82,7 +82,7 @@ const FormularioContacto = () => {
           </form>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

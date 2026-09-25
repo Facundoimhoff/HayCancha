@@ -228,7 +228,7 @@ const RegistroClub = () => {
 
   return (
     <div className="registro-club-container">
-      <div className="registro-club-card">
+      <main className="registro-club-card">
         <div className="registro-header">
           <div className="icono-exito-wrapper"><CheckCircle2 size={44} aria-hidden="true" /></div>
           <h1 className="registro-titulo">{verificando && paso === 2 ? 'Verificando tu suscripción…' : titulos[0]}</h1>
@@ -368,7 +368,7 @@ const RegistroClub = () => {
             <button type="submit" disabled={cargando} className="gp-btn gp-btn--primario rg-enviar">{cargando ? 'Configurando tu club…' : 'Finalizar configuración'}</button>
           </form>
         )}
-      </div>
+      </main>
     </div>
   );
 };

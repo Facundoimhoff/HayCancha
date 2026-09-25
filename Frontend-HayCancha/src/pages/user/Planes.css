@@ -118,7 +118,7 @@
   flex-shrink: 0;
 }
 
-.beneficio-item h4 {
+.beneficio-item h2 {
   margin: 0 0 6px 0;
   font-size: 1.05rem;
   color: var(--color-slate-900);

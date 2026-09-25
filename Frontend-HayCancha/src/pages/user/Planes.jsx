@@ -47,7 +47,7 @@ const Planes = () => {
         </div>
       </nav>
 
-      <div className="planes-layout">
+      <main className="planes-layout">
         
         {/* COLUMNA IZQUIERDA */}
         <div className="planes-info-section">
@@ -63,7 +63,7 @@ const Planes = () => {
             <div className="beneficio-item">
               <div className="ben-icon"><CalendarCheck size={24} /></div>
               <div>
-                <h4>Reservas 24/7</h4>
+                <h2>Reservas 24/7</h2>
                 <p>Tus clientes reservan solos, incluso cuando dormís.</p>
               </div>
             </div>
@@ -71,7 +71,7 @@ const Planes = () => {
             <div className="beneficio-item">
               <div className="ben-icon"><TrendingUp size={24} /></div>
               <div>
-                <h4>Control de Ingresos</h4>
+                <h2>Control de Ingresos</h2>
                 <p>Métricas claras para saber cuánto rinde cada cancha.</p>
               </div>
             </div>
@@ -79,7 +79,7 @@ const Planes = () => {
             <div className="beneficio-item">
               <div className="ben-icon"><Users size={24} /></div>
               <div>
-                <h4>Base de Clientes</h4>
+                <h2>Base de Clientes</h2>
                 <p>Conocé a tus jugadores y fidelizalos fácilmente.</p>
               </div>
             </div>
@@ -87,7 +87,7 @@ const Planes = () => {
             <div className="beneficio-item">
               <div className="ben-icon"><Smartphone size={24} /></div>
               <div>
-                <h4>Gestión Móvil</h4>
+                <h2>Gestión Móvil</h2>
                 <p>Administrá bloqueos y turnos desde tu celular.</p>
               </div>
             </div>
@@ -95,13 +95,13 @@ const Planes = () => {
 
           {/* NUEVO: CARRUSEL DE IMÁGENES EN LUGAR DE FOTO ESTÁTICA */}
           <div className="planes-carousel-contexto">
-            <button onClick={prevImg} className="planes-car-btn left" type="button"><ChevronLeft size={24}/></button>
+            <button onClick={prevImg} className="planes-car-btn left" type="button" aria-label="Foto anterior"><ChevronLeft size={24}/></button>
             <img 
               src={imagenes[imagenIndex]} 
               alt="Canchas" 
               className="planes-img-carousel"
             />
-            <button onClick={nextImg} className="planes-car-btn right" type="button"><ChevronRight size={24}/></button>
+            <button onClick={nextImg} className="planes-car-btn right" type="button" aria-label="Foto siguiente"><ChevronRight size={24}/></button>
             
             {/* Indicadores (Puntitos) */}
             <div className="planes-car-dots">
@@ -167,14 +167,14 @@ const Planes = () => {
             <p className="texto-seguro">Pago 100% seguro a través de Mercado Pago.</p>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* SECCIÓN FORMULARIO DE DUDAS (AHORA MODO OSCURO) */}
-      <div className="planes-dudas-section oscuro">
+      <section className="planes-dudas-section oscuro" aria-labelledby="planes-dudas-titulo">
         <div className="planes-dudas-container">
           <div className="dudas-header">
             <MessageCircleQuestion size={48} className="icon-duda text-green" />
-            <h2>¿Tenés dudas antes de sumarte?</h2>
+            <h2 id="planes-dudas-titulo">¿Tenés dudas antes de sumarte?</h2>
             <p>Dejanos tu consulta o tu teléfono y nuestro equipo se contactará con vos para asesorarte sin compromiso.</p>
           </div>
 
@@ -198,7 +198,7 @@ const Planes = () => {
             </form>
           )}
         </div>
-      </div>
+      </section>
 
     </div>
   );

@@ -18,10 +18,10 @@ const HeaderCliente = () => {
   };
 
   return (
-    <header className="gp-barra-usuario">
+    <nav className="gp-barra-usuario" aria-label="Tu sesión">
       <span>Hola, <strong>{nombre}</strong></span>
       <button type="button" onClick={cerrarSesion}>Cerrar sesión</button>
-    </header>
+    </nav>
   );
 };
 

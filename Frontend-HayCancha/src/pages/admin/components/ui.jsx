@@ -8,7 +8,7 @@ export const Panel = ({ titulo, descripcion, acciones, className = '', flush = f
     {(titulo || acciones) && (
       <header className="dash-panel-head">
         <div>
-          {titulo && <h3 className="dash-panel-titulo">{titulo}</h3>}
+          {titulo && <h2 className="dash-panel-titulo">{titulo}</h2>}
           {descripcion && <p className="dash-panel-desc">{descripcion}</p>}
         </div>
         {acciones && <div className="dash-panel-acciones">{acciones}</div>}
@@ -43,7 +43,7 @@ export const Sparkline = ({ datos, color = 'var(--color-brand-500)' }) => {
   return (
     <div className="dash-spark" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={datos.map((v) => ({ v }))} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+        <AreaChart accessibilityLayer={false} data={datos.map((v) => ({ v }))} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity={0.35} />
@@ -85,8 +85,8 @@ export const Vacio = ({ icono: Icono, titulo, texto, accion }) => (
 );
 
 /** Barra de progreso (ocupación). */
-export const Progreso = ({ valor, tono }) => (
-  <div className="dash-progreso" role="progressbar" aria-valuenow={valor} aria-valuemin={0} aria-valuemax={100}>
+export const Progreso = ({ valor, tono, etiqueta = 'Progreso' }) => (
+  <div className="dash-progreso" role="progressbar" aria-label={etiqueta} aria-valuenow={valor} aria-valuemin={0} aria-valuemax={100}>
     <span className={`dash-progreso-barra ${tono ? `dash-progreso-barra--${tono}` : ''}`} style={{ width: `${Math.max(2, valor)}%` }} />
   </div>
 );
@@ -109,18 +109,45 @@ export const Segmentado = ({ opciones, valor, onCambio, etiqueta }) => (
   </div>
 );
 
-/** Ventana emergente con cierre por Escape y por clic en el fondo. */
+const FOCUSABLES = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Ventana emergente accesible: cierra con Escape o clic en el fondo, mantiene el foco del teclado dentro
+ * de la ventana, bloquea el scroll de la página y devuelve el foco a quien la abrió.
+ */
 export const Modal = ({ titulo, icono: Icono, tono, descripcion, onCerrar, children, ancho = 'md' }) => {
+  const dialogo = useRef(null);
+  const cerrar = useRef(onCerrar);
+  useEffect(() => { cerrar.current = onCerrar; });
+
   useEffect(() => {
-    const alTeclear = (e) => { if (e.key === 'Escape') onCerrar(); };
+    const previo = document.activeElement;
+    const overflowPrevio = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogo.current?.focus();
+
+    const alTeclear = (e) => {
+      if (e.key === 'Escape') { cerrar.current?.(); return; }
+      if (e.key !== 'Tab' || !dialogo.current) return;
+      const items = [...dialogo.current.querySelectorAll(FOCUSABLES)].filter((el) => el.offsetParent !== null);
+      if (!items.length) return;
+      const primero = items[0];
+      const ultimo = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === primero || document.activeElement === dialogo.current)) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    };
     document.addEventListener('keydown', alTeclear);
-    return () => document.removeEventListener('keydown', alTeclear);
-  }, [onCerrar]);
+    return () => {
+      document.removeEventListener('keydown', alTeclear);
+      document.body.style.overflow = overflowPrevio;
+      previo?.focus?.();
+    };
+  }, []);
 
   return (
     <div className="dash-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar(); }}>
-      <div className={`dash-modal dash-modal--${ancho}`} role="dialog" aria-modal="true" aria-label={titulo}>
-        <header className="dash-modal-head">
+      <div ref={dialogo} tabIndex={-1} className={`dash-modal dash-modal--${ancho}`} role="dialog" aria-modal="true" aria-label={titulo}>
+        <div className="dash-modal-head">
           <div className="dash-modal-titulo">
             {Icono && <span className={`dash-modal-icono dash-modal-icono--${tono || 'verde'}`}><Icono size={18} /></span>}
             <div>
@@ -129,7 +156,7 @@ export const Modal = ({ titulo, icono: Icono, tono, descripcion, onCerrar, child
             </div>
           </div>
           <button type="button" className="dash-icon-btn" onClick={onCerrar} aria-label="Cerrar"><X size={18} /></button>
-        </header>
+        </div>
         {children}
       </div>
     </div>

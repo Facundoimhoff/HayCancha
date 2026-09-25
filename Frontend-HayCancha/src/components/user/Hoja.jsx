@@ -43,7 +43,7 @@ export default function Hoja({ titulo, descripcion, onCerrar, children, pie, anc
   return createPortal(
     <div className="gp-hoja-fondo" onMouseDown={(e) => { if (e.target === e.currentTarget) cerrar.current?.(); }}>
       <div ref={dialogo} className={`gp-hoja gp-hoja--${ancho}`} role="dialog" aria-modal="true" aria-labelledby={idTitulo} tabIndex={-1}>
-        <header className="gp-hoja-cabecera">
+        <div className="gp-hoja-cabecera">
           <div>
             <h2 id={idTitulo}>{titulo}</h2>
             {descripcion && <p>{descripcion}</p>}
@@ -51,9 +51,9 @@ export default function Hoja({ titulo, descripcion, onCerrar, children, pie, anc
           <button type="button" className="gp-hoja-cerrar" onClick={() => cerrar.current?.()} aria-label="Cerrar">
             <X size={20} />
           </button>
-        </header>
+        </div>
         <div className="gp-hoja-cuerpo">{children}</div>
-        {pie && <footer className="gp-hoja-pie">{pie}</footer>}
+        {pie && <div className="gp-hoja-pie">{pie}</div>}
       </div>
     </div>,
     document.body,

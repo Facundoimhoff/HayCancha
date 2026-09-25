@@ -127,7 +127,7 @@ const MisReservas = () => {
 
   return (
     <div className="mr-pagina">
-      <div className="mr-contenedor">
+      <main className="mr-contenedor">
         <header className="mr-cabecera">
           <div>
             <h1>Mis reservas</h1>
@@ -248,7 +248,7 @@ const MisReservas = () => {
             })}
           </ul>
         )}
-      </div>
+      </main>
 
       {aCancelar && (
         <Hoja

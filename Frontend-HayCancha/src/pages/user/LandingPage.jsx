@@ -74,6 +74,7 @@ export default function LandingPage() {
         </div>
       </div>
 
+      <main>
       <section className="hero-section" id="top">
         <nav className="navbar">
           <button className="btn-hamburguesa-landing" onClick={() => setSidebarAbierto(true)}>
@@ -126,7 +127,7 @@ export default function LandingPage() {
 
       </section>
 
-      <main className="landing-main" id="provincias">
+      <section className="landing-main" id="provincias">
         <div className="provincias-container-modern">
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
           <p className="section-subtitle">Seleccioná tu provincia para ver los clubes disponibles.</p>
@@ -178,7 +179,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </main>
+      </section>
 
       {/* --- NUEVA SECCIÓN: FUNCIONALIDADES / SOFTWARE --- */}
       <section className="software-highlight-section">
@@ -282,6 +283,7 @@ export default function LandingPage() {
       <div id="faq">
         <FAQ />
       </div>
+      </main>
 
       <footer className="landing-footer">
         <div className="footer-content">
@@ -322,7 +324,7 @@ export default function LandingPage() {
       </footer>
 
       {createPortal(
-        <div className="menu-flotante-container">
+        <aside className="menu-flotante-container" aria-label="Accesos rápidos">
           <div className={`menu-flotante-opciones ${menuAbierto ? 'abierto' : ''}`}>
             
             <button onClick={() => navigate('/planes')} className="opcion-flotante btn-planes">
@@ -344,10 +346,10 @@ export default function LandingPage() {
             </a>
 
           </div>
-          <button className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)}>
+          <button type="button" className={`menu-flotante-principal ${menuAbierto ? 'abierto' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)} aria-label={menuAbierto ? 'Cerrar el menú de accesos rápidos' : 'Abrir el menú de accesos rápidos'} aria-expanded={menuAbierto}>
             {menuAbierto ? <X size={30} /> : <ChevronUp size={32} />}
           </button>
-        </div>,
+        </aside>,
         document.body /* <--- Esta es la magia que lo saca de la jaula */
       )}
       

@@ -209,7 +209,7 @@ const ReservaCancha = () => {
 
   return (
     <div className="rc-pagina">
-      <div className="rc-contenedor">
+      <main className="rc-contenedor">
         <header className="rc-cabecera">
           <button type="button" onClick={() => navigate(-1)} className="rc-volver" aria-label="Volver">
             <ArrowLeft size={22} />
@@ -425,7 +425,7 @@ const ReservaCancha = () => {
             </div>
           </section>
         )}
-      </div>
+      </main>
     </div>
   );
 };

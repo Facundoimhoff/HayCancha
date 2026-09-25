@@ -40,7 +40,7 @@ const SeleccionUbicacion = () => {
   );
 
   return (
-    <div className="ubicacion-page">
+    <main className="ubicacion-page">
       
       {/* ENCABEZADO Y BUSCADOR */}
       <div className="ubicacion-header-amplio">
@@ -86,17 +86,18 @@ const SeleccionUbicacion = () => {
         <div className="grid-ciudades">
           {ciudadesFiltradas.length > 0 ? (
             ciudadesFiltradas.map((ciudad) => (
-              <div 
-                key={ciudad} 
+              <button
+                type="button"
+                key={ciudad}
                 className="ciudad-card"
                 onClick={() => handleSeleccionCiudad(ciudad)}
               >
-                <div>
-                  <h4>{ciudad}</h4>
-                  <p><MapPin size={14}/> Ver clubes disponibles</p>
-                </div>
-                <ChevronRight size={20} className="icono-flecha" />
-              </div>
+                <span className="ciudad-info">
+                  <strong>{ciudad}</strong>
+                  <small><MapPin size={14} aria-hidden="true" /> Ver clubes disponibles</small>
+                </span>
+                <ChevronRight size={20} className="icono-flecha" aria-hidden="true" />
+              </button>
             ))
           ) : (
             <p className="estado-carga">No se encontraron ciudades con "{busqueda}".</p>
@@ -105,7 +106,7 @@ const SeleccionUbicacion = () => {
         
       )}
 
-    </div>
+    </main>
   );
 };
 
