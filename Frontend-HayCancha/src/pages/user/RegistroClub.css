@@ -50,6 +50,7 @@
 /* Plan */
 .rg-plan { display: flex; flex-direction: column; gap: 16px; }
 .rg-plan-tarjeta { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--color-brand-200); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--shadow-sm); }
+.rg-plan-tarjeta--prueba { border-color: var(--color-brand-500); box-shadow: var(--ring-brand); }
 .rg-plan-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill); background: var(--color-brand-100); color: var(--color-brand-700); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; }
 .rg-plan-precio { margin: 0; display: flex; align-items: baseline; gap: 8px; }
 .rg-plan-precio strong { font: 900 2.4rem var(--font-display); color: var(--text-strong); }

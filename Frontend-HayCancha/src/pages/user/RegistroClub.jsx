@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { postApi, precalentarApi } from '../../services/api';
 import { geocodificarClub } from '../../services/geocodificar';
+import { iniciarPrueba, leerMisSuscripciones } from '../../services/suscripcion';
+import { estadoDeSuscripcion, tieneSuscripcionVigente, DIAS_PRUEBA } from '../../utils/suscripcion';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { useAuth } from '../../context/authContext';
 import { usePagoPlan } from '../../hooks/usePagoPlan';
@@ -45,6 +47,9 @@ const RegistroClub = () => {
   // Estado de la suscripción de esta cuenta: cargando | activa | ninguna | verificando
   const [suscripcion, setSuscripcion] = useState('cargando');
   const [errorVerificacion, setErrorVerificacion] = useState('');
+  const [pruebaUsada, setPruebaUsada] = useState(false);
+  const [iniciandoPrueba, setIniciandoPrueba] = useState(false);
+  const [errorPrueba, setErrorPrueba] = useState('');
   const pago = usePagoPlan('Full');
   const { precio, cargando: cargandoPrecio } = usePrecioPlan('Full');
 
@@ -64,36 +69,44 @@ const RegistroClub = () => {
 
   // Un admin que ya tiene club no tiene nada que registrar.
   useEffect(() => {
-    if (!cargandoSesion && user && ROLES_ADMIN.includes(rol)) navigate('/panel', { replace: true });
-  }, [cargandoSesion, user, rol, navigate]);
+    if (!cargandoSesion && user && ROLES_ADMIN.includes(rol) && !idPago) navigate('/panel', { replace: true });
+  }, [cargandoSesion, user, rol, idPago, navigate]);
 
   useEffect(() => () => { if (previewLogo) URL.revokeObjectURL(previewLogo); }, [previewLogo]);
 
   // Al volver de Mercado Pago (o antes de ir a pagar) el backend tiene que estar despierto.
   useEffect(() => { precalentarApi(); }, []);
 
+  // 'activa' = plan pago o prueba en curso; una prueba vencida no alcanza para seguir
   const leerSuscripcion = async (userId) => {
-    const { data } = await supabase.from('suscripciones').select('estado').eq('user_id', userId).eq('estado', 'activa').limit(1);
-    return data?.length ? 'activa' : 'ninguna';
+    const filas = await leerMisSuscripciones(userId);
+    setPruebaUsada(estadoDeSuscripcion(filas).pruebaUsada);
+    return tieneSuscripcionVigente(filas) ? 'activa' : 'ninguna';
   };
 
   // Si vuelve de Mercado Pago, el servidor VERIFICA el pago; después se lee el estado real (RLS: solo la propia).
   useEffect(() => {
-    if (cargandoSesion || !user || ROLES_ADMIN.includes(rol)) return undefined;
+    if (cargandoSesion || !user) return undefined;
+    const esAdmin = ROLES_ADMIN.includes(rol);
+    if (esAdmin && !idPago) return undefined;
     let cancelado = false;
 
     (async () => {
+      let pagoOk = true;
       if (idPago) {
         const { ok, data } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
         if (cancelado) return;
+        pagoOk = ok;
         if (!ok) setErrorVerificacion(data?.error || 'No pudimos verificar el pago.');
       }
+      // Dueño con club (viene de su prueba gratis): vuelve al panel, que muestra el resultado del pago
+      if (esAdmin) { navigate(`/panel?pago=${pagoOk ? 'ok' : 'error'}`, { replace: true }); return; }
       const estado = await leerSuscripcion(user.id);
       if (!cancelado) setSuscripcion(estado);
     })();
 
     return () => { cancelado = true; };
-  }, [cargandoSesion, user, rol, idPago]);
+  }, [cargandoSesion, user, rol, idPago, navigate]);
 
   // Botón "Ya pagué": el servidor busca la suscripción autorizada de esta cuenta en Mercado Pago
   const verificarPago = async () => {
@@ -102,6 +115,19 @@ const RegistroClub = () => {
     const { ok, data } = await postApi('/api/vincular-suscripcion', {});
     if (!ok) setErrorVerificacion(data?.error || 'No pudimos verificar el pago.');
     setSuscripcion(await leerSuscripcion(user.id));
+  };
+
+  const empezarPrueba = async () => {
+    setErrorPrueba('');
+    setIniciandoPrueba(true);
+    try {
+      await iniciarPrueba();
+      setSuscripcion('activa');
+    } catch (err) {
+      setErrorPrueba(mensajeDeServidor(err, 'No pudimos iniciar la prueba. Intentá de nuevo en unos segundos.'));
+    } finally {
+      setIniciandoPrueba(false);
+    }
   };
 
   const cambiarCampo = (e) => {
@@ -227,7 +253,7 @@ const RegistroClub = () => {
   const paso = !user ? 1 : suscripcion === 'activa' ? 3 : 2;
   const titulos = {
     1: ['Creá tu cuenta de club', 'Primero creamos tu cuenta de administrador; después elegís el plan y cargás los datos del complejo.'],
-    2: ['Elegí tu plan', 'Para registrar tu complejo necesitás una suscripción activa. Es un pago mensual y podés cancelarlo cuando quieras.'],
+    2: ['Elegí cómo empezar', pruebaUsada ? 'Ya usaste tu prueba gratis. Para seguir con tu club necesitás una suscripción activa; podés cancelarla cuando quieras.' : `Probá GridPlay ${DIAS_PRUEBA} días gratis, sin tarjeta. Si te sirve, después seguís con el plan mensual.`],
     3: ['Completá tu complejo', 'Completá el perfil de tu complejo para empezar a recibir reservas.'],
   }[paso];
   const verificando = suscripcion === 'cargando' || suscripcion === 'verificando';
@@ -286,12 +312,24 @@ const RegistroClub = () => {
         {/* ---------------- PASO 2: PLAN ---------------- */}
         {paso === 2 && !verificando && (
           <div className="rg-plan">
+            {!pruebaUsada && (
+              <div className="rg-plan-tarjeta rg-plan-tarjeta--prueba">
+                <span className="rg-plan-badge"><Zap size={14} fill="currentColor" /> PRUEBA GRATIS</span>
+                <p className="rg-plan-precio"><strong>{DIAS_PRUEBA} días</strong><span>sin tarjeta y sin compromiso</span></p>
+                <ul>{BENEFICIOS.map((b) => <li key={b}><CheckCircle2 size={16} aria-hidden="true" /> {b}</li>)}</ul>
+                <button type="button" className="gp-btn gp-btn--primario rg-enviar" onClick={empezarPrueba} disabled={iniciandoPrueba}>
+                  {iniciandoPrueba ? 'Activando tu prueba…' : 'Empezar mi prueba gratis'}
+                </button>
+                {errorPrueba && <p className="gp-alerta gp-alerta--error" role="alert">{errorPrueba}</p>}
+                <small>Al terminar los {DIAS_PRUEBA} días tu club deja de recibir reservas nuevas hasta que te suscribas. Tus datos quedan guardados.</small>
+              </div>
+            )}
             <div className="rg-plan-tarjeta">
               <span className="rg-plan-badge"><Zap size={14} fill="currentColor" /> PLAN FULL</span>
               <p className="rg-plan-precio"><strong>{cargandoPrecio ? '…' : precio ? moneda(precio) : 'Consultar'}</strong>{precio ? <span>/ mes</span> : null}</p>
               <ul>{BENEFICIOS.map((b) => <li key={b}><CheckCircle2 size={16} aria-hidden="true" /> {b}</li>)}</ul>
-              <button type="button" className="gp-btn gp-btn--primario rg-enviar" onClick={pago.iniciar} disabled={pago.cargando}>
-                {pago.cargando ? 'Conectando con Mercado Pago…' : 'Suscribirme con Mercado Pago'}
+              <button type="button" className={`gp-btn ${pruebaUsada ? 'gp-btn--primario' : 'gp-btn--secundario'} rg-enviar`} onClick={pago.iniciar} disabled={pago.cargando}>
+                {pago.cargando ? 'Conectando con Mercado Pago…' : pruebaUsada ? 'Suscribirme con Mercado Pago' : 'O suscribirme ya con Mercado Pago'}
               </button>
               {pago.cargando && pago.servidorLento && <p className="gp-alerta gp-alerta--aviso" role="status">Estamos despertando el servidor, puede tardar unos segundos. No cierres esta página.</p>}
               {pago.error && <p className="gp-alerta gp-alerta--error" role="alert">{pago.error}</p>}

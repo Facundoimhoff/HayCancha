@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ArrowRight, CalendarDays, ShieldCheck, 
+  ArrowLeft, ArrowRight, CalendarDays, MapPin, 
   Store, PieChart, TrendingUp, Smartphone, CheckCircle2, 
-  Lock, ChevronRight, Zap
+  Star, Zap
 } from 'lucide-react';
 import './Funcionalidades.css';
 
@@ -52,14 +52,14 @@ export default function Funcionalidades() {
         <div className="func-container text-center">
           <div className="badge-glow">
             <Zap size={14} className="text-emerald" />
-            <span>El software líder para complejos deportivos</span>
+            <span>Software de reservas para complejos deportivos</span>
           </div>
           <h1 className="hero-main-title">
             Digitalizá tu club y <br />
-            <span className="text-gradient">multiplicá tus ingresos</span>
+            <span className="text-gradient">ordená tus reservas</span>
           </h1>
           <p className="hero-sub-text">
-            Automatizá tus reservas, exigí señas online, controlá tu kiosco y analizá tus métricas en la plataforma más moderna y fácil de usar del mercado.
+            Tus clientes reservan solos desde el celular. Vos controlás turnos, extras del kiosco y métricas desde un solo panel, y lo probás 30 días gratis.
           </p>
         </div>
       </section>
@@ -74,7 +74,7 @@ export default function Funcionalidades() {
             </div>
             <h2 className="feature-heading">Reservas automáticas y sin superposiciones</h2>
             <p className="feature-description">
-              Tus clientes reservan directamente desde su celular. La grilla se actualiza en tiempo real para todos tus empleados, evitando los clásicos errores del cuaderno de papel.
+              Tus clientes reservan directamente desde su celular y ven al instante qué horarios están libres. El sistema no permite reservar dos veces el mismo turno, evitando los clásicos errores del cuaderno de papel.
             </p>
             <div className="feature-perks-list">
               <div className="perk-item">
@@ -83,7 +83,7 @@ export default function Funcionalidades() {
               </div>
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-emerald" />
-                <span><strong>Estados visuales:</strong> Distinguí turnos fijos, torneos, señados y pendientes por color.</span>
+                <span><strong>Turnos manuales:</strong> Cargá los turnos que te llegan por WhatsApp o en persona, junto a los que reservan online.</span>
               </div>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function Funcionalidades() {
               <div className="mockup-top-bar">
                 <div className="window-dots"><span></span><span></span><span></span></div>
                 <div className="window-title">Viernes • Turnos de la Tarde</div>
-                <span className="live-status pulse-anim">EN VIVO</span>
+                <span className="live-status">HOY</span>
               </div>
               <div className="calendar-grid-ui">
                 <div className="time-column">
@@ -104,14 +104,14 @@ export default function Funcionalidades() {
                   <div className="court-slot-column">
                     <div className="court-name-header">Cancha 1</div>
                     <div className="booking-card slot-1 bg-green-accent">
-                      <div className="b-header"><strong>Matías R.</strong><span className="b-badge">CONFIRMADO</span></div>
+                      <div className="b-header"><strong>Matías R.</strong><span className="b-badge">RESERVADO</span></div>
                       <span className="b-time">19:00 - 20:30 hs</span>
                     </div>
                   </div>
                   <div className="court-slot-column">
                     <div className="court-name-header">Cancha 2</div>
                     <div className="booking-card slot-2 bg-purple-accent">
-                      <div className="b-header"><strong>Torneo Padel</strong><span className="b-badge">FIJO</span></div>
+                      <div className="b-header"><strong>Mantenimiento</strong><span className="b-badge">BLOQUEADO</span></div>
                       <span className="b-time">20:00 - 22:00 hs</span>
                     </div>
                   </div>
@@ -131,21 +131,21 @@ export default function Funcionalidades() {
         <div className="func-container feature-row reversed">
           <div className="feature-content-col">
             <div className="section-tag tag-blue">
-              <ShieldCheck size={14} />
-              <span>CHAU PLANTINES</span>
+              <MapPin size={14} />
+              <span>TU CLUB, VISIBLE</span>
             </div>
-            <h2 className="feature-heading">Asegurá tu dinero con cobros y señas online</h2>
+            <h2 className="feature-heading">Que los jugadores te encuentren cerca de su ubicación</h2>
             <p className="feature-description">
-              Integrá Mercado Pago de forma transparente. Exigí un porcentaje de seña para confirmar el turno y definí tus propias políticas de cancelación.
+              Cada club tiene su página pública con fotos, redes, ubicación en el mapa y reseñas de jugadores que ya reservaron. Los jugadores te encuentran por ciudad o por cercanía.
             </p>
             <div className="feature-perks-list">
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-blue" />
-                <span><strong>Directo a tu cuenta:</strong> El dinero no pasa por nosotros, va directo a tu banco.</span>
+                <span><strong>Reseñas reales:</strong> Solo pueden calificar quienes ya jugaron en tu club.</span>
               </div>
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-blue" />
-                <span><strong>Cero comisiones:</strong> GridPlay no te cobra comisión extra por reserva.</span>
+                <span><strong>Cero comisiones:</strong> GridPlay cobra una suscripción fija, sin comisión por reserva.</span>
               </div>
             </div>
           </div>
@@ -155,30 +155,30 @@ export default function Funcionalidades() {
             <div className="glass-card mockup-checkout-frame">
               <div className="checkout-top">
                 <div className="lock-icon-box bg-blue-subtle">
-                  <Lock size={20} className="text-blue" />
+                  <MapPin size={20} className="text-blue" />
                 </div>
                 <div>
-                  <h4>Checkout Seguro</h4>
-                  <p>Reserva Cancha 1 • 20:00 hs</p>
+                  <h4>Tu Club</h4>
+                  <p>Ejemplo de página pública</p>
                 </div>
               </div>
               <div className="checkout-breakdown">
                 <div className="breakdown-row highlight-seña blue-border">
-                  <span>Seña requerida (50%)</span>
-                  <strong className="text-blue">$15.000</strong>
+                  <span>Reseñas de jugadores</span>
+                  <strong className="text-blue"><Star size={14} fill="currentColor" /> 4,8</strong>
                 </div>
                 <div className="payment-options-grid">
                   <div className="pay-option active blue-active">
-                    <span className="pay-radio checked"></span><span>Mercado Pago</span>
+                    <span className="pay-radio checked"></span><span>Fútbol 5</span>
                   </div>
                   <div className="pay-option">
-                    <span className="pay-radio"></span><span>Transferencia</span>
+                    <span className="pay-radio"></span><span>Pádel</span>
                   </div>
                 </div>
               </div>
               <button className="btn-mockup-pay bg-blue-grad">
-                <span>Confirmar y Abonar</span>
-                <ChevronRight size={18} />
+                <span>Ver turnos</span>
+                <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -191,20 +191,20 @@ export default function Funcionalidades() {
           <div className="feature-content-col">
             <div className="section-tag tag-amber">
               <Store size={14} />
-              <span>CONTROL TOTAL DE CAJA</span>
+              <span>EXTRAS Y KIOSCO</span>
             </div>
-            <h2 className="feature-heading">Punto de Venta Integrado (Kiosco)</h2>
+            <h2 className="feature-heading">Sumá ventas con los extras de tu kiosco</h2>
             <p className="feature-description">
-              No uses sistemas separados. Vendé bebidas, snacks y alquilá paletas cargándolos directamente a la cuenta del turno que está jugando.
+              Cargá tus bebidas, snacks o el alquiler de paletas y pelotas. Tus clientes los suman al reservar y quedan cargados en la misma reserva.
             </p>
             <div className="feature-perks-list">
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-amber" />
-                <span><strong>Ticket unificado:</strong> Cobrá el saldo de la cancha + los consumos en un solo paso.</span>
+                <span><strong>Catálogo propio:</strong> Definí nombre, precio y una miniatura de cada producto, y ocultá los que no tenés.</span>
               </div>
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-amber" />
-                <span><strong>Cierres de caja precisos:</strong> Separación automática de ingresos de canchas y de buffet.</span>
+                <span><strong>Ingresos separados:</strong> Los reportes distinguen lo que facturás por alquiler de canchas y lo que sumás por kiosco.</span>
               </div>
             </div>
           </div>
@@ -214,8 +214,8 @@ export default function Funcionalidades() {
             <div className="glass-card mockup-pos-frame">
               <div className="pos-header">
                 <div>
-                  <span className="table-tag text-amber">EN JUEGO • CANCHA 2</span>
-                  <h3>Ticket #4092</h3>
+                  <span className="table-tag text-amber">RESERVA • CANCHA 2</span>
+                  <h3>Tu reserva</h3>
                 </div>
               </div>
               <div className="pos-items-table font-mono">
@@ -226,11 +226,11 @@ export default function Funcionalidades() {
                   <span>1x Alquiler Pelotas</span><span>$3.500</span>
                 </div>
                 <div className="pos-row dashed-bottom">
-                  <span>Saldo Cancha</span><span>$10.000</span>
+                  <span>Cancha (1 hora)</span><span>$10.000</span>
                 </div>
               </div>
               <div className="pos-total-summary bg-amber-subtle">
-                <span className="text-amber-dark">TOTAL A COBRAR</span>
+                <span className="text-amber-dark">TOTAL DE LA RESERVA</span>
                 <strong className="text-amber-dark">$18.500</strong>
               </div>
             </div>
@@ -246,18 +246,18 @@ export default function Funcionalidades() {
               <TrendingUp size={14} />
               <span>MÉTRICAS CLAVE</span>
             </div>
-            <h2 className="feature-heading">Estadísticas que impulsan tu crecimiento</h2>
+            <h2 className="feature-heading">Estadísticas para decidir mejor</h2>
             <p className="feature-description">
-              Entendé tu negocio con gráficos claros y precisos. Descubrí patrones de consumo, horarios más rentables y proyectá tus ganancias futuras.
+              Mirá tus ingresos, la ocupación de cada cancha y un mapa de calor por día y hora para encontrar los horarios más flojos.
             </p>
             <div className="feature-perks-list">
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-purple" />
-                <span><strong>Ocupación por hora:</strong> Optimizá tus tarifas promocionando los horarios muertos.</span>
+                <span><strong>Horarios muertos:</strong> Detectá en el mapa de calor qué días y horas quedan libres para promocionarlos.</span>
               </div>
               <div className="perk-item">
                 <CheckCircle2 size={20} className="perk-check text-purple" />
-                <span><strong>Exportación contable:</strong> Generá reportes en Excel de todos tus movimientos financieros.</span>
+                <span><strong>Reportes:</strong> Exportá tus ingresos y turnos en Excel o PDF.</span>
               </div>
             </div>
           </div>
@@ -284,8 +284,8 @@ export default function Funcionalidades() {
               <div className="floating-metric-card float-bottom-left">
                 <PieChart size={24} className="text-purple" />
                 <div>
-                  <strong>72% Tarjeta</strong>
-                  <span>Método de pago líder</span>
+                  <strong>68% Ocupación</strong>
+                  <span>De tus horas disponibles</span>
                 </div>
               </div>
             </div>
@@ -297,10 +297,10 @@ export default function Funcionalidades() {
       <section className="func-bottom-cta">
         <div className="func-container text-center cta-box-inner">
           <h2 className="cta-gradient-text">¿Listo para llevar tu club al siguiente nivel?</h2>
-          <p>La configuración es inmediata. Seleccioná un plan y empezá a recibir turnos online hoy mismo.</p>
+          <p>Armá tu club en unos minutos y probalo 30 días gratis, sin tarjeta y sin compromiso.</p>
           <div className="cta-buttons-wrapper">
-            <button className="btn-cta-emerald" onClick={() => navigate('/planes')}>
-              <span>Ver Planes y Precios</span>
+            <button className="btn-cta-emerald" onClick={() => navigate('/registro-club')}>
+              <span>Empezar 30 días gratis</span>
               <ArrowRight size={18} />
             </button>
           </div>

@@ -53,10 +53,10 @@ const Planes = () => {
         <div className="planes-info-section">
           <span className="badge-exclusivo">PARA COMPLEJOS DEPORTIVOS</span>
           <h1 className="planes-titulo-main">
-            ADMINISTRÁ TU CLUB DE <br/>LA MEJOR MANERA.
+            ADMINISTRÁ TU CLUB <br/>SIN COMPLICACIONES.
           </h1>
           <p className="planes-descripcion-main">
-            Olvidate del papel y el lápiz. Digitalizá tus canchas, automatizá tus reservas y aumentá tus ingresos. Todo desde un solo lugar.
+            Olvidate del papel y el lápiz. Digitalizá tus canchas, dejá que tus clientes reserven solos y controlá turnos, kiosco y métricas. Todo desde un solo lugar.
           </p>
 
           <div className="beneficios-grid">
@@ -131,7 +131,7 @@ const Planes = () => {
                 <span className="plan-monto">{cargandoPrecio ? '…' : precio ? precio.toLocaleString('es-AR') : 'Consultar'}</span>
                 <span className="plan-periodo">/mes</span>
               </div>
-              <p className="plan-sub-precio">Facturación mensual. Cancelá cuando quieras.</p>
+              <p className="plan-sub-precio">Los primeros 30 días son gratis. Después, facturación mensual: cancelá cuando quieras.</p>
             </div>
 
             <div className="plan-divisor"></div>
@@ -143,8 +143,8 @@ const Planes = () => {
                 'Panel de administrador privado', 
                 'Métricas de finanzas y ocupación', 
                 'Bloqueo de horarios por mantenimiento', 
-                'Soporte técnico prioritario 24/7',
-                'Visibilidad en nuestra App'
+                'Soporte técnico por WhatsApp',
+                'Tu club en el buscador y en el mapa de GridPlay'
               ].map((beneficio, index) => (
                 <div key={index} className="plan-beneficio-row">
                   <CheckCircle size={20} className="check-verde" />
@@ -153,12 +153,19 @@ const Planes = () => {
               ))}
             </div>
 
-            <button 
+            <button
+              onClick={() => navigate('/registro-club')}
+              className="btn-comprar-modern activo"
+            >
+              Empezar 30 días gratis
+            </button>
+            <p className="texto-seguro texto-prueba">Sin tarjeta y sin compromiso.</p>
+            <button
               onClick={comenzar}
               disabled={cargando}
-              className={`btn-comprar-modern ${cargando ? 'cargando' : 'activo'}`}
+              className="btn-suscribir-directo"
             >
-              {cargando ? 'Conectando con Mercado Pago…' : 'Comenzar ahora'}
+              {cargando ? 'Conectando con Mercado Pago…' : 'O suscribirme ya'}
             </button>
             {cargando && servidorLento && (
               <p className="pago-aviso" role="status">Estamos despertando el servidor, puede tardar unos segundos. No cierres esta página.</p>

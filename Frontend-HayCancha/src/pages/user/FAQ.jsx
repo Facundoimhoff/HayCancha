@@ -4,6 +4,11 @@ import './FAQ.css';
 
 const preguntasGridPlay = [
   {
+    id: "faq-prueba",
+    pregunta: "¿Puedo probar GridPlay antes de pagar?",
+    respuesta: "Sí. Tenés 30 días de prueba gratis, sin tarjeta y sin compromiso. Si al terminar querés seguir, te suscribís al plan mensual; si no, tu club deja de recibir reservas nuevas y tus datos quedan guardados."
+  },
+  {
     id: "faq-1",
     pregunta: "¿Cuánto tiempo tarda en estar funcionando mi club en GridPlay?",
     respuesta: "Es casi inmediato. Te creás la cuenta, agregás tus canchas, subís el logo y fotos del predio, y en menos de 10 minutos ya tenés tu enlace público listo para recibir reservas."
@@ -31,7 +36,7 @@ const preguntasGridPlay = [
   {
     id: "faq-6",
     pregunta: "¿El soporte técnico tiene costo extra?",
-    respuesta: "No, las actualizaciones del sistema y el soporte técnico directo por WhatsApp están incluidos en tu plan mensual. Si tenés una duda o un problema, nos mandás un mensaje y lo resolvemos al instante."
+    respuesta: "No, las actualizaciones del sistema y el soporte técnico directo por WhatsApp están incluidos en tu plan mensual. Si tenés una duda o un problema, nos mandás un mensaje y lo resolvemos lo antes posible."
   }
 ];
 

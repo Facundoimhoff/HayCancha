@@ -15,6 +15,9 @@ import Reportes from './views/Reportes.jsx';
 import Clientes from './views/Clientes.jsx';
 import Canchas from './views/Canchas.jsx';
 import MiClub from './views/MiClub.jsx';
+import AvisoSuscripcion from './components/AvisoSuscripcion';
+import { leerMisSuscripciones } from '../../services/suscripcion';
+import { estadoDeSuscripcion } from '../../utils/suscripcion';
 import Kiosco from './views/Kiosco.jsx';
 import { ModalTurno, ModalBloqueo, ModalDetalles, ModalCancha, ModalConfirmar } from './modals/modales.jsx';
 import './dashboard.css';
@@ -42,6 +45,8 @@ const DashboardAdmin = () => {
   const [menuMovil, setMenuMovil] = useState(false);
 
   const [miClub, setMiClub] = useState(null);
+  const [suscripcion, setSuscripcion] = useState(null); // resultado de estadoDeSuscripcion
+  const resultadoPago = new URLSearchParams(window.location.search).get('pago'); // 'ok' | 'error' al volver de Mercado Pago
   const [canchas, setCanchas] = useState([]);
   const [turnosCrudos, setTurnosCrudos] = useState([]);
   const [modal, setModal] = useState(null); // { tipo, ...datos }
@@ -57,6 +62,7 @@ const DashboardAdmin = () => {
     const { data: club } = await supabase.from('clubes').select('*').eq('admin_id', user.id).limit(1).maybeSingle();
     if (!club) { setSinClub(true); setCargando(false); return; }
     setMiClub(club);
+    leerMisSuscripciones(user.id).then((filas) => setSuscripcion(estadoDeSuscripcion(filas)));
 
     const { data: canchasData } = await supabase.from('canchas').select('*').eq('club_id', club.id).order('id', { ascending: true });
     setCanchas(canchasData || []);
@@ -258,6 +264,7 @@ const DashboardAdmin = () => {
       </aside>
 
       <main className="dash-main">
+        <AvisoSuscripcion estado={suscripcion} pago={resultadoPago} />
         <div className="dash-contenido" key={vista}>
           {vista === 'general' && (
             <VistaGeneral club={miClub} turnos={turnos} canchas={canchas} hoy={hoy}

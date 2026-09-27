@@ -480,6 +480,22 @@
 
 .dash-confirmar-texto { font-size: 14.5px; line-height: 1.55; color: var(--color-slate-700); }
 
+/* Aviso de suscripción / prueba gratis */
+.dash-suscripcion { display: flex; align-items: center; gap: 14px; margin: 16px 16px 0; padding: 14px 18px; border: 1px solid var(--color-slate-200); border-radius: 14px; background: #fff; }
+.dash-suscripcion > svg { flex-shrink: 0; }
+.dash-suscripcion-texto, .dash-suscripcion > div:not(.dash-suscripcion-texto) { flex: 1; min-width: 0; }
+.dash-suscripcion strong { display: block; color: var(--text-strong); }
+.dash-suscripcion p { margin: 2px 0 0; font-size: 13.5px; color: var(--color-slate-600); line-height: 1.45; }
+.dash-suscripcion--info { background: var(--color-brand-50); border-color: var(--color-brand-200); }
+.dash-suscripcion--info > svg { color: var(--color-brand-600); }
+.dash-suscripcion--ok { background: var(--color-brand-50); border-color: var(--color-brand-200); }
+.dash-suscripcion--ok > svg { color: var(--color-brand-600); }
+.dash-suscripcion--pocos { background: #fffbeb; border-color: #fde68a; }
+.dash-suscripcion--pocos > svg { color: #b45309; }
+.dash-suscripcion--vencida { background: var(--color-danger-bg); border-color: #fecaca; }
+.dash-suscripcion--vencida > svg { color: var(--color-danger); }
+@media (max-width: 640px) { .dash-suscripcion { flex-wrap: wrap; } .dash-suscripcion .dash-btn { width: 100%; } }
+
 /* Ubicación del club en el mapa (Mi club) */
 .dash-ubicacion { display: flex; flex-direction: column; gap: 10px; }
 .dash-ubicacion-acciones { display: flex; flex-wrap: wrap; gap: 8px; }

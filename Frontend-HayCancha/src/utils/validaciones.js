@@ -62,6 +62,9 @@ const MENSAJES_SERVIDOR = {
   ESTRELLAS_INVALIDAS: 'Elegí una calificación de 1 a 5 estrellas.',
   CLUB_NO_ENCONTRADO: 'No encontramos ese club.',
   NO_PERMITIDO: 'No podés calificar tu propio club.',
+  PRUEBA_YA_USADA: 'Ya usaste tu prueba gratis. Para seguir, suscribite al plan.',
+  YA_TIENE_SUSCRIPCION: 'Tu cuenta ya tiene una suscripción activa.',
+  CLUB_SIN_SUSCRIPCION: 'Este club no está recibiendo reservas por ahora.',
 };
 
 /** Traduce los códigos que lanzan las funciones SQL (`raise exception 'CODIGO'`) a texto para el usuario. */

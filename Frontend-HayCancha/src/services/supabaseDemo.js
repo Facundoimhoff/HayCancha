@@ -175,6 +175,16 @@ const resenas = resenasBase.map(([club_id, autor, estrellas, comentario, delta])
   created_at: new Date(Date.now() + delta * 86400000).toISOString(), oculta: false,
 }));
 
+// Escenarios de suscripción del demo: localStorage.setItem('demoRol', 'cliente' | 'admin-prueba' | 'admin-prueba-corta' | 'admin-vencida')
+const enDias = (n) => new Date(Date.now() + n * 86400000).toISOString();
+function suscripcionesDemo() {
+  if (ESCENARIO === 'cliente') return [];
+  if (ESCENARIO === 'admin-prueba') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(12) }];
+  if (ESCENARIO === 'admin-prueba-corta') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(3) }];
+  if (ESCENARIO === 'admin-vencida') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(-2) }];
+  return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full', vence_en: null }];
+}
+
 const tablas = {
   usuarios: [{ id: ID_USUARIO, nombre_completo: 'Admin Demo', telefono: null, rol: ESCENARIO.startsWith('cliente') ? 'cliente' : 'admin' }],
   clubes: [club, ...clubesJugador],
@@ -183,7 +193,7 @@ const tablas = {
   productos: [...productos, ...productosJugador],
   resenas,
   kiosco: [],
-  suscripciones: ESCENARIO === 'cliente' ? [] : [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full' }],
+  suscripciones: suscripcionesDemo(),
 };
 
 /** Constructor de consultas encadenables mínimo: select/eq/in/gte/lte/or/order/limit/single/maybeSingle. */
@@ -263,6 +273,13 @@ const rpcs = {
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(p_desde, p_desde + p_limite)
       .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO })),
   ),
+  iniciar_prueba: () => {
+    if (tablas.suscripciones.some((s) => s.plan === 'prueba')) return falla('PRUEBA_YA_USADA');
+    const vence = enDias(30);
+    tablas.suscripciones.push({ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: vence });
+    return ok(vence);
+  },
+  club_recibe_reservas: () => ok(ESCENARIO !== 'admin-vencida'),
   resenas_destacadas: ({ p_limite = 6 } = {}) => ok(
     resenas.filter((r) => !r.oculta && r.estrellas >= 4 && (r.comentario || '').trim().length >= 20)
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, p_limite)

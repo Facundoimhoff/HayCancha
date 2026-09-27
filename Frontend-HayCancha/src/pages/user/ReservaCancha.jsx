@@ -7,6 +7,7 @@ import {
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/authContext';
 import { resumenPorClub } from '../../services/resenas';
+import { clubRecibeReservas } from '../../services/suscripcion';
 import { validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
 import {
   moneda, proximosDias, fechaLarga, fechaCorta, totalSeleccion, extrasParaEnviar,
@@ -45,6 +46,7 @@ const ReservaCancha = () => {
   const [ocupados, setOcupados] = useState(() => new Set());
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState(false);
+  const [clubActivo, setClubActivo] = useState(true); // false: prueba vencida sin suscripción, no recibe reservas
 
   const dias = useMemo(() => proximosDias(14), []);
   const hoy = dias[0].fecha;
@@ -91,6 +93,7 @@ const ReservaCancha = () => {
           if (cancelado) return;
           setClub(dataClub || null);
           setProductos((dataProductos || []).filter((p) => p.activo !== false));
+          clubRecibeReservas(dataCancha.club_id).then((recibe) => { if (!cancelado) setClubActivo(recibe); });
           resumenPorClub([dataCancha.club_id]).then((r) => { if (!cancelado) setResumen(r[dataCancha.club_id] || null); });
         }
 
@@ -201,6 +204,15 @@ const ReservaCancha = () => {
       <div className="estado-carga">
         <p>No pudimos cargar esta cancha. Puede que ya no exista o que haya un problema de conexión.</p>
         <Link to="/" className="gp-btn gp-btn--primario">Volver al inicio</Link>
+      </div>
+    );
+  }
+
+  if (!clubActivo) {
+    return (
+      <div className="estado-carga">
+        <p>Este club no está recibiendo reservas por ahora. Probá con otro club o volvé más adelante.</p>
+        <Link to="/" className="gp-btn gp-btn--primario">Buscar otros clubes</Link>
       </div>
     );
   }
