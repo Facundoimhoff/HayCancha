@@ -328,6 +328,71 @@ await como('anon');
 a = await intenta(`select public.actualizar_extras(${turnoFuturo}, '[]'::jsonb)`);
 ok('Extras: anónimo NO puede editar extras', !!a.e, a.e);
 
+// Prueba gratis de 30 días
+await raiz();
+const U_PRUEBA = '00000000-0000-0000-0000-0000000000f1';
+await db.exec(`
+insert into auth.users (id, email) values ('${U_PRUEBA}', 'prueba@gmail.com') on conflict do nothing;
+insert into public.usuarios (id, nombre_completo, rol) values ('${U_PRUEBA}', 'Dueño Prueba', 'cliente') on conflict (id) do nothing;
+`);
+await como('anon');
+a = await intenta('select public.iniciar_prueba()');
+ok('Prueba: el anónimo NO puede iniciarla', !!a.e, a.e);
+await como('authenticated', U_PRUEBA);
+a = await intenta(`insert into public.suscripciones (user_id, plan, estado, monto, vence_en) values ('${U_PRUEBA}', 'prueba', 'activa', 0, now() + interval '3650 days')`);
+ok('Prueba: NO se puede crear una suscripción a mano (solo por la función)', !!a.e, a.e);
+a = await intenta('select public.iniciar_prueba() as vence');
+const dias = a.r ? Math.round((new Date(a.r.rows[0].vence) - Date.now()) / 86400000) : null;
+ok('Prueba: se inicia y vence en 30 días', !a.e && dias === 30, a.e || String(dias));
+a = await intenta('select public.iniciar_prueba()');
+ok('Prueba: solo una vez por cuenta', a.e?.includes('PRUEBA_YA_USADA') || a.e?.includes('YA_TIENE_SUSCRIPCION'), a.e);
+a = await intenta('select plan, estado from public.suscripciones');
+ok('Prueba: el dueño ve su propia suscripción de prueba', a.r?.rows.length === 1 && a.r.rows[0].plan === 'prueba' && a.r.rows[0].estado === 'activa', JSON.stringify(a.r?.rows));
+await como('authenticated', U.cliente);
+a = await intenta(`select count(*)::int n from public.suscripciones where user_id = '${U_PRUEBA}'`);
+ok('Prueba: otra cuenta NO ve la suscripción ajena', a.r?.rows[0].n === 0, JSON.stringify(a.r?.rows));
+
+// El club de ese dueño: con la prueba vigente recibe reservas; vencida, no; con suscripción paga, sí
+await raiz();
+const CLUB_PRUEBA = '00000000-0000-0000-0000-0000000000c9';
+const CANCHA_PRUEBA = '00000000-0000-0000-0000-0000000000ca';
+await db.exec(`
+insert into public.clubes (id, nombre, admin_id, provincia, ciudad) values ('${CLUB_PRUEBA}', 'Club Prueba', '${U_PRUEBA}', 'Córdoba', 'Freyre');
+insert into public.canchas (id, club_id, nombre, deporte, precio_hora, hora_apertura, hora_cierre) values ('${CANCHA_PRUEBA}', '${CLUB_PRUEBA}', 'Cancha P', 'Fútbol', 1000, '08:00', '23:00');
+`);
+await como('anon');
+a = await intenta(`select public.club_recibe_reservas('${CLUB_PRUEBA}') as r`);
+ok('Prueba: con la prueba vigente el club recibe reservas', a.r?.rows[0].r === true, a.e);
+await como('authenticated', U_PRUEBA);
+a = await intenta(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente) values ('${CANCHA_PRUEBA}', '${sumar(5)}', '10:00', 'Manual', '3564000000')`);
+ok('Prueba: con la prueba vigente el dueño carga turnos', !a.e, a.e);
+
+await raiz();
+await db.query(`update public.suscripciones set vence_en = now() - interval '1 day' where user_id = '${U_PRUEBA}'`);
+await como('anon');
+a = await intenta(`select public.club_recibe_reservas('${CLUB_PRUEBA}') as r`);
+ok('Prueba: vencida, el club NO recibe reservas', a.r?.rows[0].r === false, a.e);
+a = await intenta(`select public.club_recibe_reservas('${CLUB_SANI}') as r`);
+ok('Prueba: los demás clubes no se ven afectados', a.r?.rows[0].r === true, a.e);
+await como('authenticated', U_PRUEBA);
+a = await intenta(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente) values ('${CANCHA_PRUEBA}', '${sumar(6)}', '10:00', 'Manual', '3564000000')`);
+ok('Prueba: vencida, el dueño NO puede cargar turnos nuevos', a.e?.includes('CLUB_SIN_SUSCRIPCION'), a.e);
+await como('authenticated', U.cliente);
+a = await intenta(`select public.crear_reserva('${CANCHA_PRUEBA}', '${sumar(6)}', '11:00', 'Laura Gomez', '3564111111', null)`);
+ok('Prueba: vencida, un jugador NO puede reservar', a.e?.includes('CLUB_SIN_SUSCRIPCION'), a.e);
+await como('authenticated', U_PRUEBA);
+a = await intenta(`select count(*)::int n from public.turnos where cancha_id = '${CANCHA_PRUEBA}'`);
+ok('Prueba: vencida, el dueño igual ve sus turnos anteriores', a.r?.rows[0].n === 1, a.e);
+
+await raiz();
+await db.query(`insert into public.suscripciones (user_id, plan, estado, monto, mp_preapproval_id) values ('${U_PRUEBA}', 'Full', 'activa', 50000, 'mp-test-123456')`);
+await como('anon');
+a = await intenta(`select public.club_recibe_reservas('${CLUB_PRUEBA}') as r`);
+ok('Prueba: al pagar la suscripción el club se reactiva solo', a.r?.rows[0].r === true, a.e);
+await como('authenticated', U_PRUEBA);
+a = await intenta('select public.iniciar_prueba()');
+ok('Prueba: no se puede reiniciar después de haberla usado', !!a.e, a.e);
+
 // ---------- 11. Bucket ----------
 await raiz();
 const b = (await db.query("select file_size_limit::int l, allowed_mime_types m from storage.buckets where id='imagenes'")).rows[0];
