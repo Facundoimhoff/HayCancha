@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FAQ from './FAQ';
+import SeccionCercania from '../../components/user/SeccionCercania';
+import ComoFunciona from '../../components/user/ComoFunciona';
+import ResenasPortada from '../../components/user/ResenasPortada';
 import { useFormspree } from '../../hooks/useFormspree';
 import './LandingPage.css'; 
 import { createPortal } from 'react-dom';
@@ -127,6 +130,8 @@ export default function LandingPage() {
 
       </section>
 
+      <SeccionCercania />
+
       <section className="landing-main" id="provincias">
         <div className="provincias-container-modern">
           <h2 className="section-title">ELEGÍ TU UBICACIÓN</h2>
@@ -180,6 +185,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ComoFunciona />
+
+      <ResenasPortada />
 
       {/* --- NUEVA SECCIÓN: FUNCIONALIDADES / SOFTWARE --- */}
       <section className="software-highlight-section">

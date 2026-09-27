@@ -48,3 +48,10 @@ export const borrarMiResena = async (clubId) => {
   const { error } = await supabase.from('resenas').delete().eq('club_id', clubId);
   if (error) throw error;
 };
+
+/** Últimas reseñas buenas de cualquier club, para la portada. Devuelve [] si falla o si no hay. */
+export const resenasDestacadas = async (limite = 6) => {
+  const { data, error } = await supabase.rpc('resenas_destacadas', { p_limite: limite });
+  if (error) return [];
+  return data || [];
+};

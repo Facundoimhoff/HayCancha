@@ -18,7 +18,7 @@ export default function Privacidad() {
         <div className="legales-header">
           <ShieldCheck size={48} className="text-green icon-legal" />
           <h1>Política de Privacidad</h1>
-          <p>Última actualización: Agosto de 2026</p>
+          <p>Última actualización: Septiembre de 2026</p>
         </div>
 
         <div className="legales-content">
@@ -28,6 +28,8 @@ export default function Privacidad() {
             <li><strong>Datos de la cuenta del Club:</strong> Nombre, correo electrónico, teléfono, dirección del complejo y contraseña (encriptada).</li>
             <li><strong>Datos de los jugadores:</strong> Cuando un cliente final reserva una cancha a través de nuestra plataforma, recopilamos su nombre, teléfono y correo electrónico para gestionar el turno.</li>
             <li><strong>Datos de uso y cookies:</strong> Información sobre cómo interactuás con la plataforma, dirección IP y tipo de dispositivo. Utilizamos Google Analytics de forma anonimizada para mejorar nuestros servicios.</li>
+            <li><strong>Ubicación del jugador (solo si la activás):</strong> Si tocás “Usar mi ubicación”, tu navegador te pide permiso. Con tu ubicación mostramos el mapa y los clubes más cercanos. <strong>No la guardamos</strong> en nuestra base de datos ni la asociamos a tu cuenta.</li>
+            <li><strong>Ubicación del club:</strong> El dueño de un club puede marcar dónde queda su complejo en el mapa. Esa ubicación es pública, igual que el nombre y la dirección del club.</li>
           </ul>
 
           <h2>2. ¿Para qué utilizamos tu información?</h2>
@@ -44,6 +46,7 @@ export default function Privacidad() {
 
           <h2>4. Compartir información con terceros</h2>
           <p>GridPlay <strong>no vende, alquila ni comercializa</strong> tus datos personales ni los de tus clientes. Solo compartimos información con proveedores de servicios estrictamente necesarios para la operatividad de la plataforma (como servidores de alojamiento web y pasarelas de pago como Mercado Pago).</p>
+          <p>Para el mapa usamos <strong>OpenStreetMap</strong>: sus servidores nos entregan las imágenes del mapa y, cuando activás tu ubicación o un club busca su dirección, reciben las coordenadas o la dirección para devolvernos el nombre de la ciudad. Como en cualquier sitio web, OpenStreetMap puede ver tu dirección IP al cargar el mapa. Su política está en <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer">osmfoundation.org</a>.</p>
 
           <h2>5. Contacto</h2>
           <p>Si tenés alguna duda sobre esta Política de Privacidad o querés ejercer tus derechos sobre tus datos, podés contactarnos enviando un correo a <strong>legal@gridplay.app</strong>.</p>

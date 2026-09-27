@@ -5,6 +5,9 @@ import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../../services/storage';
 import { validarTelefono } from '../../../utils/validaciones';
 import { enlaceRed, colorClub, listaImagenes } from '../../../utils/enlaces';
 import { Panel, Campo } from '../components/ui';
+import SelectorUbicacion from '../components/SelectorUbicacion';
+import { coordenadasValidas } from '../../../utils/cercania';
+import { geocodificarClub } from '../../../services/geocodificar';
 
 const PROVINCIAS = ['Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Ciudad Autónoma de Buenos Aires'];
 const REDES = [
@@ -18,6 +21,7 @@ const formularioInicial = (club) => ({
   provincia: club?.provincia || '',
   ciudad: club?.ciudad || '',
   direccion: club?.direccion || '',
+  ubicacion: coordenadasValidas(club?.latitud, club?.longitud) ? { lat: Number(club.latitud), lng: Number(club.longitud) } : null,
   color_primario: colorClub(club?.color_primario),
   telefono_contacto: club?.telefono_contacto || '',
   correo_contacto: club?.correo_contacto || '',
@@ -53,6 +57,10 @@ const MiClub = ({ miClub, setMiClub }) => {
 
   const hayCambios = logoNuevo !== null || fotosNuevas.length > 0
     || JSON.stringify({ f: form, l: logoActual, p: fotosActuales }) !== base;
+
+  const baseForm = useMemo(() => JSON.parse(base).f, [base]);
+  const direccionCambiada = form.direccion.trim() !== baseForm.direccion.trim()
+    || form.ciudad.trim() !== baseForm.ciudad.trim() || form.provincia !== baseForm.provincia;
 
   const limpiarAviso = () => setAviso((a) => (a.tipo === 'error' ? { tipo: '', texto: '' } : a));
 
@@ -125,22 +133,53 @@ const MiClub = ({ miClub, setMiClub }) => {
         fotos_club: fotos.join(','),
         redes_sociales: form.redes,
       };
-      const { error } = await supabase.from('clubes').update(cambios).eq('id', miClub.id);
+      // Ubicación en el mapa: si el club todavía no tiene pin, se calcula sola con su dirección
+      let ubicacionFinal = form.ubicacion;
+      let aproximada = false;
+      if (!ubicacionFinal) {
+        try {
+          const punto = await geocodificarClub({ direccion: cambios.direccion, ciudad: cambios.ciudad, provincia: cambios.provincia });
+          if (punto) { ubicacionFinal = { lat: punto.lat, lng: punto.lng }; aproximada = !punto.exacta; }
+        } catch (errUbicacion) {
+          console.warn('No se pudo ubicar el club en el mapa:', errUbicacion.message);
+        }
+      }
+      // Las coordenadas viajan solo si cambiaron, así guardar el perfil no depende de ellas
+      if (JSON.stringify(ubicacionFinal) !== JSON.stringify(JSON.parse(base).f.ubicacion)) {
+        cambios.latitud = ubicacionFinal ? ubicacionFinal.lat : null;
+        cambios.longitud = ubicacionFinal ? ubicacionFinal.lng : null;
+      }
+      let sinColumnasDeUbicacion = false;
+      let { error } = await supabase.from('clubes').update(cambios).eq('id', miClub.id);
+      if (error && 'latitud' in cambios && /latitud|longitud/i.test(error.message || '')) {
+        // La base todavía no tiene las columnas de ubicación: se guarda el resto del perfil igual
+        delete cambios.latitud;
+        delete cambios.longitud;
+        sinColumnasDeUbicacion = true;
+        ({ error } = await supabase.from('clubes').update(cambios).eq('id', miClub.id));
+      }
       if (error) throw error;
 
+      const formGuardado = sinColumnasDeUbicacion ? form : { ...form, ubicacion: ubicacionFinal };
+      if (formGuardado !== form) setForm(formGuardado);
       setMiClub({ ...miClub, ...cambios });
       setLogoActual(imagen_url);
       setLogoNuevo(null);
       setFotosActuales(fotos);
       fotosNuevas.forEach((f) => URL.revokeObjectURL(f.vista));
       setFotosNuevas([]);
-      setBase(JSON.stringify({ f: form, l: imagen_url, p: fotos }));
+      setBase(JSON.stringify({ f: formGuardado, l: imagen_url, p: fotos }));
 
-      setAviso(fallidas
-        ? { tipo: 'aviso', texto: `Guardamos los cambios, pero ${fallidas === 1 ? 'una foto no se pudo subir' : `${fallidas} fotos no se pudieron subir`}. Probá subirlas de nuevo (JPG, PNG o WebP, hasta 5 MB).` }
+      const avisos = [];
+      if (fallidas) avisos.push(`${fallidas === 1 ? 'una foto no se pudo subir' : `${fallidas} fotos no se pudieron subir`}. Probá subirlas de nuevo (JPG, PNG o WebP, hasta 5 MB)`);
+      if (sinColumnasDeUbicacion) avisos.push('la ubicación en el mapa todavía no se puede guardar porque falta actualizar la base de datos');
+      else if (!ubicacionFinal) avisos.push('no pudimos ubicar tu dirección en el mapa: marcá tu club a mano en “Ubicación en el mapa” y guardá de nuevo');
+      else if (aproximada) avisos.push(`no encontramos tu calle, así que ubicamos el club en el centro de ${cambios.ciudad}: ajustá el pin en “Ubicación en el mapa” y guardá de nuevo`);
+      setAviso(avisos.length
+        ? { tipo: 'aviso', texto: `Guardamos los cambios, pero ${avisos.join('; ')}.` }
         : { tipo: 'exito', texto: '¡Cambios guardados! Ya los ven los jugadores.' });
       clearTimeout(temporizador.current);
-      if (!fallidas) temporizador.current = setTimeout(() => setAviso({ tipo: '', texto: '' }), 4000);
+      if (!avisos.length) temporizador.current = setTimeout(() => setAviso({ tipo: '', texto: '' }), 4000);
     } catch (err) {
       console.error('Error al guardar el perfil del club:', err);
       setAviso({ tipo: 'error', texto: err?.message?.includes('5 MB') || err?.message?.includes('imagen') ? err.message : 'No pudimos guardar los cambios. Revisá tu conexión e intentá de nuevo.' });
@@ -207,6 +246,19 @@ const MiClub = ({ miClub, setMiClub }) => {
           <Campo etiqueta="Dirección">
             <input type="text" maxLength={200} placeholder="Ej: Av. Urquiza 332" className="dash-input" value={form.direccion} onChange={cambiar('direccion')} />
           </Campo>
+          {/* No usa <Campo>: es un <label> y un click en el mapa activaría el primer botón que contiene */}
+          <div className="dash-campo" role="group" aria-labelledby="etiqueta-ubicacion">
+            <span className="dash-campo-etiqueta" id="etiqueta-ubicacion">Ubicación en el mapa</span>
+            <SelectorUbicacion
+              valor={form.ubicacion}
+              onCambiar={(punto) => { limpiarAviso(); setForm((f) => ({ ...f, ubicacion: punto })); }}
+              direccion={form.direccion}
+              ciudad={form.ciudad}
+              provincia={form.provincia}
+              direccionCambiada={direccionCambiada}
+            />
+            <span className="dash-campo-ayuda">Sale solo de tu provincia, ciudad y dirección. Si el pin no cae justo en tu cancha, arrastralo.</span>
+          </div>
           <div className="dash-fila-2">
             <Campo etiqueta="Teléfono (WhatsApp)">
               <input type="tel" inputMode="tel" placeholder="Ej: 3564609641" className="dash-input" value={form.telefono_contacto} onChange={cambiar('telefono_contacto')} aria-invalid={errores.telefono_contacto ? true : undefined} />

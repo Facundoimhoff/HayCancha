@@ -111,11 +111,13 @@ const clubesJugador = [
     direccion: 'Cabrera 4012', telefono_contacto: '3564123456', correo_contacto: 'sport@ejemplo.com',
     servicios: 'Vestuarios, Cantina, Parrillas', descripcion: 'El club de todo el pueblo. Fútbol 5 y 7 con césped sintético.',
     color_primario: '#0f172a', imagen_url: '', fotos_club: '', redes_sociales: {}, estacionamiento: true,
+    latitud: -31.1651, longitud: -62.0868,
   },
   {
     id: ID_CLUB_AMIGOS, nombre: 'Los Amigos Fútbol', admin_id: 'otro-admin-2', provincia: 'Córdoba', ciudad: 'Freyre',
     direccion: 'Ruta 19 km 3', telefono_contacto: '3564777888', correo_contacto: '', servicios: 'Cantina',
     descripcion: '', color_primario: '#0f172a', imagen_url: '', fotos_club: '', redes_sociales: {}, estacionamiento: false,
+    latitud: -31.1712, longitud: -62.0605,
   },
 ];
 const canchasJugador = [
@@ -260,6 +262,14 @@ const rpcs = {
     resenas.filter((r) => r.club_id === p_club_id && !r.oculta)
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(p_desde, p_desde + p_limite)
       .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO })),
+  ),
+  resenas_destacadas: ({ p_limite = 6 } = {}) => ok(
+    resenas.filter((r) => !r.oculta && r.estrellas >= 4 && (r.comentario || '').trim().length >= 20)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, p_limite)
+      .map((r) => {
+        const c = tablas.clubes.find((x) => x.id === r.club_id);
+        return { id: r.id, estrellas: r.estrellas, comentario: r.comentario, created_at: r.created_at, autor: r.autor, club_id: r.club_id, club_nombre: c?.nombre, club_ciudad: c?.ciudad };
+      }),
   ),
   calificar_club: ({ p_club_id, p_estrellas, p_comentario }) => {
     if (!(p_estrellas >= 1 && p_estrellas <= 5)) return falla('ESTRELLAS_INVALIDAS');

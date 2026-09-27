@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { postApi, precalentarApi } from '../../services/api';
+import { geocodificarClub } from '../../services/geocodificar';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../services/storage';
 import { useAuth } from '../../context/authContext';
 import { usePagoPlan } from '../../hooks/usePagoPlan';
@@ -205,6 +206,11 @@ const RegistroClub = () => {
         p_correo: user.email,
       });
       if (clubError) throw clubError;
+
+      // El pin del club sale solo de su dirección. Sin esperar: si falla, el dueño lo ajusta en "Mi club"
+      geocodificarClub({ direccion: formData.direccion, ciudad: formData.ciudad, provincia: formData.provincia })
+        .then((punto) => punto && supabase.from('clubes').update({ latitud: punto.lat, longitud: punto.lng }).eq('admin_id', user.id))
+        .catch((errUbicacion) => console.warn('No se pudo ubicar el club en el mapa:', errUbicacion.message));
 
       recargarPerfil();
       navigate('/panel', { replace: true });

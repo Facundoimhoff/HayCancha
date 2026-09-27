@@ -479,3 +479,12 @@
 }
 
 .dash-confirmar-texto { font-size: 14.5px; line-height: 1.55; color: var(--color-slate-700); }
+
+/* Ubicación del club en el mapa (Mi club) */
+.dash-ubicacion { display: flex; flex-direction: column; gap: 10px; }
+.dash-ubicacion-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.dash-ubicacion .sc-lienzo { border: 1px solid var(--color-slate-200); border-radius: 14px; }
+.dash-ubicacion-estado { margin: 0; font-size: 13px; color: var(--color-slate-500); line-height: 1.45; }
+.dash-giro { animation: dash-giro 1s linear infinite; }
+@keyframes dash-giro { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dash-giro { animation: none; } }
