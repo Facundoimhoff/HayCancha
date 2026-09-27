@@ -204,11 +204,29 @@ a = await intenta(`update public.canchas set nombre = nombre where club_id = '${
 a = await intenta(`update public.clubes set nombre = nombre where id = '${CLUB_SPORT}'`); ok('Admin Sani NO puede editar el club de Sport', a.r?.affectedRows === 0);
 a = await intenta(`update public.clubes set admin_id = '${U.sport}' where id = '${CLUB_SANI}'`); ok('Admin Sani NO puede ceder/cambiar el dueño del club', !!a.e, a.e);
 a = await intenta(`update public.clubes set descripcion = 'Nueva' where id = '${CLUB_SANI}'`); ok('Admin Sani SÍ edita su propio club', a.r?.affectedRows === 1, a.e);
+a = await intenta(`update public.clubes set latitud = -31.4272, longitud = -62.0827 where id = '${CLUB_SANI}'`);
+ok('Ubicación: el admin SÍ marca la ubicación de su club', a.r?.affectedRows === 1, a.e);
+a = await intenta(`update public.clubes set latitud = -31.4272, longitud = -62.0827 where id = '${CLUB_SPORT}'`);
+ok('Ubicación: el admin NO puede ubicar el club de otro', a.r?.affectedRows === 0, a.e);
+a = await intenta(`update public.clubes set longitud = null where id = '${CLUB_SANI}'`);
+ok('Ubicación: latitud sin longitud es rechazada', !!a.e, a.e);
+a = await intenta(`update public.clubes set latitud = 120, longitud = -62 where id = '${CLUB_SANI}'`);
+ok('Ubicación: coordenadas fuera de rango rechazadas', !!a.e, a.e);
+a = await intenta(`update public.clubes set latitud = null, longitud = null where id = '${CLUB_SANI}'`);
+ok('Ubicación: el admin puede quitar la ubicación (las dos en nulo)', a.r?.affectedRows === 1, a.e);
+a = await intenta(`update public.clubes set latitud = -31.4272, longitud = -62.0827 where id = '${CLUB_SANI}'`);
+ok('Ubicación: se vuelve a marcar', a.r?.affectedRows === 1, a.e);
 a = await intenta(`update public.canchas set superficie = 'Cemento' where id = '${C67}'`); ok('Admin Sani SÍ edita su cancha (columna superficie nueva)', a.r?.affectedRows === 1, a.e);
 a = await intenta(`insert into public.canchas (club_id, nombre, deporte, precio_hora) values ('${CLUB_SPORT}', 'x', 'Pádel', 1)`); ok('Admin Sani NO puede crear canchas en otro club', !!a.e, a.e);
 a = await intenta(`insert into public.productos (club_id, nombre, precio) values ('${CLUB_SANI}', 'Agua', 1500) returning activo`); ok('Admin crea productos (activo por defecto)', a.r?.rows[0].activo === true, a.e);
 a = await intenta(`insert into public.productos (club_id, nombre, precio) values ('${CLUB_SPORT}', 'Agua', 1500)`); ok('Admin Sani NO crea productos en otro club', !!a.e, a.e);
 a = await intenta(`delete from public.turnos where cancha_id = '${C67}' and hora_inicio = '16:00' and fecha = '${sumar(3)}' returning id`); ok('Admin puede liberar un bloqueo', a.r?.rows.length === 1, a.e);
+
+await como('anon');
+a = await intenta(`select latitud, longitud from public.clubes where id = '${CLUB_SANI}'`);
+ok('Ubicación: cualquiera ve las coordenadas del club (son públicas)', a.r?.rows[0]?.latitud === -31.4272 && a.r.rows[0].longitud === -62.0827, a.e || JSON.stringify(a.r?.rows));
+a = await intenta(`update public.clubes set latitud = 0, longitud = 0`);
+ok('Ubicación: el anónimo NO puede cambiarlas', !!a.e || a.r?.affectedRows === 0, a.e);
 
 await como('authenticated', U.sani);
 a = await intenta("select estado, plan from public.suscripciones");
@@ -260,6 +278,8 @@ a = await intenta(`select * from public.resumen_resenas(array['${CLUB_SANI}','${
 ok('Reseñas: anónimo ve promedio y cantidad por club', a.r?.rows.length === 1 && a.r.rows[0].cantidad === 1 && Number(a.r.rows[0].promedio) === 4, JSON.stringify(a.r?.rows));
 a = await intenta(`select * from public.resenas_club('${CLUB_SANI}')`);
 ok('Reseñas: el autor se publica abreviado (nombre + inicial) y sin ids', a.r?.rows.length === 1 && /^[^ ]+ [A-Z]\.$/.test(a.r.rows[0].autor) && a.r.rows[0].es_mia === false && !('usuario_id' in a.r.rows[0]), JSON.stringify(a.r?.rows).slice(0, 200));
+a = await intenta(`select * from public.resenas_destacadas(6)`);
+ok('Reseñas: la portada muestra reseñas destacadas con club y autor abreviado, sin ids de usuario', a.r?.rows.length === 1 && a.r.rows[0].club_nombre === 'SANI' && a.r.rows[0].club_ciudad === 'San Francisco' && /^[^ ]+ [A-Z].$/.test(a.r.rows[0].autor) && !('usuario_id' in a.r.rows[0]), a.e || JSON.stringify(a.r?.rows).slice(0, 200));
 a = await intenta(`select * from public.distribucion_resenas('${CLUB_SANI}')`);
 ok('Reseñas: distribución por estrellas', a.r?.rows.length === 1 && a.r.rows[0].estrellas === 4, JSON.stringify(a.r?.rows));
 
@@ -276,6 +296,8 @@ await db.query(`update public.resenas set oculta = true`);
 await como('anon');
 a = await intenta(`select * from public.resumen_resenas(array['${CLUB_SANI}']::uuid[])`);
 ok('Reseñas: una reseña oculta por moderación no cuenta ni se muestra', a.r?.rows.length === 0, JSON.stringify(a.r?.rows));
+a = await intenta(`select * from public.resenas_destacadas(6)`);
+ok('Reseñas: una reseña oculta tampoco aparece en las destacadas', a.r?.rows.length === 0, a.e || JSON.stringify(a.r?.rows));
 await como('authenticated', U.cliente);
 a = await intenta(`delete from public.resenas returning id`);
 ok('Reseñas: el autor puede borrar la suya', a.r?.rows.length === 1, a.e);
