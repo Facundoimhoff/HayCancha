@@ -19,3 +19,6 @@ npm-debug.log*
 !.vscode/extensions.json
 .idea/
 .DS_Store
+
+# Datos de ventas/prospección (contactos de terceros): va en Desktop/GridPlay-Ventas, nunca acá
+/GridPlay-Ventas/
