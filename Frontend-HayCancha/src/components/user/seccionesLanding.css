@@ -38,10 +38,12 @@
 .sc-pin span { display: block; width: 22px; height: 22px; border-radius: 50%; background: var(--color-info); border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25), 0 2px 6px rgba(15, 23, 42, 0.35); }
 
 /* ---------- Cómo funciona ---------- */
-.cf-contenedor { max-width: 1200px; margin: 0 auto; padding: 70px 32px 30px; }
+/* Banda más oscura para separar la sección del resto de la portada */
+.cf { background: var(--color-slate-200); border-top: 1px solid var(--color-slate-300); border-bottom: 1px solid var(--color-slate-300); }
+.cf-contenedor { max-width: 1200px; margin: 0 auto; padding: 60px 32px 64px; }
 .cf-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
 .cf-paso { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 28px 24px 24px; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--shadow-sm); }
-.cf-numero { position: absolute; top: 18px; right: 20px; font: 900 2.6rem/1 var(--font-display); color: var(--color-slate-200); }
+.cf-numero { position: absolute; top: 18px; right: 20px; font: 900 2.6rem/1 var(--font-display); color: var(--color-slate-300); }
 .cf-icono { display: grid; place-items: center; width: 46px; height: 46px; border-radius: var(--radius-md); background: var(--color-brand-100); color: var(--color-brand-700); }
 .cf-paso h3 { margin: 4px 0 0; font: 800 1.15rem var(--font-body); color: var(--text-strong); }
 .cf-paso p { margin: 0; color: var(--text-body); line-height: 1.55; }
@@ -61,7 +63,7 @@
 @media (max-width: 900px) {
   .sc-contenedor { grid-template-columns: 1fr; gap: 28px; padding: 50px 16px; }
   .sc-lienzo { height: 320px; }
-  .cf-contenedor { padding: 50px 16px 20px; }
+  .cf-contenedor { padding: 44px 16px 48px; }
   .rp-contenedor { padding: 30px 16px 50px; }
 }
 @media (max-width: 480px) {

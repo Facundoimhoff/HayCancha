@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   MapPin, ArrowLeft, Clock, CalendarDays, Phone, Mail, CheckCircle2, Car, Users, Layers, CloudRain,
-  MessageCircle, Image as ImageIcon, Camera, AtSign, Music2, Globe,
+  MessageCircle, Image as ImageIcon, AtSign,
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { Calificacion } from '../../components/user/Estrellas';
@@ -13,7 +13,7 @@ import { enlaceRed, enlaceCorreo, colorClub, textoSobre, listaImagenes } from '.
 import { enlaceMapa, enlaceWhatsApp, moneda } from '../../utils/reservas';
 import './PerfilClub.css';
 
-const ICONOS_RED = { instagram: Camera, tiktok: Music2, facebook: Globe };
+import { ICONOS_RED } from '../../components/user/iconosPorRed';
 const NOMBRES_RED = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook' };
 
 const superficieDe = (cancha) => cancha.superficie || (cancha.deporte === 'Pádel' ? 'Blindex / Sintético' : 'Sintético');

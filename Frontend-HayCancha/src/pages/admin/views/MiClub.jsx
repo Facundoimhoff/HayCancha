@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Building2, Camera, Check, ExternalLink, ImagePlus, Music2, Globe, Trash2, X } from 'lucide-react';
+import { Building2, Check, ExternalLink, ImagePlus, Trash2, X } from 'lucide-react';
+import { IconoInstagram, IconoTikTok, IconoFacebook } from '../../../components/user/IconosRedes';
 import { supabase } from '../../../services/supabase';
 import { subirImagen, TIPOS_IMAGEN_ACEPTADOS } from '../../../services/storage';
 import { validarTelefono } from '../../../utils/validaciones';
@@ -11,9 +12,9 @@ import { geocodificarClub } from '../../../services/geocodificar';
 
 const PROVINCIAS = ['Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Ciudad Autónoma de Buenos Aires'];
 const REDES = [
-  { id: 'instagram', nombre: 'Instagram', ejemplo: '@miclub', Icono: Camera },
-  { id: 'tiktok', nombre: 'TikTok', ejemplo: '@miclub', Icono: Music2 },
-  { id: 'facebook', nombre: 'Facebook', ejemplo: 'Link o nombre de la página', Icono: Globe },
+  { id: 'instagram', nombre: 'Instagram', ejemplo: '@miclub', Icono: IconoInstagram },
+  { id: 'tiktok', nombre: 'TikTok', ejemplo: '@miclub', Icono: IconoTikTok },
+  { id: 'facebook', nombre: 'Facebook', ejemplo: 'Link o nombre de la página', Icono: IconoFacebook },
 ];
 
 const formularioInicial = (club) => ({

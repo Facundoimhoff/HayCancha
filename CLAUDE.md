@@ -115,3 +115,8 @@ El pin sale SOLO de provincia + ciudad + dirección (`services/geocodificar.js`,
 - **Textos públicos corregidos:** `/funcionalidades` ya no promete señas/checkout online, torneos/turnos fijos, punto de venta con ticket ni "líder del mercado"; `/planes` ya no dice "soporte 24/7" ni "nuestra App". Sigue sin haber avisos/recordatorios por WhatsApp (Fase 4) aunque la política de privacidad los menciona: no prometerlos.
 - **MIGRACIONES PENDIENTES (las aplica el usuario, todas juntas en `Frontend-HayCancha/supabase/PENDIENTES_PARA_PEGAR_EN_SUPABASE.sql`):** resenas_y_extras, resenas_destacadas, ubicacion_clubes, prueba_gratis. `test:db` 125/125.
 
+
+## Retoques de portada y redes (2026-09-26)
+- Pie de la portada: el mail de contacto (`supportgridplay@gmail.com`, **confirmar que la casilla existe y es esa**) ahora es un `mailto:` con asunto y tiene botón "Copiar" (funciona aunque no haya app de correo); el teléfono abre WhatsApp. El formulario de contacto de la portada usa Formspree (`xzeppakb`): no se pudo verificar su entrega desde acá, probarlo una vez.
+- "Reservá en tres pasos" (`ComoFunciona`) tiene fondo más oscuro (`--color-slate-200`) para separarse del resto.
+- Logos de Instagram, TikTok y Facebook (`components/user/IconosRedes.jsx`, mapa en `iconosPorRed.js`; lucide ya no trae marcas) en el formulario "Redes sociales" de Mi club y en la ficha pública del club.

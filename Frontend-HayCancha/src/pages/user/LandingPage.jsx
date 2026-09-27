@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays } from 'lucide-react';
+import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FAQ from './FAQ';
 import SeccionCercania from '../../components/user/SeccionCercania';
@@ -15,6 +15,7 @@ export default function LandingPage() {
   const [busqueda, setBusqueda] = useState('');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
+  const [mailCopiado, setMailCopiado] = useState(false);
 
   // --- Buscador de provincias en mobile (reemplaza al <select>) ---
   const [busquedaProvinciaMobile, setBusquedaProvinciaMobile] = useState('');
@@ -53,6 +54,26 @@ export default function LandingPage() {
   const numeroWhatsApp = "5493564609641"; 
   const mensajeWhatsApp = "Hola GridPlay! Tengo un complejo deportivo y me gustaría conocer más sobre el sistema para sumar mi club.";
   const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+
+  // Mail de contacto: mailto (abre la app de correo, en el celular también) y botón para copiarlo si no hay app configurada
+  const mailContacto = 'supportgridplay@gmail.com';
+  const linkMail = `mailto:${mailContacto}?subject=${encodeURIComponent('Consulta desde GridPlay')}`;
+  const copiarMail = async () => {
+    try {
+      await navigator.clipboard.writeText(mailContacto);
+    } catch {
+      const campo = document.createElement('textarea');
+      campo.value = mailContacto;
+      campo.style.position = 'fixed';
+      campo.style.opacity = '0';
+      document.body.appendChild(campo);
+      campo.select();
+      try { document.execCommand('copy'); } catch { /* sin permiso para copiar: el mail queda visible para copiarlo a mano */ }
+      document.body.removeChild(campo);
+    }
+    setMailCopiado(true);
+    setTimeout(() => setMailCopiado(false), 2000);
+  };
 
   return (
     <div className="landing-desktop">
@@ -311,14 +332,15 @@ export default function LandingPage() {
             <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="footer-link">
               <Phone size={20} /> 3564-609641
             </a>
-            <a 
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=supportgridplay@gmail.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="footer-link"
-            >
-              <Mail size={18} /> supportgridplay@gmail.com
-            </a>
+            <span className="footer-mail">
+              <a href={linkMail} className="footer-link">
+                <Mail size={18} /> {mailContacto}
+              </a>
+              <button type="button" className="footer-copiar" onClick={copiarMail} aria-label={mailCopiado ? 'Mail copiado' : 'Copiar el mail de contacto'} title="Copiar mail">
+                {mailCopiado ? <Check size={16} /> : <Copy size={16} />}
+                <span aria-live="polite">{mailCopiado ? 'Copiado' : 'Copiar'}</span>
+              </button>
+            </span>
           </div>
           
           <div className="footer-divisor"></div>
