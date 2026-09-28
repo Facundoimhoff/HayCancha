@@ -11,16 +11,22 @@ const cargarPlanes = () => {
   return consulta;
 };
 
-/** Precio mensual de un plan según el backend. `precio` es null mientras carga o si no hay conexión. */
+// Respaldo si el backend (Render) está dormido o falla la red: mejor mostrar el precio de
+// siempre que dejar al usuario viendo "Consultar" o una carga que nunca llega. Se actualiza
+// solo si el backend responde con un valor distinto.
+const PRECIOS_RESPALDO = { Full: 50000 };
+
+/** Precio mensual de un plan. Arranca con el valor de respaldo y lo corrige si el backend responde otra cosa. */
 export function usePrecioPlan(nombre = 'Full') {
-  const [precio, setPrecio] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [precio, setPrecio] = useState(PRECIOS_RESPALDO[nombre] ?? null);
+  const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
     cargarPlanes().then((planes) => {
       if (cancelado) return;
-      setPrecio(planes?.[nombre]?.precio ?? null);
+      const delBackend = planes?.[nombre]?.precio;
+      if (delBackend) setPrecio(delBackend);
       setCargando(false);
     });
     return () => { cancelado = true; };
