@@ -5,6 +5,7 @@ import {
   Store, PieChart, TrendingUp, Smartphone, CheckCircle2, 
   Star, Zap
 } from 'lucide-react';
+import FAQ from './FAQ';
 import './Funcionalidades.css';
 
 export default function Funcionalidades() {
@@ -292,6 +293,8 @@ export default function Funcionalidades() {
           </div>
         </div>
       </section>
+
+      <FAQ />
 
       {/* CTA SECTION */}
       <section className="func-bottom-cta">

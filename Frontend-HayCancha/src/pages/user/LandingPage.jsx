@@ -1,17 +1,14 @@
 import { useState } from 'react';
-import { ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays, Copy, Check } from 'lucide-react';
+import { ArrowRight, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import FAQ from './FAQ';
 import SeccionCercania from '../../components/user/SeccionCercania';
 import ComoFunciona from '../../components/user/ComoFunciona';
 import ResenasPortada from '../../components/user/ResenasPortada';
-import { useFormspree } from '../../hooks/useFormspree';
-import './LandingPage.css'; 
+import './LandingPage.css';
 import { createPortal } from 'react-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { enviar, enviando, enviado, error: errorEnvio } = useFormspree('https://formspree.io/f/xzeppakb');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
   const [mailCopiado, setMailCopiado] = useState(false);
@@ -78,8 +75,7 @@ export default function LandingPage() {
         <div className="sidebar-landing-links">
           <button onClick={() => scrollToSection('top')}>Buscar cancha</button>
           <button onClick={() => scrollToSection('provincias')}>Explorar</button>
-          <button onClick={() => scrollToSection('contacto')}>Contacto</button>
-          <button onClick={() => scrollToSection('faq')}>Preguntas Frecuentes</button>
+          <button onClick={() => { setSidebarAbierto(false); navigate('/funcionalidades'); }}>Conocé GridPlay</button>
           <button onClick={() => { setSidebarAbierto(false); navigate('/planes'); }}>Planes</button>
         </div>
         
@@ -105,8 +101,7 @@ export default function LandingPage() {
           {/* BOTONES DE NAVEGACIÓN */}
           <div className="nav-buttons">
             <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('provincias')}>Explorar</button>
-            <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('contacto')}>Contacto</button>
-            <button className="btn-nav ocultar-movil" onClick={() => scrollToSection('faq')}>Preguntas Frecuentes</button>
+            <button className="btn-nav ocultar-movil" onClick={() => navigate('/funcionalidades')}>Conocé GridPlay</button>
             <button className="btn-nav ocultar-movil" onClick={() => navigate('/planes')}>Planes</button>
             <button className="btn-nav btn-soy-admin ocultar-movil" onClick={() => navigate('/login-admin')}>
               Soy Admin
@@ -189,108 +184,13 @@ export default function LandingPage() {
 
       <ResenasPortada />
 
-      {/* --- NUEVA SECCIÓN: FUNCIONALIDADES / SOFTWARE --- */}
-      <section className="software-highlight-section">
-        <div className="software-container">
-          
-          {/* Lado Izquierdo: Gráfico/Mockup */}
-          <div className="software-visual">
-            <div className="mockup-dashboard">
-              <div className="mockup-header">
-                <div className="dots"><span></span><span></span><span></span></div>
-                <div className="mockup-title-bar">Panel Administrativo</div>
-              </div>
-              <div className="mockup-body">
-                <div className="mockup-card-metric">
-                  <div className="metric-icon bg-blue"><CalendarDays size={20} color="#2563eb"/></div>
-                  <div className="metric-text">
-                    <span>Turnos de Hoy</span>
-                    <strong>24 Reservas</strong>
-                  </div>
-                </div>
-                <div className="mockup-card-metric">
-                  <div className="metric-icon bg-green"><BarChart3 size={20} color="#16a34a"/></div>
-                  <div className="metric-text">
-                    <span>Ingresos</span>
-                    <strong>$145.000</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Notificaciones Flotantes */}
-            <div className="mockup-floating f-left">
-              <CheckCircle size={18} color="#16a34a"/> Nuevo turno 20:00hs
-            </div>
-            <div className="mockup-floating f-right">
-              <Zap size={18} color="#eab308"/> Venta Kiosco
-            </div>
-          </div>
-
-          {/* Lado Derecho: Textos y Botones */}
-          <div className="software-text">
-            <span className="software-eyebrow">SISTEMA DE GESTIÓN INTELIGENTE</span>
-            <h2 className="software-title">
-              Llevá tu complejo al <span className="text-green">siguiente nivel.</span>
-            </h2>
-            <p className="software-desc">
-              Olvidate del cuaderno, los mensajes perdidos y los choques de horarios. Con GridPlay, tus clientes pueden consultar disponibilidad y reservar online las 24 hs. 
-              <br/><br/>
-              Además, controlá el kiosco, bloqueá horarios por mantenimiento y accedé a reportes financieros automáticos desde cualquier dispositivo. Sin instalar nada.
-            </p>
-            
-            <div className="software-actions">
-              <button className="btn-software-primary" onClick={() => navigate('/planes')}>
-                Conocé los Planes <ArrowRight size={18} />
-              </button>
-              <button className="btn-software-secondary" onClick={() => navigate('/funcionalidades')}>
-                Ver Funcionalidades
-              </button>
-            </div>
-          </div>
-
-        </div>
+      {/* Todo lo de dueños de club (funcionalidades, preguntas frecuentes, alta) vive en /funcionalidades */}
+      <section className="conoce-club-section">
+        <p>¿Tenés un club?</p>
+        <button type="button" className="gp-btn gp-btn--primario" onClick={() => navigate('/funcionalidades')}>
+          Conocé GridPlay <ArrowRight size={18} aria-hidden="true" />
+        </button>
       </section>
-
-      <section className="contact-section" id="contacto">
-        <div className="contact-container">
-          <div className="contact-text-block">
-            <h2 className="contact-title">¿TENÉS UN CLUB?</h2>
-            <h2 className="contact-title text-green">SUMATE A LA RED.</h2>
-            <p className="contact-description">
-              Dejanos tus datos, sugerencias o dudas y nuestro equipo se va a poner en contacto con vos para digitalizar tus reservas.
-            </p>
-          </div>
-          <div className="contact-form-block">
-            {enviado ? (
-              <div className="contact-success">
-                <CheckCircle size={60} color="#22c55e" />
-                <h3>¡MENSAJE ENVIADO!</h3>
-                <p>Nos contactaremos a la brevedad.</p>
-              </div>
-            ) : (
-              <form onSubmit={enviar} className="contact-form">
-                <div className="form-group">
-                  <input type="text" name="nombre" required placeholder="Tu Nombre / Empresa" aria-label="Tu nombre o empresa" className="sport-input" />
-                </div>
-                <div className="form-group">
-                  <input type="email" name="email" required placeholder="Email de contacto" aria-label="Email de contacto" className="sport-input" />
-                </div>
-                <div className="form-group">
-                  <textarea name="mensaje" required rows="4" placeholder="Dejanos tu comentario..." aria-label="Tu mensaje" className="sport-input sport-textarea"></textarea>
-                </div>
-                {errorEnvio && <p className="contact-error" role="alert">{errorEnvio}</p>}
-                <button type="submit" className="btn-submit-sport" disabled={enviando}>{enviando ? 'ENVIANDO…' : 'ENVIAR MENSAJE'} <Send size={18} /></button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* --- SECCIÓN: PREGUNTAS FRECUENTES (FAQ) --- */}
-      <div id="faq">
-        <FAQ />
-      </div>
       </main>
 
       <footer className="landing-footer">
