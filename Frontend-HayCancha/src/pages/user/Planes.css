@@ -259,6 +259,7 @@
 .plan-precio-wrapper {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   color: var(--color-slate-900);
 }
 
@@ -268,11 +269,12 @@
 }
 
 .plan-monto {
-  font-size: 4rem;
+  font-size: clamp(2.2rem, 11vw, 4rem);
   font-weight: 900;
   line-height: 1;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: -2px;
+  word-break: break-word;
 }
 
 .plan-periodo {

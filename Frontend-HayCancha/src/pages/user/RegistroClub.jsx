@@ -233,9 +233,10 @@ const RegistroClub = () => {
       });
       if (clubError) throw clubError;
 
-      // El pin del club sale solo de su dirección. Sin esperar: si falla, el dueño lo ajusta en "Mi club"
+      // El pin del club sale solo de su dirección. Sin esperar: si no encuentra la calle exacta, no guarda
+      // nada (mejor sin pin que uno mal puesto en el centro de la ciudad) y el dueño lo ubica en "Mi club".
       geocodificarClub({ direccion: formData.direccion, ciudad: formData.ciudad, provincia: formData.provincia })
-        .then((punto) => punto && supabase.from('clubes').update({ latitud: punto.lat, longitud: punto.lng }).eq('admin_id', user.id))
+        .then((punto) => punto?.exacta && supabase.from('clubes').update({ latitud: punto.lat, longitud: punto.lng }).eq('admin_id', user.id))
         .catch((errUbicacion) => console.warn('No se pudo ubicar el club en el mapa:', errUbicacion.message));
 
       recargarPerfil();
@@ -321,7 +322,10 @@ const RegistroClub = () => {
                   {iniciandoPrueba ? 'Activando tu prueba…' : 'Empezar mi prueba gratis'}
                 </button>
                 {errorPrueba && <p className="gp-alerta gp-alerta--error" role="alert">{errorPrueba}</p>}
-                <small>Al terminar los {DIAS_PRUEBA} días tu club deja de recibir reservas nuevas hasta que te suscribas. Tus datos quedan guardados.</small>
+                <small>
+                  Al terminar los {DIAS_PRUEBA} días tu club deja de recibir reservas nuevas hasta que te suscribas
+                  {precio ? <> por <strong>{moneda(precio)}/mes</strong></> : null}. Tus datos quedan guardados.
+                </small>
               </div>
             )}
             <div className="rg-plan-tarjeta">

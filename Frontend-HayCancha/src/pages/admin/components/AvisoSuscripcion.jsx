@@ -1,5 +1,7 @@
 import { CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 import { usePagoPlan } from '../../../hooks/usePagoPlan';
+import { usePrecioPlan } from '../../../hooks/usePlanes';
+import { moneda } from '../../../utils/reservas';
 
 const DIAS_ALERTA = 7;
 
@@ -13,6 +15,7 @@ const DIAS_ALERTA = 7;
  */
 export default function AvisoSuscripcion({ estado, pago }) {
   const { iniciar, cargando, servidorLento, error } = usePagoPlan('Full');
+  const { precio } = usePrecioPlan('Full');
 
   if (pago === 'ok' && estado?.tipo === 'pago') {
     return (
@@ -51,8 +54,8 @@ export default function AvisoSuscripcion({ estado, pago }) {
         </strong>
         <p>
           {vencida
-            ? 'Tu club no recibe reservas nuevas hasta que te suscribas. Tus datos y tus turnos siguen acá.'
-            : 'Suscribite antes de que termine para que tu club siga recibiendo reservas sin interrupciones.'}
+            ? `Tu club no recibe reservas nuevas hasta que te suscribas${precio ? ` por ${moneda(precio)}/mes` : ''}. Tus datos y tus turnos siguen acá.`
+            : `Suscribite${precio ? ` por ${moneda(precio)}/mes` : ''} antes de que termine para que tu club siga recibiendo reservas sin interrupciones.`}
         </p>
         {cargando && servidorLento && <p>Estamos despertando el servidor, puede tardar unos segundos.</p>}
         {error && <p role="alert">{error}</p>}
