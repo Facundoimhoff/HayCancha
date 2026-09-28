@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { armarConsultas, primerResultado } from './geocodificar.js';
 
-test('armarConsultas: dirección completa y respaldo por ciudad', () => {
+test('armarConsultas: dirección completa (estructurada + texto libre) y respaldo por ciudad', () => {
   assert.deepEqual(armarConsultas({ direccion: ' Av.  Urquiza 332 ', ciudad: 'San Francisco', provincia: 'Córdoba' }), [
+    { estructurada: { calle: 'Av. Urquiza 332', ciudad: 'San Francisco', provincia: 'Córdoba' }, exacta: true },
     { texto: 'Av. Urquiza 332, San Francisco, Córdoba, Argentina', exacta: true },
     { texto: 'San Francisco, Córdoba, Argentina', exacta: false },
   ]);
