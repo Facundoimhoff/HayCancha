@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays, Copy, Check } from 'lucide-react';
+import { ArrowRight, Send, CheckCircle, Phone, Zap, MapPin, ChevronUp, X, Menu, Mail, BarChart3, CalendarDays, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FAQ from './FAQ';
 import SeccionCercania from '../../components/user/SeccionCercania';
@@ -12,7 +12,6 @@ import { createPortal } from 'react-dom';
 export default function LandingPage() {
   const navigate = useNavigate();
   const { enviar, enviando, enviado, error: errorEnvio } = useFormspree('https://formspree.io/f/xzeppakb');
-  const [busqueda, setBusqueda] = useState('');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
   const [mailCopiado, setMailCopiado] = useState(false);
@@ -31,13 +30,6 @@ export default function LandingPage() {
   const provinciasFiltradasMobile = provincias.filter((p) =>
     p.toLowerCase().includes(busquedaProvinciaMobile.trim().toLowerCase())
   );
-
-  const manejarBusqueda = (e) => {
-    e.preventDefault(); 
-    if (busqueda.trim() !== '') {
-      navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
-    }
-  };
 
   const scrollToSection = (id) => {
     setSidebarAbierto(false); 
@@ -133,20 +125,6 @@ export default function LandingPage() {
           <p className="hero-description">
             Encontrá clubes y canchas de tenis, pádel y fútbol, etc. Gratis y sin vueltas.
           </p>
-
-          {/* BUSCADOR CENTRAL (MOBILE/TABLET) */}
-          <form className="search-box-mobile" onSubmit={manejarBusqueda}>
-            <div className="input-wrapper-mobile">
-              <Search className="search-icon-mobile" size={20} />
-              <input 
-                type="text" 
-                placeholder="Buscar club, ciudad..." 
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-              />
-            </div>
-            <button type="submit" className="btn-search-mobile">BUSCAR</button>
-          </form>
         </div>
 
       </section>
