@@ -9,6 +9,8 @@ import { Calificacion } from '../../components/user/Estrellas';
 import SeccionResenas from '../../components/user/SeccionResenas';
 import Carrusel from '../../components/user/Carrusel';
 import Hoja from '../../components/user/Hoja';
+import BotonFavorito from '../../components/user/BotonFavorito';
+import { useFavoritos } from '../../hooks/useFavoritos';
 import { enlaceRed, enlaceCorreo, colorClub, textoSobre, listaImagenes } from '../../utils/enlaces';
 import { enlaceMapa, enlaceWhatsApp, moneda } from '../../utils/reservas';
 import './PerfilClub.css';
@@ -29,6 +31,7 @@ const PerfilClub = () => {
   const [cargando, setCargando] = useState(true);
   const [resumenResenas, setResumenResenas] = useState(null);
   const [canchaAbierta, setCanchaAbierta] = useState(null);
+  const { esFavorito, alternar } = useFavoritos();
 
   useEffect(() => {
     let cancelado = false;
@@ -95,6 +98,7 @@ const PerfilClub = () => {
               <h1>{club.nombre}</h1>
               <Calificacion resumen={resumenResenas} />
             </div>
+            <BotonFavorito clubId={club.id} favorito={esFavorito(club.id)} onAlternar={alternar} className="pc-favorito" />
           </div>
         </div>
       </header>

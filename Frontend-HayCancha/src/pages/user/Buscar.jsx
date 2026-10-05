@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, Loader2, Building } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { resumenPorClub } from '../../services/resenas';
+import { useFavoritos } from '../../hooks/useFavoritos';
 import HeaderCliente from './HeaderCliente';
 import TarjetaClub from '../../components/user/TarjetaClub';
 import FiltrosClubes from '../../components/user/FiltrosClubes';
@@ -28,6 +29,7 @@ export default function Buscar() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
+  const { esFavorito, alternar } = useFavoritos();
 
   useEffect(() => {
     let cancelado = false;
@@ -134,7 +136,15 @@ export default function Buscar() {
           </div>
         ) : (
           <div className="buscar-grilla">
-            {visibles.map((club) => <TarjetaClub key={club.id} club={club} resumen={resumenes[club.id]} />)}
+            {visibles.map((club) => (
+              <TarjetaClub
+                key={club.id}
+                club={club}
+                resumen={resumenes[club.id]}
+                favorito={esFavorito(club.id)}
+                onAlternarFavorito={alternar}
+              />
+            ))}
           </div>
         )}
       </main>

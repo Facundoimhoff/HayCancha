@@ -24,6 +24,7 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 .hu-navbar-izq { display: flex; align-items: center; gap: 12px; }
+.hu-navbar-der { display: flex; align-items: center; gap: 8px; }
 .hu-volver { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--text-strong); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
 .hu-volver:hover { background: var(--color-slate-100); }
 .hu-titulo { margin: 0; font: 900 1.4rem var(--font-display); letter-spacing: -0.5px; color: var(--text-strong); }
@@ -45,6 +46,8 @@
   transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .hu-mis-reservas:hover { background: var(--color-slate-700); }
+.hu-mis-reservas--secundario { background: var(--color-white); color: var(--text-strong); border: 1px solid var(--border-subtle); }
+.hu-mis-reservas--secundario:hover { background: var(--color-slate-100); }
 
 .hu-contenido { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .hu-filtros { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }

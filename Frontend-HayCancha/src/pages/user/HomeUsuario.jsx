@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, ArrowLeft, SearchX } from 'lucide-react';
+import { Calendar, Heart, ArrowLeft, SearchX } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { resumenPorClub } from '../../services/resenas';
+import { useFavoritos } from '../../hooks/useFavoritos';
 import { filtrarYOrdenar, hayFiltros, FILTROS_INICIALES } from '../../utils/filtrosClubes';
 import TarjetaClub from '../../components/user/TarjetaClub';
 import FiltrosClubes from '../../components/user/FiltrosClubes';
@@ -16,6 +17,7 @@ const HomeUsuario = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
+  const { esFavorito, alternar } = useFavoritos();
 
   useEffect(() => {
     let cancelado = false;
@@ -64,9 +66,14 @@ const HomeUsuario = () => {
           </div>
         </div>
 
-        <button type="button" onClick={() => navigate('/mis-reservas')} className="hu-mis-reservas">
-          <Calendar size={16} /> Mis Reservas
-        </button>
+        <div className="hu-navbar-der">
+          <button type="button" onClick={() => navigate('/favoritos')} className="hu-mis-reservas hu-mis-reservas--secundario">
+            <Heart size={16} /> Favoritos
+          </button>
+          <button type="button" onClick={() => navigate('/mis-reservas')} className="hu-mis-reservas">
+            <Calendar size={16} /> Mis Reservas
+          </button>
+        </div>
       </header>
 
       <main className="hu-contenido">
@@ -102,7 +109,15 @@ const HomeUsuario = () => {
           </div>
         ) : (
           <div className="hu-grilla">
-            {visibles.map((club) => <TarjetaClub key={club.id} club={club} resumen={resumenes[club.id]} />)}
+            {visibles.map((club) => (
+              <TarjetaClub
+                key={club.id}
+                club={club}
+                resumen={resumenes[club.id]}
+                favorito={esFavorito(club.id)}
+                onAlternarFavorito={alternar}
+              />
+            ))}
           </div>
         )}
       </main>

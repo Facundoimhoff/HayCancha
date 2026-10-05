@@ -1,0 +1,45 @@
+/* =============================================================================
+   Favoritos (prefijo fv-). La tarjeta y sus botones son componentes compartidos
+   (src/components/user/componentes.css).
+   ============================================================================= */
+
+.fv-pagina { min-height: 100vh; background: var(--surface-page); font-family: var(--font-body); color: var(--text-strong); }
+.fv-contenedor { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+
+.fv-cabecera { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.fv-cabecera h1 { margin: 0; font: 900 1.8rem var(--font-display); letter-spacing: -0.5px; }
+.fv-cabecera p { margin: 4px 0 0; color: var(--text-muted); }
+
+.fv-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px; }
+
+.fv-esqueleto {
+  height: 330px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(100deg, var(--color-slate-100) 30%, var(--color-slate-50) 50%, var(--color-slate-100) 70%);
+  background-size: 200% 100%;
+  animation: fv-brillo 1.4s linear infinite;
+}
+@keyframes fv-brillo { to { background-position: -200% 0; } }
+
+.fv-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  border: 1px dashed var(--color-slate-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  color: var(--text-muted);
+  text-align: center;
+}
+.fv-vacio h2 { margin: 0; font: 800 1.2rem var(--font-body); color: var(--text-strong); }
+.fv-vacio p { margin: 0; }
+
+@media (max-width: 600px) {
+  .fv-contenedor { padding: 16px 14px 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-esqueleto { animation: none; }
+}

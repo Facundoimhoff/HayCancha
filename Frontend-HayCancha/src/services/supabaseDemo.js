@@ -194,10 +194,14 @@ const tablas = {
   resenas,
   kiosco: [],
   suscripciones: suscripcionesDemo(),
+  favoritos: [],
 };
 
 /** Constructor de consultas encadenables mínimo: select/eq/in/gte/lte/or/order/limit/single/maybeSingle. */
-const TABLAS_CON_BORRADO = ['turnos', 'resenas'];
+const TABLAS_CON_BORRADO = ['turnos', 'resenas', 'favoritos'];
+// Tablas de dueño único: solo se leen/borran las filas del usuario de la demo
+const TABLAS_PROPIAS = ['resenas', 'favoritos'];
+const esPropia = (tabla, fila) => !TABLAS_PROPIAS.includes(tabla) || fila.usuario_id === ID_USUARIO;
 
 // Relaciones que PostgREST devuelve embebidas (se adjuntan siempre; es un demo)
 const conRelaciones = (tabla, fila) => {
@@ -206,13 +210,17 @@ const conRelaciones = (tabla, fila) => {
     const cancha = tablas.canchas.find((c) => c.id === fila.cancha_id) || null;
     return { ...fila, canchas: cancha ? { ...cancha, clubes: tablas.clubes.find((c) => c.id === cancha.club_id) || null } : null };
   }
+  if (tabla === 'favoritos') {
+    const c = tablas.clubes.find((x) => x.id === fila.club_id) || null;
+    return { ...fila, clubes: c ? conRelaciones('clubes', c) : null };
+  }
   return fila;
 };
 
 class Consulta {
   constructor(tabla) { this.tabla = tabla; this.filtros = []; this.orden = []; this.tope = null; this.modo = 'select'; }
   select() { return this; }
-  insert() { this.modo = 'escritura'; return this; }
+  insert(datos) { this.modo = 'escritura'; this.datosEscritura = datos; return this; }
   update() { this.modo = 'escritura'; return this; }
   upsert() { this.modo = 'escritura'; return this; }
   delete() { this.modo = TABLAS_CON_BORRADO.includes(this.tabla) ? 'borrar' : 'escritura'; return this; }
@@ -230,7 +238,7 @@ class Consulta {
   order(col, { ascending = true } = {}) { this.orden.push([col, ascending]); return this; }
   limit(n) { this.tope = n; return this; }
   filas() {
-    let filas = (tablas[this.tabla] || []).filter((f) => this.filtros.every((fn) => fn(f)) && (this.tabla !== 'resenas' || f.usuario_id === ID_USUARIO));
+    let filas = (tablas[this.tabla] || []).filter((f) => this.filtros.every((fn) => fn(f)) && esPropia(this.tabla, f));
     for (const [col, asc] of [...this.orden].reverse()) {
       filas = [...filas].sort((a, b) => (a[col] > b[col] ? 1 : a[col] < b[col] ? -1 : 0) * (asc ? 1 : -1));
     }
@@ -242,10 +250,16 @@ class Consulta {
     let resultado;
     if (this.modo === 'borrar') {
       const fuente = tablas[this.tabla];
-      const borradas = fuente.filter((f) => this.filtros.every((fn) => fn(f)) && (this.tabla !== 'resenas' || f.usuario_id === ID_USUARIO));
+      const borradas = fuente.filter((f) => this.filtros.every((fn) => fn(f)) && esPropia(this.tabla, f));
       for (const b of borradas) fuente.splice(fuente.indexOf(b), 1);
       resultado = { data: borradas.map(({ id }) => ({ id })), error: null };
     } else if (this.modo === 'escritura') {
+      // Solo favoritos persiste la escritura en la demo: es alta directa, sin RPC de por medio
+      if (this.tabla === 'favoritos' && this.datosEscritura) {
+        const nuevas = (Array.isArray(this.datosEscritura) ? this.datosEscritura : [this.datosEscritura])
+          .map((d) => ({ created_at: new Date().toISOString(), ...d }));
+        tablas.favoritos.push(...nuevas);
+      }
       resultado = { data: null, error: null };
     } else {
       resultado = { data: this.filas(), error: null };

@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
 import { MapPin, ChevronRight, CloudRain, Car, LayoutGrid, Trophy } from 'lucide-react';
 import { Calificacion } from './Estrellas';
+import BotonFavorito from './BotonFavorito';
 import { deportesDelClub, precioDesde, moneda } from '../../utils/reservas';
 import './componentes.css';
 
 /**
- * Tarjeta de un club para las listas (explorar y buscar).
+ * Tarjeta de un club para las listas (explorar, buscar y favoritos).
  * club: fila de `clubes` con `canchas` embebidas; resumen: { promedio, cantidad } o undefined.
+ * favorito/onAlternarFavorito: opcionales — si no se pasan, no se muestra el corazón.
  */
-export default function TarjetaClub({ club, resumen }) {
+export default function TarjetaClub({ club, resumen, favorito, onAlternarFavorito }) {
   const canchas = club.canchas || [];
   const deportes = deportesDelClub(club);
   const desde = precioDesde(club);
@@ -21,7 +23,12 @@ export default function TarjetaClub({ club, resumen }) {
         {foto ? <img src={foto} alt="" loading="lazy" /> : <Trophy size={56} className="gp-tc-marca" aria-hidden="true" />}
         <div className="gp-tc-degradado" />
         <Calificacion resumen={resumen} className="gp-tc-calif" />
-        <span className="gp-tc-abierto">Reservas abiertas</span>
+        <div className="gp-tc-top-der">
+          {onAlternarFavorito && (
+            <BotonFavorito clubId={club.id} favorito={favorito} onAlternar={onAlternarFavorito} className="gp-tc-favorito" />
+          )}
+          <span className="gp-tc-abierto">Reservas abiertas</span>
+        </div>
         <div className="gp-tc-titulo">
           <h2>{club.nombre}</h2>
           <p><MapPin size={15} /> {club.direccion || club.ciudad}</p>

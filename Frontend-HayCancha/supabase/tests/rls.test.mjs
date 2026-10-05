@@ -398,6 +398,43 @@ await raiz();
 const b = (await db.query("select file_size_limit::int l, allowed_mime_types m from storage.buckets where id='imagenes'")).rows[0];
 ok('El bucket queda limitado a imágenes ≤ 5 MB', b.l === 5242880 && b.m.join() === 'image/jpeg,image/png,image/webp', JSON.stringify(b));
 
+// ---------- 12. Favoritos ----------
+await raiz();
+await como('authenticated', U.cliente);
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.cliente}', '${CLUB_SANI}')`);
+ok('Favoritos: el jugador marca un club propio', !a.e, a.e);
+
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.sani}', '${CLUB_SPORT}')`);
+ok('Favoritos: no puede marcar a nombre de otro usuario', !!a.e, a.e);
+
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.cliente}', '${CLUB_SANI}')`);
+ok('Favoritos: no se puede duplicar el mismo club', !!a.e, a.e);
+
+await como('authenticated', U.sani);
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.sani}', '${CLUB_SPORT}')`);
+ok('Favoritos: otro usuario marca su propio favorito', !a.e, a.e);
+
+await como('authenticated', U.cliente);
+a = await intenta('select count(*)::int n from public.favoritos');
+ok('Favoritos: cada uno ve solo los propios', a.r?.rows[0].n === 1, `ve ${a.r?.rows[0].n}`);
+
+a = await intenta(`delete from public.favoritos where usuario_id = '${U.sani}' returning club_id`);
+ok('Favoritos: no puede borrar el de otro usuario', !a.e && a.r.rows.length === 0, a.e);
+
+await raiz();
+a = await intenta('select count(*)::int n from public.favoritos');
+ok('Favoritos: el intento de borrado ajeno no borró nada', a.r?.rows[0].n === 2, `quedan ${a.r?.rows[0].n}`);
+
+await como('authenticated', U.cliente);
+a = await intenta(`delete from public.favoritos where club_id = '${CLUB_SANI}' returning club_id`);
+ok('Favoritos: el jugador borra el suyo', !a.e && a.r.rows.length === 1, a.e);
+
+await como('anon');
+a = await intenta('select count(*)::int n from public.favoritos');
+ok('Favoritos: el anónimo no puede leer', !!a.e, a.e);
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.cliente}', '${CLUB_SPORT}')`);
+ok('Favoritos: el anónimo no puede insertar', !!a.e, a.e);
+
 // ---------- Resumen ----------
 const fallos = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FALLA') + ' ' + r.nombre + (r.ok || !r.detalle ? '' : '  -> ' + r.detalle));

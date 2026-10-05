@@ -14,6 +14,9 @@
 .pc-identidad { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .pc-identidad h1 { margin: 0 0 8px; font: 900 2.1rem/1.1 var(--font-display); letter-spacing: -0.5px; overflow-wrap: anywhere; }
 .pc-logo { width: 88px; height: 88px; flex-shrink: 0; object-fit: cover; border: 4px solid #fff; border-radius: 50%; background: #fff; box-shadow: var(--shadow-md); }
+.pc-favorito { margin-left: auto; background: color-mix(in srgb, var(--pc-texto) 12%, transparent); color: var(--pc-texto); box-shadow: none; }
+.pc-favorito:hover { background: color-mix(in srgb, var(--pc-texto) 22%, transparent); }
+.pc-favorito.gp-favorito--activo { color: var(--color-danger); }
 
 .pc-contenido { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
