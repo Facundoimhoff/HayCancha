@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert, X } from 'lucide-react';
 import { Modal, ModalCuerpo, ModalPie, Campo } from '../components/ui.jsx';
 import { moneda, fechaCorta } from '../lib/formato.js';
 import { OPCIONES_DEPORTE, DEPORTES, canchaVacia } from '../lib/deportes.js';
@@ -129,11 +129,22 @@ export const ModalDetalles = ({ turno, onCancelar, onCerrar }) => {
 /** Crear y editar comparten formulario: `inicial` viene de canchaVacia() o canchaParaEditar(). */
 export const ModalCancha = ({ modo, inicial, onGuardar, onCerrar }) => {
   const [form, setForm] = useState(inicial || canchaVacia());
-  const [archivos, setArchivos] = useState([]);
+  const [fotosActuales, setFotosActuales] = useState(() => (inicial?.imagen_url ? inicial.imagen_url.split(',').filter(Boolean) : []));
+  const [fotosNuevas, setFotosNuevas] = useState([]); // [{ archivo, vista }]
   const { guardando, error, enviar } = useEnvio();
   const editar = modo === 'editar';
   const opciones = OPCIONES_DEPORTE[form.deporte];
   const set = (campo) => (valor) => setForm((f) => ({ ...f, [campo]: valor }));
+
+  const fotosRef = useRef([]);
+  useEffect(() => { fotosRef.current = fotosNuevas; }, [fotosNuevas]);
+  useEffect(() => () => fotosRef.current.forEach((f) => URL.revokeObjectURL(f.vista)), []);
+
+  const elegirFotos = (e) => {
+    const archivos = Array.from(e.target.files || []);
+    setFotosNuevas((actuales) => [...actuales, ...archivos.map((archivo) => ({ archivo, vista: URL.createObjectURL(archivo) }))]);
+    e.target.value = '';
+  };
 
   const cambiarDeporte = (deporte) => setForm((f) => ({
     ...f,
@@ -144,7 +155,7 @@ export const ModalCancha = ({ modo, inicial, onGuardar, onCerrar }) => {
 
   return (
     <Modal titulo={editar ? 'Editar cancha' : 'Nueva cancha'} descripcion={editar ? 'Actualizá precio, horarios y características' : 'Completá los datos para empezar a recibir reservas'} icono={editar ? Pencil : PlusCircle} onCerrar={onCerrar} ancho="lg">
-      <form onSubmit={(e) => { e.preventDefault(); enviar(() => onGuardar(form, archivos)); }}>
+      <form onSubmit={(e) => { e.preventDefault(); enviar(() => onGuardar({ ...form, imagen_url: fotosActuales.join(',') }, fotosNuevas.map((f) => f.archivo))); }}>
         <ModalCuerpo>
           <div className="dash-fila-2">
             <Campo etiqueta="Nombre"><input type="text" required maxLength={80} placeholder="Ej: Cancha 1" className="dash-input" value={form.nombre} onChange={(e) => set('nombre')(e.target.value)} /></Campo>
@@ -177,9 +188,25 @@ export const ModalCancha = ({ modo, inicial, onGuardar, onCerrar }) => {
             <Campo etiqueta="Apertura"><input type="time" required className="dash-input" value={form.hora_apertura} onChange={(e) => set('hora_apertura')(e.target.value)} /></Campo>
             <Campo etiqueta="Cierre"><input type="time" required className="dash-input" value={form.hora_cierre} onChange={(e) => set('hora_cierre')(e.target.value)} /></Campo>
           </div>
-          <Campo etiqueta={editar ? 'Agregar fotos (opcional)' : 'Fotos de la cancha (opcional)'}
-            ayuda={editar ? `Las fotos nuevas se suman a las existentes.${form.imagen_url && !archivos.length ? ' ✓ Ya tiene fotos cargadas.' : ''}` : 'JPG, PNG o WebP de hasta 5 MB. Podés elegir varias.'}>
-            <input type="file" multiple accept={TIPOS_IMAGEN_ACEPTADOS} className="dash-input dash-input--archivo" onChange={(e) => setArchivos(Array.from(e.target.files || []))} />
+          <Campo etiqueta="Fotos de la cancha (opcional)" ayuda="JPG, PNG o WebP de hasta 5 MB. Podés elegir varias.">
+            <input type="file" multiple accept={TIPOS_IMAGEN_ACEPTADOS} className="dash-input dash-input--archivo" onChange={elegirFotos} />
+            {(fotosActuales.length + fotosNuevas.length > 0) && (
+              <ul className="dash-galeria">
+                {fotosActuales.map((url, i) => (
+                  <li key={url}>
+                    <img src={url} alt={`Foto ${i + 1} de la cancha`} loading="lazy" />
+                    <button type="button" onClick={() => setFotosActuales((f) => f.filter((x) => x !== url))} aria-label={`Quitar la foto ${i + 1}`}><X size={14} /></button>
+                  </li>
+                ))}
+                {fotosNuevas.map(({ vista }, i) => (
+                  <li key={vista} className="nueva">
+                    <img src={vista} alt={`Foto nueva ${i + 1} de la cancha`} />
+                    <span>Nueva</span>
+                    <button type="button" onClick={() => { URL.revokeObjectURL(vista); setFotosNuevas((f) => f.filter((x) => x.vista !== vista)); }} aria-label={`Quitar la foto nueva ${i + 1}`}><X size={14} /></button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Campo>
           <MensajeError texto={error} />
         </ModalCuerpo>
