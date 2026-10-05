@@ -31,6 +31,7 @@ alter default privileges in schema public grant all on sequences to anon, authen
 
 create table auth.users (id uuid primary key default gen_random_uuid(), email text, raw_user_meta_data jsonb default '{}', aud text, role text, email_confirmed_at timestamptz default now());
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid $$;
+create function auth.jwt() returns jsonb language sql stable as $$ select nullif(current_setting('request.jwt.claims', true), '')::jsonb $$;
 grant select on auth.users to authenticated;  -- (para las FK)
 create function extensions.uuid_generate_v4() returns uuid language sql as $$ select gen_random_uuid() $$;
 
@@ -73,8 +74,9 @@ insert into public.productos (nombre, precio, activo, club_id) values ('COCA-COL
 // ---------- helpers de prueba ----------
 const resultados = [];
 const ok = (nombre, cond, detalle = '') => { resultados.push({ nombre, ok: !!cond, detalle }); };
-const como = async (rol, uid) => {
-  await db.exec(`reset role; select set_config('request.jwt.claims', '${uid ? JSON.stringify({ sub: uid, role: rol }) : '{}'}', false); set role ${rol};`);
+const como = async (rol, uid, { anonimo = false } = {}) => {
+  const claims = uid ? { sub: uid, role: rol, is_anonymous: anonimo } : {};
+  await db.exec(`reset role; select set_config('request.jwt.claims', '${JSON.stringify(claims)}', false); set role ${rol};`);
 };
 const raiz = () => db.exec('reset role');
 const intenta = async (sql, params) => { try { const r = await db.query(sql, params); return { r }; } catch (e) { return { e: e.message }; } };
@@ -434,6 +436,37 @@ a = await intenta('select count(*)::int n from public.favoritos');
 ok('Favoritos: el anónimo no puede leer', !!a.e, a.e);
 a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U.cliente}', '${CLUB_SPORT}')`);
 ok('Favoritos: el anónimo no puede insertar', !!a.e, a.e);
+
+// ---------- 13. Cuentas anónimas (flujo "pagar primero") ----------
+await raiz();
+const U_ANON = 'a1a2a3a4-0000-4000-8000-000000000099';
+await db.query(`insert into auth.users (id, email) values ('${U_ANON}', null)`);
+
+await como('authenticated', U_ANON, { anonimo: true });
+a = await intenta(`select public.crear_reserva('${C_SANI2}', '${sumar(5)}', '17:00', 'Anon', '3564000000')`);
+ok('Anónimo: NO puede reservar', a.e?.includes('CUENTA_REQUERIDA'), a.e);
+
+a = await intenta('select public.iniciar_prueba()');
+ok('Anónimo: NO puede iniciar la prueba gratis (evita clubes de prueba sin pagar ni dar mail)', a.e?.includes('CUENTA_REQUERIDA'), a.e);
+
+a = await intenta(`insert into public.favoritos (usuario_id, club_id) values ('${U_ANON}', '${CLUB_SANI}')`);
+ok('Anónimo: NO puede marcar favoritos', !!a.e, a.e);
+
+a = await intenta(`select public.calificar_club('${CLUB_SANI}', 5, 'x')`);
+ok('Anónimo: NO puede calificar un club', a.e?.includes('CUENTA_REQUERIDA'), a.e);
+
+a = await intenta("select public.actualizar_extras(1, '[]'::jsonb)");
+ok('Anónimo: NO puede editar extras de una reserva', a.e?.includes('CUENTA_REQUERIDA'), a.e);
+
+// Camino feliz: paga primero (acá se simula lo que hace el backend al volver de Mercado Pago)
+// y recién ahí completa cuenta + club. registrar_club no exige cuenta no-anónima a propósito.
+await raiz();
+await db.query(`insert into public.suscripciones (user_id, plan, estado, monto, mp_preapproval_id) values ('${U_ANON}', 'Full', 'activa', 50000, 'mp-anon-test')`);
+await como('authenticated', U_ANON, { anonimo: true });
+a = await intenta(`select public.registrar_club('Club Anónimo', '', 'Córdoba', 'Freyre', 'Calle 1', '3564000000', false, '', '{}'::jsonb, '', 'anon@gridplay.com')`);
+ok('Anónimo con suscripción ya activa SÍ puede registrar su club (pagar primero, cuenta y club después)', !a.e, a.e);
+a = await intenta(`select rol from public.usuarios where id = '${U_ANON}'`);
+ok('El rol pasa a admin aunque la cuenta todavía sea anónima', a.r?.rows[0]?.rol === 'admin', a.e);
 
 // ---------- Resumen ----------
 const fallos = resultados.filter(r => !r.ok);
