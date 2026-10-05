@@ -70,13 +70,41 @@ export default function FormularioAcceso({ redireccionEmail, redireccionGoogle, 
     }
   };
 
+  // Se abre en un popup (no redirige toda la pestaña) para que "atrás" no vuelva a pasar por Google.
+  // El popup se abre VACÍO antes de cualquier await: así el navegador no lo bloquea por no ser
+  // "directamente" un clic del usuario. Cuando se cierra, la sesión ya está en localStorage
+  // (la escribió el popup) y esta pestaña la toma sola a través de onAuthStateChange.
   const conGoogle = async () => {
     setError('');
-    const { error: errorGoogle } = await supabase.auth.signInWithOAuth({
+    const destino = redireccionGoogle || window.location.href;
+    const popup = window.open('', 'google-login', 'width=480,height=640');
+
+    const { data, error: errorGoogle } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: redireccionGoogle || window.location.href },
+      options: {
+        redirectTo: `${window.location.origin}/auth/popup?volver=${encodeURIComponent(destino)}`,
+        skipBrowserRedirect: true,
+      },
     });
-    if (errorGoogle) setError('No pudimos conectar con Google. Probá con tu correo.');
+    if (errorGoogle || !data?.url) {
+      popup?.close();
+      setError('No pudimos conectar con Google. Probá con tu correo.');
+      return;
+    }
+
+    if (!popup || popup.closed) {
+      window.location.href = data.url; // el navegador bloqueó el popup: seguimos como antes
+      return;
+    }
+    popup.location.href = data.url;
+
+    const intervalo = setInterval(async () => {
+      if (!popup.closed) return;
+      clearInterval(intervalo);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) onAcceso?.();
+      else setError('No completaste el inicio de sesión con Google.');
+    }, 400);
   };
 
   return (

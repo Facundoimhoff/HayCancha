@@ -14,6 +14,7 @@ import FormularioContacto from './pages/user/FormularioContacto';
 import SeleccionUbicacion from './pages/user/SeleccionUbicacion';
 import ActualizarPassword from './pages/user/ActualizarPassword';
 import LoginCliente from './pages/user/LoginCliente';
+import AuthPopup from './pages/user/AuthPopup';
 import Buscar from './pages/user/Buscar';
 import CiudadesPorProvincia from './pages/user/CiudadesPorProvincia';
 import LoginAdmin from './pages/user/LoginAdmin';
@@ -55,6 +56,7 @@ function RutasAnimadas() {
         <Route path="/registro-club" element={<RegistroClub />} />
         <Route path="/actualizar-password" element={<ActualizarPassword />} />
         <Route path="/login-cliente" element={<LoginCliente />} />
+        <Route path="/auth/popup" element={<AuthPopup />} />
         <Route path="/buscar" element={<Buscar />} />
         <Route path="/explorar/:provincia" element={<CiudadesPorProvincia />} />
         <Route path="/login-admin" element={<LoginAdmin />} />
