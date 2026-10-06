@@ -17,6 +17,7 @@ import './RegistroClub.css';
 const ROLES_ADMIN = ['admin', 'superadmin'];
 const CLAVE_PENDIENTE = 'gridplay_club_pendiente';
 
+// { club: {...formData}, preapprovalId: string|null }
 const guardarPendiente = (datos) => { try { localStorage.setItem(CLAVE_PENDIENTE, JSON.stringify(datos)); } catch { /* localStorage puede fallar (modo privado): no es crítico */ } };
 const leerPendiente = () => { try { return JSON.parse(localStorage.getItem(CLAVE_PENDIENTE) || 'null'); } catch { return null; } };
 const borrarPendiente = () => { try { localStorage.removeItem(CLAVE_PENDIENTE); } catch { /* idem */ } };
@@ -35,24 +36,22 @@ const AceptaTerminos = ({ checked, onChange, error }) => (
 
 /**
  * Alta de club en UNA sola pantalla: cuenta (si hace falta) + datos del club, juntos.
- * El plan ya se eligió en /planes:
- *  - Prueba gratis: se llega sin sesión. Al enviar: signUp -> iniciar_prueba -> registrar_club.
- *  - Pago: en /planes se crea una sesión anónima y se va directo a Mercado Pago (sin pasar por
- *    acá). Se vuelve con ?preapproval_id=…; una vez verificado el pago, esta pantalla le pide
- *    mail/contraseña para "reclamar" esa cuenta anónima (supabase.auth.updateUser) y los datos
- *    del club, todo junto. Al enviar: updateUser -> registrar_club. registrar_club no exige que
- *    la cuenta ya esté confirmada: por eso el club queda creado al toque, sin esperar el mail.
- * Si Supabase exige confirmar el mail (prueba gratis con cuenta nueva), se guardan los datos
- * del club ya tipeados para no pedirlos de nuevo cuando vuelva confirmado.
+ * El plan ya se eligió en /planes, sin necesitar cuenta todavía (el link de pago no es personal):
+ *  - Prueba gratis: /planes manda directo acá, sin sesión. Al enviar: signUp -> iniciar_prueba -> registrar_club.
+ *  - Pago: /planes manda derecho a Mercado Pago. Se vuelve con ?preapproval_id=… y TODAVÍA sin cuenta;
+ *    esta pantalla pide mail/contraseña y los datos del club juntos. Al enviar: signUp -> se vincula el
+ *    pago con ese preapproval_id (recién ahí se confirma) -> registrar_club.
+ * Si Supabase exige confirmar el mail antes de dar sesión, se guardan los datos del club (y el
+ * preapproval_id, si venía pagando) para no pedirlos de nuevo cuando vuelva ya confirmado.
  */
 const RegistroClub = () => {
   const navigate = useNavigate();
   const { user, rol, cargando: cargandoSesion, recargarPerfil } = useAuth();
   const [searchParams] = useSearchParams();
-  const idPago = searchParams.get('preapproval_id'); // Mercado Pago lo agrega al volver de pagar
+  const idPagoUrl = searchParams.get('preapproval_id'); // Mercado Pago lo agrega al volver de pagar
+  const pendienteGuardado = leerPendiente();
+  const idPago = idPagoUrl || pendienteGuardado?.preapprovalId || null;
 
-  const [verificacionLista, setVerificacionLista] = useState(false);
-  const [errorVerificacion, setErrorVerificacion] = useState('');
   const { precio } = usePrecioPlan('Full');
 
   const [cargando, setCargando] = useState(false);
@@ -64,16 +63,16 @@ const RegistroClub = () => {
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
   const [cuenta, setCuenta] = useState({ email: '', password: '' });
-  // Si venía de confirmar el mail de la prueba gratis, recupera lo que ya había tipeado del club.
+  // Si venía de confirmar el mail, recupera lo que ya había tipeado del club.
   const [formData, setFormData] = useState(() => ({
     nombre: '', descripcion: '', provincia: '', ciudad: '', direccion: '', telefono_contacto: '',
     estacionamiento: false, servicios: '', instagram: '', tiktok: '', facebook: '',
-    ...leerPendiente(),
+    ...(pendienteGuardado?.club || {}),
   }));
 
   const esAdmin = ROLES_ADMIN.includes(rol);
   const modo = idPago ? 'pagar' : 'prueba';
-  const pideCredenciales = !user || user?.is_anonymous === true;
+  const pideCredenciales = !user;
 
   // Un admin que ya tiene club no tiene nada que registrar.
   useEffect(() => {
@@ -85,29 +84,16 @@ const RegistroClub = () => {
   // Al volver de Mercado Pago (o antes de ir a pagar) el backend tiene que estar despierto.
   useEffect(() => { precalentarApi(); }, []);
 
-  const verificarPago = async () => {
-    setVerificacionLista(false);
-    setErrorVerificacion('');
-    const { ok, data } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
-    if (ok) setVerificacionLista(true);
-    else setErrorVerificacion(data?.error || 'No pudimos verificar el pago.');
-  };
-
-  // Volviendo de pagar: un admin que YA tenía club (estaba pasando de prueba a pago) va directo
-  // al panel. Una cuenta nueva/anónima sin club todavía se queda acá para completar todo junto.
+  // Volviendo de pagar: un admin que YA tenía club (pasaba de prueba a pago) confirma y va al panel.
+  // Una cuenta nueva (sin club todavía) completa todo junto en el formulario de abajo, al enviar.
   useEffect(() => {
-    if (cargandoSesion || !user || !idPago) return undefined;
+    if (cargandoSesion || !user || !idPago || !esAdmin) return undefined;
     let cancelado = false;
     (async () => {
-      if (esAdmin) {
-        const { ok } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
-        if (!cancelado) navigate(`/panel?pago=${ok ? 'ok' : 'error'}`, { replace: true });
-        return;
-      }
-      await verificarPago();
+      const { ok } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
+      if (!cancelado) navigate(`/panel?pago=${ok ? 'ok' : 'error'}`, { replace: true });
     })();
     return () => { cancelado = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargandoSesion, user, esAdmin, idPago, navigate]);
 
   const cambiarCampo = (e) => {
@@ -152,7 +138,6 @@ const RegistroClub = () => {
       let cuentaUsuario = user;
 
       if (!user) {
-        // Prueba gratis con cuenta nueva de cero.
         const { data, error: authError } = await supabase.auth.signUp({
           email: cuenta.email.trim(),
           password: cuenta.password,
@@ -160,23 +145,26 @@ const RegistroClub = () => {
         });
         if (authError) throw authError;
 
+        // Con confirmación de mail, Supabase no avisa que el email ya existe: devuelve un usuario sin identidades.
         if (data.user && data.user.identities?.length === 0) {
           setErrores({ email: 'Ya existe una cuenta con este email.', emailExistente: true });
           setCargando(false);
           return;
         }
         if (!data.session) {
-          guardarPendiente(formData);
-          setAviso('¡Ya casi! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes" para terminar: no vas a tener que volver a cargar los datos del club.');
+          guardarPendiente({ club: formData, preapprovalId: idPago });
+          setAviso(modo === 'pagar'
+            ? '¡Ya pagaste! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes": ahí vinculamos tu pago y creamos tu club, sin pedirte nada de nuevo.'
+            : '¡Ya casi! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes" para terminar: no vas a tener que volver a cargar los datos del club.');
           setCargando(false);
           return;
         }
         cuentaUsuario = data.session.user;
-      } else if (user.is_anonymous) {
-        // Pago ya verificado con una cuenta anónima: la reclama con mail y contraseña reales.
-        const { data, error: claimError } = await supabase.auth.updateUser({ email: cuenta.email.trim(), password: cuenta.password });
-        if (claimError) throw claimError;
-        cuentaUsuario = data.user;
+      }
+
+      if (modo === 'pagar') {
+        const { ok, data: datosPago } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
+        if (!ok) throw new Error(datosPago?.error || 'No pudimos confirmar tu pago. Si ya pagaste, esperá unos segundos y volvé a intentar.');
       }
 
       let logoUrl;
@@ -233,41 +221,11 @@ const RegistroClub = () => {
   };
 
   if (cargandoSesion) return <div className="estado-carga">Cargando...</div>;
-  if (user && esAdmin && !idPago) return null; // el useEffect de arriba ya está navegando a /panel
+  if (user && esAdmin) return null; // los useEffect de arriba ya están navegando (a /panel, con o sin pago)
 
-  // Volviendo de Mercado Pago: pantalla de espera o de error hasta confirmar el pago.
-  if (idPago && !esAdmin) {
-    if (errorVerificacion) {
-      return (
-        <div className="registro-club-container">
-          <main className="registro-club-card">
-            <div className="registro-header">
-              <h1 className="registro-titulo">No pudimos confirmar tu pago</h1>
-              <p className="registro-subtitulo">{errorVerificacion}</p>
-            </div>
-            <button type="button" className="gp-btn gp-btn--primario rg-enviar" onClick={verificarPago}>Reintentar</button>
-          </main>
-        </div>
-      );
-    }
-    if (!verificacionLista) {
-      return (
-        <div className="registro-club-container">
-          <main className="registro-club-card">
-            <div className="registro-header">
-              <div className="icono-exito-wrapper"><CheckCircle2 size={44} aria-hidden="true" /></div>
-              <h1 className="registro-titulo">Verificando tu pago…</h1>
-              <p className="registro-subtitulo">Estamos confirmando la suscripción con Mercado Pago.</p>
-            </div>
-          </main>
-        </div>
-      );
-    }
-  }
-
-  const titulo = modo === 'pagar' ? '¡Pago confirmado! Terminemos tu cuenta' : 'Creá tu cuenta y tu club';
+  const titulo = modo === 'pagar' ? 'Ya pagaste: completá tu club' : 'Creá tu cuenta y tu club';
   const subtitulo = modo === 'pagar'
-    ? 'Un último paso: contanos quién sos y cómo es tu complejo, y entrás directo a tu panel.'
+    ? 'Contanos quién sos y cómo es tu complejo. Confirmamos tu pago al tocar el botón de abajo y entrás directo a tu panel.'
     : `Probá GridPlay ${DIAS_PRUEBA} días gratis, sin tarjeta. Completá tu cuenta y los datos de tu complejo de una vez.`;
 
   return (
@@ -382,7 +340,7 @@ const RegistroClub = () => {
           {aviso && <p className="gp-alerta gp-alerta--exito" role="status">{aviso}</p>}
 
           <button type="submit" disabled={cargando} className="gp-btn gp-btn--primario rg-enviar">
-            {cargando ? 'Configurando tu club…' : modo === 'pagar' ? 'Finalizar y entrar a mi panel' : 'Empezar prueba gratis y crear mi club'}
+            {cargando ? 'Configurando tu club…' : modo === 'pagar' ? 'Confirmar pago y crear mi club' : 'Empezar prueba gratis y crear mi club'}
           </button>
           {pideCredenciales && <p className="rg-pie">¿Ya tenés cuenta? <Link to="/login-admin">Ingresá</Link></p>}
         </form>

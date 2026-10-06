@@ -130,11 +130,10 @@ function linkDelPlan(nombrePlan) {
   return linksPlanes.get(nombrePlan);
 }
 
+// Sin sesión: el link de pago no es personal (es el mismo plan de Mercado Pago para todos), así que
+// no hace falta cuenta todavía. El pago se vincula a una cuenta recién al volver (vincular-suscripcion).
 app.post('/api/crear-suscripcion', limitePagos, async (req, res) => {
   if (!supabaseAdmin) return res.status(503).json({ error: 'Pagos no disponibles por el momento' });
-
-  const user = await usuarioDeLaSolicitud(req);
-  if (!user) return res.status(401).json({ error: 'Iniciá sesión para suscribirte' });
 
   const nombrePlan = req.body?.plan;
   if (!Object.hasOwn(PLANES, nombrePlan)) return res.status(400).json({ error: 'Plan inválido' });

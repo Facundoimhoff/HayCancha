@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Zap, ArrowLeft, CalendarCheck, TrendingUp, Users, Smartphone, MessageCircleQuestion, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { precalentarApi } from '../../services/api';
-import { supabase } from '../../services/supabase';
-import { useAuth } from '../../context/authContext';
 import { usePagoPlan } from '../../hooks/usePagoPlan';
 import { usePrecioPlan } from '../../hooks/usePlanes';
 import { useFormspree } from '../../hooks/useFormspree';
@@ -11,11 +9,8 @@ import './Planes.css';
 
 const Planes = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { iniciar: iniciarPago, cargando, servidorLento, error: errorPago } = usePagoPlan('Full');
   const { precio, cargando: cargandoPrecio } = usePrecioPlan('Full');
-  const [creandoSesion, setCreandoSesion] = useState(false);
-  const [errorSesion, setErrorSesion] = useState('');
   const { enviar: manejarEnvioDuda, enviando: enviandoDuda, enviado, error: errorDuda } = useFormspree('https://formspree.io/f/xrengjgv', { mensajeOk: 5000 });
 
   // Carrusel de imágenes
@@ -32,18 +27,9 @@ const Planes = () => {
   // Despierta el backend (Render) mientras el usuario lee el plan, así el clic en "Comenzar" no espera el arranque en frío.
   useEffect(() => { precalentarApi(); }, []);
 
-  const comenzar = async () => {
-    // Hace falta una cuenta para generar el link de pago: sin sesión creamos una anónima,
-    // invisible para quien paga (el mail y la contraseña se piden recién al volver, ya pagado).
-    if (!user) {
-      setErrorSesion('');
-      setCreandoSesion(true);
-      const { error } = await supabase.auth.signInAnonymously();
-      setCreandoSesion(false);
-      if (error) { setErrorSesion('No pudimos iniciar. Probá de nuevo en unos segundos.'); return; }
-    }
-    iniciarPago();
-  };
+  // El link de pago no es personal: no hace falta cuenta para generarlo. La cuenta y el club
+  // se completan recién al volver de Mercado Pago, ya pagado (ver RegistroClub).
+  const comenzar = () => iniciarPago();
 
   return (
     <div className="planes-page-modern">
@@ -172,16 +158,15 @@ const Planes = () => {
             <p className="texto-seguro texto-prueba">Sin tarjeta y sin compromiso.</p>
             <button
               onClick={comenzar}
-              disabled={cargando || creandoSesion}
+              disabled={cargando}
               className="btn-suscribir-directo"
             >
-              {creandoSesion ? 'Preparando…' : cargando ? 'Conectando con Mercado Pago…' : 'O suscribirme ya'}
+              {cargando ? 'Conectando con Mercado Pago…' : 'O suscribirme ya'}
             </button>
             {cargando && servidorLento && (
               <p className="pago-aviso" role="status">Estamos despertando el servidor, puede tardar unos segundos. No cierres esta página.</p>
             )}
             {errorPago && <p className="pago-error" role="alert">{errorPago}</p>}
-            {errorSesion && <p className="pago-error" role="alert">{errorSesion}</p>}
             <p className="texto-seguro">Pago 100% seguro a través de Mercado Pago.</p>
           </div>
         </div>

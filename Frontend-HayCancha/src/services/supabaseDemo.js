@@ -350,7 +350,6 @@ export const supabase = {
     signInWithPassword: () => Promise.resolve({ data: { user: sesion.user }, error: { message: 'Invalid login credentials' } }),
     resetPasswordForEmail: () => Promise.resolve({ error: null }),
     signInWithOAuth: () => Promise.resolve({ error: null }),
-    signInAnonymously: () => Promise.resolve({ data: { session: sesion, user: sesion.user }, error: null }),
     updateUser: () => Promise.resolve({ data: { user: sesion.user }, error: null }),
   },
   storage: {
