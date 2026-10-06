@@ -142,8 +142,7 @@ app.post('/api/crear-suscripcion', limitePagos, async (req, res) => {
     res.json({ linkPago: await linkDelPlan(nombrePlan) });
   } catch (error) {
     console.error('Error en Mercado Pago:', error);
-    // TEMPORAL (diagnóstico): se agrega el detalle del error de MP a la respuesta. Sacar después.
-    res.status(500).json({ error: 'Fallo al crear la suscripción', detalle: error?.message || String(error), mp: error?.cause ?? error?.response?.data ?? null });
+    res.status(500).json({ error: 'Fallo al crear la suscripción' });
   }
 });
 
