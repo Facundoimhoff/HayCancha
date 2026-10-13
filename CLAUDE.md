@@ -9,8 +9,8 @@ Agente autónomo por fases (Pensar → Herramientas → Observar → Actuar). Al
 **Todo el código está en `main`.** Las ramas `fase-*` son viejas y ya están mergeadas. Vercel y Render despliegan desde `main` (Render a veces NO redespliega solo: si `/api/...` responde con comportamiento viejo, "Manual Deploy → Deploy latest commit").
 
 **Bloqueos que solo destraba el usuario (verificados el 2026-10-13):**
-1. **Mercado Pago:** `MP_ACCESS_TOKEN` en Render es un token `TEST-`. Las suscripciones (PreApprovalPlan) NO funcionan con `TEST-`: Mercado Pago responde "Unauthorized access to resource" y `/api/crear-suscripcion` da 500. Hace falta el token **productivo** (`APP_USR-…`, Credenciales de producción); para probar con plata falsa, el `APP_USR-` de una *cuenta de prueba vendedora*. El 2026-09-25 el pago real funcionó porque estaba el productivo. No es un error de código.
-2. **Migraciones sin aplicar en producción:** `favoritos` (la tabla no existe: el corazón se marca y se desmarca), `pago_directo_y_anonimos`, `plan_cancelado`, `moderacion_resenas`. Están juntas en `Frontend-HayCancha/supabase/PENDIENTES_PARA_PEGAR_EN_SUPABASE.sql` (idempotente; probado pegándolo dos veces sobre una réplica). Reseñas, reseñas destacadas, ubicación y prueba gratis SÍ están aplicadas.
+1. Mercado Pago: RESUELTO el 2026-10-13 (token productivo `APP_USR-` en Render; `/api/crear-suscripcion` devuelve el link). Con un token `TEST-` las suscripciones fallan con "Unauthorized access to resource"; con `FRONTEND_URL` mal cargada, con "Invalid value for back url" (el backend ahora la normaliza). Falta la prueba de un pago real de punta a punta y de la baja.
+2. Migraciones: TODAS aplicadas en producción (verificado el 2026-10-13, incluidas favoritos, plan_cancelado y moderacion_resenas). Las próximas van a `supabase/migrations/` y el usuario las pega en el SQL Editor.
 3. `PRECIO_PLAN_FULL` en Render está en un valor de prueba (15): volverlo a 50000 (o borrarlo) antes de vender.
 
 **Cómo saber qué hay en producción sin entrar a Supabase:** con la clave pública de `Frontend-HayCancha/.env.local`, un GET a `<SUPABASE_URL>/rest/v1/<tabla>?select=...&limit=1` (404 PGRST205 = la tabla no existe) o un POST a `/rest/v1/rpc/<funcion>`. Solo lectura, lo mismo que hace el navegador.
@@ -107,7 +107,7 @@ Etapas 1-5 HECHAS (tokens, vidrio, animaciones, formularios, limpieza). Ver la s
 - `LoginCliente`/`ReservaCancha` distinguen "email ya registrado" (enumeración de cuentas, riesgo bajo).
 
 ## Próximo paso (por orden)
-0. **El usuario:** poner el token productivo de Mercado Pago en Render y redesplegar; pegar `PENDIENTES_PARA_PEGAR_EN_SUPABASE.sql` en Supabase; `PRECIO_PLAN_FULL` a 50000. Después probar en https://gridplay-x.vercel.app de punta a punta: pagar → crear cuenta y club → panel → Mi plan → dar de baja.
+0. **El usuario:** probar un pago real de punta a punta en https://gridplay-x.vercel.app (pagar → crear cuenta y club → panel → Mi plan → dar de baja) y después volver `PRECIO_PLAN_FULL` a 50000 en Render.
 1. Ajustar lo que aparezca en esa prueba.
 2. **Turnos fijos** (repetir un turno todas las semanas desde el panel): ofrecido el 2026-10-13, el usuario todavía no respondió.
 3. **Fase 4** (avisos por WhatsApp de reserva confirmada/cancelada y recordatorios): falta que el usuario elija proveedor (WhatsApp Cloud API oficial o n8n con un tercero); tiene costo.
