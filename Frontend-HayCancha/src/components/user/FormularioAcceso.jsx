@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Mail, User as UserIcon } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { validarPassword } from '../../utils/validaciones';
+import { registrarEvento } from '../../services/analitica';
+import { EVENTOS } from '../../utils/eventos';
 import { CampoTexto, CampoPassword } from './Formulario';
 import './componentes.css';
 
@@ -41,6 +43,7 @@ export default function FormularioAcceso({ redireccionEmail, redireccionGoogle, 
           options: { data: { full_name: nombre.trim() }, emailRedirectTo: redireccionEmail || window.location.origin },
         });
         if (errorRegistro) throw errorRegistro;
+        registrarEvento(EVENTOS.REGISTRO_JUGADOR);
         if (data.user && !data.session) {
           setAviso('¡Cuenta creada! Revisá tu correo (y el spam) para confirmarla y después ingresá.');
           setModo('ingresar');

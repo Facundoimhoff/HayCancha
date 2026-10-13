@@ -5,6 +5,8 @@ import { precalentarApi } from '../../services/api';
 import { usePagoPlan } from '../../hooks/usePagoPlan';
 import { usePrecioPlan } from '../../hooks/usePlanes';
 import { useFormspree } from '../../hooks/useFormspree';
+import { registrarEvento } from '../../services/analitica';
+import { EVENTOS } from '../../utils/eventos';
 import './Planes.css';
 
 const Planes = () => {
@@ -25,7 +27,7 @@ const Planes = () => {
   const prevImg = () => setImagenIndex((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
 
   // Despierta el backend (Render) mientras el usuario lee el plan, así el clic en "Comenzar" no espera el arranque en frío.
-  useEffect(() => { precalentarApi(); }, []);
+  useEffect(() => { precalentarApi(); registrarEvento(EVENTOS.VER_PLANES, { plan: 'Full' }); }, []);
 
   // El link de pago no es personal: no hace falta cuenta para generarlo. La cuenta y el club
   // se completan recién al volver de Mercado Pago, ya pagado (ver RegistroClub).

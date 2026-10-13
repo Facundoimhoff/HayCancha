@@ -523,6 +523,16 @@ ok('Anónimo con suscripción ya activa SÍ puede registrar su club (pagar prime
 a = await intenta(`select rol from public.usuarios where id = '${U_ANON}'`);
 ok('El rol pasa a admin aunque la cuenta todavía sea anónima', a.r?.rows[0]?.rol === 'admin', a.e);
 
+// ---------- 14. Registro de avisos enviados (solo backend) ----------
+await como('authenticated', U.sani);
+a = await intenta('select * from public.avisos_enviados');
+const leeDueno = !!a.e;
+a = await intenta("insert into public.avisos_enviados (clave, tipo) values ('bienvenida:x', 'bienvenida')");
+const escribeDueno = !!a.e;
+await como('anon');
+a = await intenta('select * from public.avisos_enviados');
+ok('Avisos: ni el dueño ni el anónimo leen o escriben el registro de avisos', leeDueno && escribeDueno && !!a.e, a.e);
+
 // ---------- Resumen ----------
 const fallos = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FALLA') + ' ' + r.nombre + (r.ok || !r.detalle ? '' : '  -> ' + r.detalle));

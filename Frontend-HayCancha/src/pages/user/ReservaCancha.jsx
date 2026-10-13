@@ -8,6 +8,9 @@ import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/authContext';
 import { resumenPorClub } from '../../services/resenas';
 import { clubRecibeReservas } from '../../services/suscripcion';
+import { postApi } from '../../services/api';
+import { registrarEvento } from '../../services/analitica';
+import { EVENTOS } from '../../utils/eventos';
 import { validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
 import {
   moneda, proximosDias, fechaLarga, fechaCorta, totalSeleccion, extrasParaEnviar,
@@ -152,7 +155,7 @@ const ReservaCancha = () => {
     try {
       // Solo se mandan ids y cantidades: nombre, precio y totales los calcula el servidor.
       const extras = extrasParaEnviar(cantidades).filter((x) => x.cantidad > 0);
-      const { error } = await supabase.rpc('crear_reserva', {
+      const { data: idTurno, error } = await supabase.rpc('crear_reserva', {
         p_cancha_id: idCancha,
         p_fecha: seleccion.fecha,
         p_hora: seleccion.hora,
@@ -164,6 +167,9 @@ const ReservaCancha = () => {
 
       setReserva({ ...seleccion, nombre, total });
       setPaso(3);
+      registrarEvento(EVENTOS.RESERVA_CONFIRMADA, { deporte: cancha.deporte, valor: total });
+      // Mail de aviso al club y de confirmación al jugador; si falla, la reserva ya quedó hecha igual
+      if (idTurno) postApi('/api/avisos/reserva', { turno_id: idTurno });
 
       // Guarda el teléfono en el perfil para no pedirlo la próxima vez (si falla, no afecta la reserva)
       if (user && perfil?.telefono !== telefono) {

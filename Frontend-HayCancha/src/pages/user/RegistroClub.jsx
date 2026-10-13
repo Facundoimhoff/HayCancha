@@ -12,6 +12,8 @@ import { CampoTexto, CampoPassword } from '../../components/user/Formulario';
 import { evaluarPassword, validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
 import { moneda } from '../../utils/reservas';
 import { leerPendiente, guardarPendiente, borrarPendiente, recordarPago, olvidarPago } from '../../utils/clubPendiente';
+import { registrarEvento } from '../../services/analitica';
+import { EVENTOS } from '../../utils/eventos';
 import { CheckCircle2, ImagePlus, MapPin, Mail, Building2, Car } from 'lucide-react';
 import './RegistroClub.css';
 
@@ -92,9 +94,12 @@ const RegistroClub = () => {
       const { ok } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
       if (cancelado) return;
       olvidarPago(); // salga bien o mal, no se reintenta solo en cada ingreso: el panel muestra el resultado
+      if (ok) registrarEvento(EVENTOS.PLAN_PAGADO, { plan: 'Full', modo: 'desde-prueba', valor: precio || undefined });
       navigate(`/panel?pago=${ok ? 'ok' : 'error'}`, { replace: true });
     })();
     return () => { cancelado = true; };
+    // `precio` solo acompaña al evento de medición: no tiene que volver a disparar el vínculo del pago
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargandoSesion, user, esAdmin, idPago, navigate]);
 
   const cambiarCampo = (e) => {
@@ -218,6 +223,10 @@ const RegistroClub = () => {
       geocodificarClub({ direccion: formData.direccion, ciudad: formData.ciudad, provincia: formData.provincia })
         .then((punto) => punto?.exacta && supabase.from('clubes').update({ latitud: punto.lat, longitud: punto.lng }).eq('admin_id', cuentaUsuario.id))
         .catch((errUbicacion) => console.warn('No se pudo ubicar el club en el mapa:', errUbicacion.message));
+
+      registrarEvento(EVENTOS.CLUB_CREADO, { modo });
+      if (modo === 'pagar') registrarEvento(EVENTOS.PLAN_PAGADO, { plan: 'Full', modo: 'alta', valor: precio || undefined });
+      postApi('/api/avisos/club-creado'); // mail de bienvenida; si falla, el alta no se entera
 
       borrarPendiente();
       recargarPerfil();

@@ -27,7 +27,7 @@ export default function Privacidad() {
           <ul>
             <li><strong>Datos de la cuenta del Club:</strong> Nombre, correo electrónico, teléfono, dirección del complejo y contraseña (encriptada).</li>
             <li><strong>Datos de los jugadores:</strong> Cuando un cliente final reserva una cancha a través de nuestra plataforma, recopilamos su nombre, teléfono y correo electrónico para gestionar el turno.</li>
-            <li><strong>Datos de uso y cookies:</strong> Información sobre cómo interactuás con la plataforma, dirección IP y tipo de dispositivo. Utilizamos Google Analytics de forma anonimizada para mejorar nuestros servicios.</li>
+            <li><strong>Datos de uso y cookies:</strong> Información sobre cómo interactuás con la plataforma, dirección IP y tipo de dispositivo. Solo si aceptás las cookies, utilizamos Google Analytics y el píxel de Meta para medir las visitas y el resultado de nuestros anuncios; nunca les enviamos tu nombre, correo ni teléfono. Si las rechazás, no se carga ninguna de esas herramientas.</li>
             <li><strong>Ubicación del jugador (solo si la activás):</strong> Si tocás “Usar mi ubicación”, tu navegador te pide permiso. Con tu ubicación mostramos el mapa y los clubes más cercanos. <strong>No la guardamos</strong> en nuestra base de datos ni la asociamos a tu cuenta.</li>
             <li><strong>Ubicación del club:</strong> El dueño de un club puede marcar dónde queda su complejo en el mapa. Esa ubicación es pública, igual que el nombre y la dirección del club.</li>
           </ul>

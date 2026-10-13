@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { postApi } from '../services/api';
+import { registrarEvento } from '../services/analitica';
+import { EVENTOS } from '../utils/eventos';
 
 /**
  * Inicia el pago de un plan: pide el link a Mercado Pago (vía backend) y redirige.
@@ -26,6 +28,7 @@ export function usePagoPlan(plan = 'Full') {
     const { ok, data } = await postApi('/api/crear-suscripcion', { plan }, { onLento: () => setServidorLento(true) });
 
     if (ok && data?.linkPago) {
+      registrarEvento(EVENTOS.INICIAR_PAGO, { plan });
       window.location.href = data.linkPago; // a Mercado Pago; el botón queda en "cargando" hasta que cambie la página
       return;
     }

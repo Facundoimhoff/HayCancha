@@ -3,6 +3,9 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
+import { enviarCorreo, correoConfigurado, mailValido } from './lib/correo.js';
+import { bienvenidaClub, pruebaPorVencer, pruebaVencida, reservaNuevaClub, reservaConfirmadaJugador } from './lib/plantillas.js';
+import { avisoDePrueba, tienePlanPago, totalDeReserva, esReciente } from './lib/avisos.js';
 import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, vigenciaTrasBaja, origenValido, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
@@ -61,6 +64,14 @@ const FRONTEND_URL = origenValido(process.env.FRONTEND_URL, 'https://gridplay-x.
 const limitePagos = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos. Probá de nuevo en unos minutos.' },
+});
+
+const limiteAvisos = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { error: 'Demasiados intentos. Probá de nuevo en unos minutos.' },
@@ -297,6 +308,147 @@ app.post('/api/webhooks/mercadopago', limiteWebhook, async (req, res) => {
   }
 });
 
+// --- 5) AVISOS POR MAIL (bienvenida, prueba por vencer, reserva nueva) ---
+// Apagados hasta que existan RESEND_API_KEY y CORREO_REMITENTE. Cada aviso sale una sola vez (tabla avisos_enviados).
+const PANEL_URL = `${FRONTEND_URL}/panel`;
+// Los mails salen de una dirección que no recibe: las respuestas van a la casilla de soporte
+const CORREO_RESPUESTAS = process.env.CORREO_RESPUESTAS || 'supportgridplay@gmail.com';
+
+/**
+ * Manda un aviso si no se había mandado antes. Primero reserva la clave (así dos pedidos simultáneos
+ * no lo duplican) y, si el envío falla, la libera para reintentar más tarde.
+ */
+async function enviarUnaVez(clave, tipo, correo) {
+  if (!supabaseAdmin || !correoConfigurado()) return false;
+
+  const { error } = await supabaseAdmin.from('avisos_enviados').insert({ clave, tipo });
+  if (error) {
+    if (error.code !== '23505') console.error('No se pudo registrar el aviso', clave, error.message);
+    return false; // 23505 = ya se había mandado
+  }
+  const { enviado } = await enviarCorreo(correo);
+  if (!enviado) await supabaseAdmin.from('avisos_enviados').delete().eq('clave', clave);
+  return enviado;
+}
+
+async function mailDeUsuario(userId) {
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  return error ? null : data?.user?.email ?? null;
+}
+
+// Bienvenida: la pide el frontend apenas se crea el club
+app.post('/api/avisos/club-creado', limiteAvisos, async (req, res) => {
+  if (!supabaseAdmin) return res.sendStatus(503);
+  const user = await usuarioDeLaSolicitud(req);
+  if (!user) return res.status(401).json({ error: 'Iniciá sesión' });
+
+  try {
+    const { data: club } = await supabaseAdmin.from('clubes').select('id, nombre').eq('admin_id', user.id).limit(1).maybeSingle();
+    if (!club) return res.status(404).json({ error: 'No encontramos tu club' });
+
+    const { data: filas } = await supabaseAdmin.from('suscripciones').select('plan, estado, vence_en').eq('user_id', user.id);
+    await enviarUnaVez(`bienvenida:${club.id}`, 'bienvenida', {
+      para: user.email,
+      responderA: CORREO_RESPUESTAS,
+      ...bienvenidaClub({ club: club.nombre, panelUrl: PANEL_URL, enPrueba: !tienePlanPago(filas) }),
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error en el aviso de bienvenida:', error);
+    res.status(500).json({ error: 'No se pudo enviar el aviso' });
+  }
+});
+
+// Reserva nueva: aviso al club y confirmación al jugador. Solo la puede pedir quien hizo la reserva, y recién hecha.
+app.post('/api/avisos/reserva', limiteAvisos, async (req, res) => {
+  if (!supabaseAdmin) return res.sendStatus(503);
+  const user = await usuarioDeLaSolicitud(req);
+  if (!user) return res.status(401).json({ error: 'Iniciá sesión' });
+
+  const idTurno = Number(req.body?.turno_id);
+  if (!Number.isSafeInteger(idTurno) || idTurno <= 0) return res.status(400).json({ error: 'Reserva inválida' });
+
+  try {
+    const { data: turno } = await supabaseAdmin
+      .from('turnos')
+      .select('id, cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente, precio_final, extras, usuario_id, created_at')
+      .eq('id', idTurno)
+      .maybeSingle();
+    if (!turno || turno.usuario_id !== user.id || !esReciente(turno.created_at)) {
+      return res.status(404).json({ error: 'No encontramos esa reserva' });
+    }
+
+    const { data: cancha } = await supabaseAdmin.from('canchas').select('nombre, club_id').eq('id', turno.cancha_id).maybeSingle();
+    const { data: club } = cancha
+      ? await supabaseAdmin.from('clubes').select('nombre, direccion, ciudad, correo_contacto, admin_id').eq('id', cancha.club_id).maybeSingle()
+      : { data: null };
+    if (!cancha || !club) return res.status(404).json({ error: 'No encontramos esa reserva' });
+
+    const hora = String(turno.hora_inicio).slice(0, 5);
+    const total = totalDeReserva(turno);
+    const mailClub = mailValido(club.correo_contacto) ? club.correo_contacto : await mailDeUsuario(club.admin_id);
+
+    await Promise.all([
+      enviarUnaVez(`reserva-club:${turno.id}`, 'reserva-club', {
+        para: mailClub,
+        ...reservaNuevaClub({
+          club: club.nombre, cancha: cancha.nombre, fecha: turno.fecha, hora,
+          jugador: turno.nombre_cliente, telefono: turno.telefono_cliente, extras: turno.extras, total, panelUrl: PANEL_URL,
+        }),
+      }),
+      enviarUnaVez(`reserva-jugador:${turno.id}`, 'reserva-jugador', {
+        para: user.email,
+        responderA: mailClub,
+        ...reservaConfirmadaJugador({
+          club: club.nombre, cancha: cancha.nombre, fecha: turno.fecha, hora,
+          direccion: [club.direccion, club.ciudad].filter(Boolean).join(', '),
+          extras: turno.extras, total, reservasUrl: `${FRONTEND_URL}/mis-reservas`,
+        }),
+      }),
+    ]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error en el aviso de reserva:', error);
+    res.status(500).json({ error: 'No se pudo enviar el aviso' });
+  }
+});
+
+// Pruebas gratis por vencer o recién vencidas: se revisan cada hora. A cada club le llega cada aviso una sola vez.
+async function revisarPruebas() {
+  if (!supabaseAdmin || !correoConfigurado()) return;
+  const ahora = new Date();
+  const dia = 86400000;
+
+  const { data: pruebas, error } = await supabaseAdmin
+    .from('suscripciones')
+    .select('id, user_id, plan, estado, vence_en')
+    .eq('plan', 'prueba')
+    .eq('estado', 'activa')
+    .gte('vence_en', new Date(ahora.getTime() - 6 * dia).toISOString())
+    .lte('vence_en', new Date(ahora.getTime() + 8 * dia).toISOString());
+  if (error) { console.error('No se pudieron leer las pruebas gratis:', error.message); return; }
+
+  for (const prueba of pruebas || []) {
+    const aviso = avisoDePrueba(prueba, ahora);
+    if (!aviso) continue;
+
+    const { data: filas } = await supabaseAdmin.from('suscripciones').select('plan, estado, vence_en').eq('user_id', prueba.user_id);
+    if (tienePlanPago(filas, ahora)) continue; // ya se suscribió: no hay nada que avisar
+
+    const { data: club } = await supabaseAdmin.from('clubes').select('nombre').eq('admin_id', prueba.user_id).limit(1).maybeSingle();
+    if (!club) continue;
+
+    const datos = { club: club.nombre, precio: PLANES.Full.precio, panelUrl: PANEL_URL };
+    await enviarUnaVez(`${aviso.tipo}:${prueba.id}`, aviso.tipo, {
+      para: await mailDeUsuario(prueba.user_id),
+      responderA: CORREO_RESPUESTAS,
+      ...(aviso.tipo === 'prueba-vencida' ? pruebaVencida(datos) : pruebaPorVencer({ ...datos, dias: aviso.dias })),
+    });
+  }
+}
+
+const revisarPruebasSinRomper = () => revisarPruebas().catch((error) => console.error('Error al revisar las pruebas gratis:', error));
+
 // Las rutas /api/buscar y /api/clubes/:id devolvían datos de prueba fijos y no las usa el frontend
 // (consulta Supabase directamente, protegido por RLS): se eliminaron para no exponer respuestas falsas.
 
@@ -307,4 +459,7 @@ app.listen(PORT, () => {
   for (const nombre of Object.keys(PLANES)) {
     linkDelPlan(nombre).catch((error) => console.warn(`No se pudo precalentar el plan ${nombre}:`, error?.message || error));
   }
+  console.log(correoConfigurado() ? 'Avisos por mail: encendidos' : 'Avisos por mail: apagados (faltan RESEND_API_KEY / CORREO_REMITENTE)');
+  setTimeout(revisarPruebasSinRomper, 60_000).unref();
+  setInterval(revisarPruebasSinRomper, 60 * 60_000).unref();
 });

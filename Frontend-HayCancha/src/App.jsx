@@ -14,6 +14,7 @@ import AuthPopup from './pages/user/AuthPopup';
 import CookieBanner from './pages/user/CookieBanner';
 import { AuthProvider } from './context/AuthProvider';
 import RutaProtegida from './components/RutaProtegida';
+import { activarAnalitica, registrarVista } from './services/analitica';
 
 // El resto se descarga recién al entrar: así la portada no carga con pantallas que la mayoría no abre.
 // El panel, además, arrastra los gráficos.
@@ -39,6 +40,7 @@ function RutasAnimadas() {
   // Cada vez que cambia la pantalla, el scroll vuelve arriba
   useEffect(() => {
     window.scrollTo(0, 0);
+    registrarVista(location.pathname);
   }, [location.pathname]);
 
   return (
@@ -80,6 +82,9 @@ function RutasAnimadas() {
 }
 
 function App() {
+  // Si ya había aceptado las cookies en una visita anterior, la medición arranca con la app
+  useEffect(() => { activarAnalitica(); }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
