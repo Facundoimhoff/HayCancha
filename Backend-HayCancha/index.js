@@ -3,7 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
-import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, vigenciaTrasBaja, PREFIJO_MOTIVO } from './lib/mercadopago.js';
+import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, vigenciaTrasBaja, origenValido, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
 
@@ -56,7 +56,7 @@ const PLANES = {
   Full: { precio: Number(process.env.PRECIO_PLAN_FULL) || 50000 },
 };
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gridplay-x.vercel.app';
+const FRONTEND_URL = origenValido(process.env.FRONTEND_URL, 'https://gridplay-x.vercel.app');
 
 const limitePagos = rateLimit({
   windowMs: 15 * 60 * 1000,

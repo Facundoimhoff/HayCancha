@@ -81,3 +81,18 @@ export function buscarPlanCompatible(planes, { reason, precio, backUrl }) {
 export function catalogoPublico(planes) {
   return Object.fromEntries(Object.entries(planes).map(([nombre, { precio }]) => [nombre, { precio }]));
 }
+
+/**
+ * Deja la dirección del frontend lista para armar la back_url de Mercado Pago, que exige una URL completa:
+ * tolera que la variable venga sin "https://", con espacios, comillas o barra final. Si no sirve, usa la de respaldo.
+ */
+export function origenValido(valor, respaldo) {
+  const limpio = String(valor ?? '').trim().replace(/^["']|["']$/g, '').trim();
+  if (!limpio) return respaldo;
+  try {
+    const url = new URL(/^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`);
+    return url.hostname.includes('.') ? url.origin : respaldo;
+  } catch {
+    return respaldo;
+  }
+}

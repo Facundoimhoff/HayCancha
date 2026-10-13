@@ -93,3 +93,13 @@ test('vigenciaTrasBaja: nunca deja más de un mes de vigencia', () => {
   const ahora = new Date('2026-10-13T12:00:00Z');
   assert.equal(vigenciaTrasBaja({ next_payment_date: '2027-10-13T12:00:00Z' }, ahora), '2026-11-13T12:00:00.000Z');
 });
+
+import { origenValido } from '../lib/mercadopago.js';
+
+test('origenValido arregla la dirección del frontend mal cargada', () => {
+  const r = 'https://respaldo.com';
+  assert.equal(origenValido('https://gridplay-x.vercel.app', r), 'https://gridplay-x.vercel.app');
+  assert.equal(origenValido(' gridplay-x.vercel.app/ ', r), 'https://gridplay-x.vercel.app');
+  assert.equal(origenValido('"https://gridplay-x.vercel.app/planes"', r), 'https://gridplay-x.vercel.app');
+  for (const malo of [undefined, '', '   ', 'cualquier cosa', 'localhost']) assert.equal(origenValido(malo, r), r);
+});
