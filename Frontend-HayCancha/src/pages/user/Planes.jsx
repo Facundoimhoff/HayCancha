@@ -16,9 +16,9 @@ const Planes = () => {
   // Carrusel de imágenes
   const [imagenIndex, setImagenIndex] = useState(0);
   const imagenes = [
-    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop", // Padel
-    "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=80&w=2000&auto=format&fit=crop", // Tenis
-    "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop"  // Fútbol
+    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=70&w=1200&auto=format&fit=crop", // Padel
+    "https://images.unsplash.com/photo-1545809074-59472b3f5ecc?q=70&w=1200&auto=format&fit=crop", // Tenis
+    "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=70&w=1200&auto=format&fit=crop"  // Fútbol
   ];
 
   const nextImg = () => setImagenIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));

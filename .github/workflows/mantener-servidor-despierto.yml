@@ -1,0 +1,21 @@
+# El backend corre en el plan gratis de Render, que lo duerme tras 15 minutos sin tráfico: el primer
+# pedido después tarda 20-60 segundos (quien va a pagar ve "despertando el servidor").
+# Este ping lo mantiene despierto. GitHub puede atrasar las tareas programadas unos minutos, así que
+# no es una garantía total, pero evita casi todos los arranques en frío.
+# OJO: GitHub apaga las tareas programadas si el repositorio pasa 60 días sin commits (avisa por mail).
+name: Mantener despierto el servidor
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping a /health
+        run: curl -fsS --max-time 90 --retry 2 --retry-delay 5 https://haycancha.onrender.com/health

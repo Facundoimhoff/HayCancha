@@ -56,7 +56,7 @@ const MapaCalor = ({ turnos }) => {
 };
 
 /** Reportes financieros: indicadores comparados, evolución diaria, ranking por cancha, mapa de horarios y clientes. */
-const Reportes = ({ turnos, canchas, hoy, onExportarPDF, onExportarExcel }) => {
+const Reportes = ({ turnos, canchas, hoy, onExportarPDF, onExportarExcel, exportando, errorExportar }) => {
   const [clave, setClave] = useState('mes');
 
   const d = useMemo(() => {
@@ -98,10 +98,12 @@ const Reportes = ({ turnos, canchas, hoy, onExportarPDF, onExportarExcel }) => {
         </div>
         <div className="dash-page-acciones">
           <Segmentado etiqueta="Período" opciones={PERIODOS} valor={clave} onCambio={setClave} />
-          <button type="button" className="dash-btn dash-btn--secundario" onClick={onExportarPDF}><FileText size={16} /> PDF</button>
-          <button type="button" className="dash-btn dash-btn--secundario" onClick={onExportarExcel}><Download size={16} /> Excel</button>
+          <button type="button" className="dash-btn dash-btn--secundario" onClick={onExportarPDF} disabled={Boolean(exportando)}><FileText size={16} /> {exportando === 'pdf' ? 'Generando…' : 'PDF'}</button>
+          <button type="button" className="dash-btn dash-btn--secundario" onClick={onExportarExcel} disabled={Boolean(exportando)}><Download size={16} /> {exportando === 'excel' ? 'Generando…' : 'Excel'}</button>
         </div>
       </header>
+
+      {errorExportar && <p className="dash-error" role="alert">{errorExportar}</p>}
 
       <div className="dash-grid dash-grid--kpi">
         <KpiCard icono={Receipt} tono="verde" etiqueta="Ingresos totales" valor={moneda(d.actual.ingresos)}

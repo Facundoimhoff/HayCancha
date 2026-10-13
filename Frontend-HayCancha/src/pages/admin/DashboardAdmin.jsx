@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { LayoutDashboard, BarChart3, Users, LayoutGrid, Store, Building, LogOut, Menu, X, Building2, Star, CreditCard } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { subirImagen } from '../../services/storage';
@@ -56,6 +53,8 @@ const DashboardAdmin = () => {
   const [canchas, setCanchas] = useState([]);
   const [turnosCrudos, setTurnosCrudos] = useState([]);
   const [modal, setModal] = useState(null); // { tipo, ...datos }
+  const [exportando, setExportando] = useState(null); // 'pdf' | 'excel' mientras se genera el archivo
+  const [errorExportar, setErrorExportar] = useState('');
 
   const hoy = fechaISO();
   const turnos = useMemo(() => enriquecerTurnos(turnosCrudos, canchas), [turnosCrudos, canchas]);
@@ -181,10 +180,25 @@ const DashboardAdmin = () => {
   });
 
   // ---------- Exportaciones (se rehacen en la Fase 7) ----------
+  // Las librerías de PDF y Excel pesan más que el resto del panel junto: se descargan recién al exportar.
+  const exportar = async (tipo, generar) => {
+    setErrorExportar('');
+    setExportando(tipo);
+    try {
+      await generar();
+    } catch (error) {
+      console.error('No se pudo exportar el reporte:', error);
+      setErrorExportar('No pudimos generar el archivo. Revisá tu conexión e intentá de nuevo.');
+    } finally {
+      setExportando(null);
+    }
+  };
+
   const nombreArchivo = () => `${(miClub?.nombre || 'Mi_Complejo').replace(/\s+/g, '_')}_${fechaISO()}`;
   const filasReporte = () => turnos.filter((t) => !t.esBloqueo);
 
-  const exportarExcel = () => {
+  const exportarExcel = () => exportar('excel', async () => {
+    const XLSX = await import('xlsx');
     const filas = filasReporte().map((t) => ({
       Fecha: fechaCorta(t.fecha),
       Hora: t.hora_inicio,
@@ -199,9 +213,10 @@ const DashboardAdmin = () => {
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Turnos');
     XLSX.writeFile(libro, `Reporte_${nombreArchivo()}.xlsx`);
-  };
+  });
 
-  const exportarPDF = () => {
+  const exportarPDF = () => exportar('pdf', async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
     const doc = new jsPDF();
     const filas = filasReporte();
     doc.setFont('helvetica', 'bold');
@@ -220,7 +235,7 @@ const DashboardAdmin = () => {
       footStyles: { fillColor: [22, 163, 74] },
     });
     doc.save(`Reporte_${nombreArchivo()}.pdf`);
-  };
+  });
 
   if (cargando) return <div className="dash"><div className="dash-mensaje" style={{ width: '100%' }}>Cargando panel…</div></div>;
 
@@ -284,7 +299,7 @@ const DashboardAdmin = () => {
               onNuevoTurno={() => setModal({ tipo: 'turno' })} onBloqueo={() => setModal({ tipo: 'bloqueo' })}
               onDetalles={(turno) => setModal({ tipo: 'detalles', turno })} onCancelar={pedirCancelarTurno} />
           )}
-          {vista === 'metricas' && <Reportes turnos={turnos} canchas={canchas} hoy={hoy} onExportarPDF={exportarPDF} onExportarExcel={exportarExcel} />}
+          {vista === 'metricas' && <Reportes turnos={turnos} canchas={canchas} hoy={hoy} onExportarPDF={exportarPDF} onExportarExcel={exportarExcel} exportando={exportando} errorExportar={errorExportar} />}
           {vista === 'clientes' && <Clientes turnos={turnos} />}
           {vista === 'canchas' && (
             <Canchas canchas={canchas} onNueva={() => setModal({ tipo: 'cancha', modo: 'crear', inicial: canchaVacia() })}

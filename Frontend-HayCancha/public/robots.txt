@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /panel
+Disallow: /mis-reservas
+Disallow: /mi-cuenta
+Disallow: /favoritos
+Disallow: /auth/
