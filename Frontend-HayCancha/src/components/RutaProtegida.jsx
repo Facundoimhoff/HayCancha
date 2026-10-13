@@ -11,7 +11,9 @@ export default function RutaProtegida({ rol, children }) {
   const { user, rol: rolActual, cargando } = useAuth();
   const location = useLocation();
 
-  if (cargando) return <div className="estado-carga">Cargando...</div>;
+  // Sin `rol` alcanza con la sesión: no se espera el perfil. Si se esperara, cada recarga del perfil
+  // (por ejemplo al guardar "Mi cuenta") desmontaría la pantalla y perdería lo que el usuario estaba viendo.
+  if (cargando && (rol || !user)) return <div className="estado-carga">Cargando...</div>;
 
   if (!user) {
     const login = rol === 'admin' ? '/login-admin' : '/login-cliente';

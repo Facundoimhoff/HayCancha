@@ -168,6 +168,8 @@ const resenasBase = [
   [ID_CLUB_FREYRE, 'Nicolás A.', 3, 'Está bien, pero el estacionamiento se llena rápido.', -4],
   [ID_CLUB, 'Camila T.', 4, 'Lindas canchas de pádel.', -12],
   [ID_CLUB, 'Joaquín R.', 5, 'Excelente todo.', -7],
+  [ID_CLUB, 'Tomás S.', 2, 'Llegamos y la cancha estaba ocupada, tuvimos que esperar media hora.', -5],
+  [ID_CLUB, 'Lucía H.', 5, '', -2],
 ];
 let idResena = 1;
 const resenas = resenasBase.map(([club_id, autor, estrellas, comentario, delta]) => ({
@@ -223,7 +225,7 @@ class Consulta {
   constructor(tabla) { this.tabla = tabla; this.filtros = []; this.orden = []; this.tope = null; this.modo = 'select'; }
   select() { return this; }
   insert(datos) { this.modo = 'escritura'; this.datosEscritura = datos; return this; }
-  update() { this.modo = 'escritura'; return this; }
+  update(datos) { this.modo = 'escritura'; this.datosEdicion = datos; return this; }
   upsert() { this.modo = 'escritura'; return this; }
   delete() { this.modo = TABLAS_CON_BORRADO.includes(this.tabla) ? 'borrar' : 'escritura'; return this; }
   eq(col, val) { this.filtros.push((f) => f[col] === val); return this; }
@@ -264,7 +266,14 @@ class Consulta {
           .map((d) => ({ created_at: new Date().toISOString(), ...d }));
         tablas.favoritos.push(...nuevas);
       }
-      resultado = { data: null, error: null };
+      // El perfil propio sí se edita en la demo (pantalla "Mi cuenta")
+      if (this.tabla === 'usuarios' && this.datosEdicion) {
+        const editadas = tablas.usuarios.filter((f) => this.filtros.every((fn) => fn(f)));
+        for (const fila of editadas) Object.assign(fila, this.datosEdicion);
+        resultado = { data: editadas.map(({ id }) => ({ id })), error: null };
+      } else {
+        resultado = { data: null, error: null };
+      }
     } else {
       resultado = { data: this.filas(), error: null };
     }
@@ -279,7 +288,7 @@ const hoyISO = () => diaRelativo(0);
 const yaPaso = (fecha, hora) => new Date(`${fecha}T${hora}:00`) <= new Date();
 
 const resumenDe = (clubId) => {
-  const propias = resenas.filter((r) => r.club_id === clubId && !r.oculta);
+  const propias = resenas.filter((r) => r.club_id === clubId);
   return propias.length ? { promedio: Math.round((propias.reduce((a, r) => a + r.estrellas, 0) / propias.length) * 10) / 10, cantidad: propias.length } : null;
 };
 
@@ -287,10 +296,20 @@ const rpcs = {
   resumen_resenas: ({ p_club_ids }) => ok(p_club_ids.map((id) => ({ id, r: resumenDe(id) })).filter((x) => x.r).map((x) => ({ club_id: x.id, ...x.r }))),
   distribucion_resenas: ({ p_club_id }) => ok([5, 4, 3, 2, 1].map((n) => ({ estrellas: n, cantidad: resenas.filter((r) => r.club_id === p_club_id && r.estrellas === n).length })).filter((x) => x.cantidad)),
   resenas_club: ({ p_club_id, p_limite = 20, p_desde = 0 }) => ok(
-    resenas.filter((r) => r.club_id === p_club_id && !r.oculta)
+    resenas.filter((r) => r.club_id === p_club_id)
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(p_desde, p_desde + p_limite)
-      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO })),
+      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.oculta ? null : r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO })),
   ),
+  resenas_de_mi_club: () => ok(
+    resenas.filter((r) => r.club_id === ID_CLUB).sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, oculta: r.oculta, created_at: r.created_at, autor: r.autor })),
+  ),
+  moderar_resena: ({ p_resena_id, p_oculta }) => {
+    const resena = resenas.find((r) => r.id === p_resena_id && r.club_id === ID_CLUB);
+    if (!resena) return falla('RESENA_NO_ENCONTRADA');
+    resena.oculta = Boolean(p_oculta);
+    return ok();
+  },
   iniciar_prueba: () => {
     if (tablas.suscripciones.some((s) => s.plan === 'prueba')) return falla('PRUEBA_YA_USADA');
     const vence = enDias(30);

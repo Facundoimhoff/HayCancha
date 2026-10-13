@@ -3,7 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
-import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, PREFIJO_MOTIVO } from './lib/mercadopago.js';
+import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, vigenciaTrasBaja, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
 
@@ -89,7 +89,7 @@ app.get('/api/planes', (_req, res) => {
   res.json({ planes: catalogoPublico(PLANES) });
 });
 
-// --- 1) INICIAR SUSCRIPCIÓN: devuelve el link de pago de Mercado Pago (requiere sesión) ---
+// --- 1) INICIAR SUSCRIPCIÓN: devuelve el link de pago de Mercado Pago ---
 // Link de cada plan: variable de entorno (MP_PLAN_LINK_FULL) > caché en memoria > plan ya creado en Mercado Pago > plan nuevo.
 // Se cachea la PROMESA para que pedidos simultáneos no creen planes repetidos, y se precalienta al arrancar.
 const linksPlanes = new Map();
@@ -195,6 +195,7 @@ app.post('/api/vincular-suscripcion', limitePagos, async (req, res) => {
       mp_preapproval_id: suscripcion.id,
       plan: nombrePlan,
       estado: 'activa',
+      vence_en: null,
       monto: suscripcion.auto_recurring?.transaction_amount ?? PLANES[nombrePlan].precio,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'mp_preapproval_id' });
@@ -211,7 +212,48 @@ app.post('/api/vincular-suscripcion', limitePagos, async (req, res) => {
   }
 });
 
-// --- 3) WEBHOOK: Mercado Pago avisa cambios (cancelación, pausa, etc.). Solo actualiza suscripciones ya vinculadas ---
+// --- 3) BAJA: el dueño cancela su plan desde el panel. Deja de cobrarse y sigue vigente hasta el fin del período ya pago ---
+app.post('/api/cancelar-suscripcion', limitePagos, async (req, res) => {
+  if (!supabaseAdmin) return res.status(503).json({ error: 'Pagos no disponibles por el momento' });
+
+  const user = await usuarioDeLaSolicitud(req);
+  if (!user) return res.status(401).json({ error: 'Iniciá sesión' });
+
+  try {
+    // Solo las suscripciones de ESTA cuenta: el id de Mercado Pago sale de la base, nunca del navegador.
+    const { data: activas, error: errorLectura } = await supabaseAdmin
+      .from('suscripciones')
+      .select('id, mp_preapproval_id')
+      .eq('user_id', user.id)
+      .eq('estado', 'activa')
+      .not('mp_preapproval_id', 'is', null);
+    if (errorLectura) throw errorLectura;
+    if (!activas?.length) return res.status(404).json({ error: 'No tenés un plan pago activo para dar de baja' });
+
+    const preapprovals = new PreApproval(client);
+    let venceEn = null;
+    for (const fila of activas) {
+      const suscripcion = await preapprovals.get({ id: fila.mp_preapproval_id });
+      const vence = vigenciaTrasBaja(suscripcion);
+      if (suscripcion.status !== 'cancelled') {
+        await preapprovals.update({ id: fila.mp_preapproval_id, body: { status: 'cancelled' } });
+      }
+      const { error: errorGuardado } = await supabaseAdmin
+        .from('suscripciones')
+        .update({ estado: 'cancelada', vence_en: vence, updated_at: new Date().toISOString() })
+        .eq('id', fila.id);
+      if (errorGuardado) throw errorGuardado;
+      if (!venceEn || vence > venceEn) venceEn = vence;
+    }
+
+    res.json({ estado: 'cancelada', vence_en: venceEn });
+  } catch (error) {
+    console.error('Error al cancelar la suscripción:', error);
+    res.status(500).json({ error: 'No pudimos dar de baja el plan. Intentá de nuevo en unos minutos.' });
+  }
+});
+
+// --- 4) WEBHOOK: Mercado Pago avisa cambios (cancelación, pausa, etc.). Solo actualiza suscripciones ya vinculadas ---
 app.post('/api/webhooks/mercadopago', limiteWebhook, async (req, res) => {
   const secret = process.env.MP_WEBHOOK_SECRET;
   if (!secret || !supabaseAdmin) return res.sendStatus(503);
@@ -230,11 +272,24 @@ app.post('/api/webhooks/mercadopago', limiteWebhook, async (req, res) => {
 
   try {
     const suscripcion = await new PreApproval(client).get({ id: String(dataId) });
+    const estado = estadoDesdeMP(suscripcion.status);
     const { error } = await supabaseAdmin
       .from('suscripciones')
-      .update({ estado: estadoDesdeMP(suscripcion.status), updated_at: new Date().toISOString() })
+      // Al volver a estar activa se borra cualquier fecha de fin que haya dejado una baja anterior.
+      .update({ estado, updated_at: new Date().toISOString(), ...(estado === 'activa' ? { vence_en: null } : {}) })
       .eq('mp_preapproval_id', suscripcion.id);
     if (error) throw error;
+
+    // Baja hecha desde Mercado Pago (no desde el panel): sigue vigente hasta el fin del período ya pago.
+    // Si el panel ya había guardado la fecha, no se pisa.
+    if (estado === 'cancelada') {
+      const { error: errorFecha } = await supabaseAdmin
+        .from('suscripciones')
+        .update({ vence_en: vigenciaTrasBaja(suscripcion) })
+        .eq('mp_preapproval_id', suscripcion.id)
+        .is('vence_en', null);
+      if (errorFecha) throw errorFecha;
+    }
     res.sendStatus(200);
   } catch (error) {
     console.error('Error al procesar el webhook:', error);

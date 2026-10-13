@@ -48,6 +48,8 @@
 .hu-mis-reservas:hover { background: var(--color-slate-700); }
 .hu-mis-reservas--secundario { background: var(--color-white); color: var(--text-strong); border: 1px solid var(--border-subtle); }
 .hu-mis-reservas--secundario:hover { background: var(--color-slate-100); }
+.hu-cuenta { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--border-subtle); border-radius: 50%; background: var(--color-white); color: var(--text-strong); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.hu-cuenta:hover { background: var(--color-slate-100); }
 
 .hu-contenido { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .hu-filtros { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -81,6 +83,10 @@
 
 @media (max-width: 600px) {
   .hu-navbar { padding: 12px 14px; }
+  .hu-navbar-izq { min-width: 0; }
+  /* En el celular los accesos quedan solo con el ícono: con el texto la barra se salía de la pantalla */
+  .hu-mis-reservas { width: 40px; padding: 0; justify-content: center; flex-shrink: 0; }
+  .hu-mis-reservas span { display: none; }
   .hu-contenido { padding: 14px; }
   .hu-titulo { font-size: 1.25rem; }
 }

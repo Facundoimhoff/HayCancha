@@ -8,6 +8,7 @@ import ReservaCancha from './pages/user/ReservaCancha';
 import LandingPage from './pages/user/LandingPage'; 
 import MisReservas from './pages/user/MisReservas';
 import Favoritos from './pages/user/Favoritos';
+import MiCuenta from './pages/user/MiCuenta';
 import Planes from './pages/user/Planes';
 import RegistroClub from './pages/user/RegistroClub';
 import FormularioContacto from './pages/user/FormularioContacto';
@@ -49,6 +50,7 @@ function RutasAnimadas() {
         <Route path="/panel" element={<RutaProtegida rol="admin"><Suspense fallback={<div className="estado-carga">Cargando panel…</div>}><DashboardAdmin /></Suspense></RutaProtegida>} />
         <Route path="/mis-reservas" element={<RutaProtegida><MisReservas /></RutaProtegida>} />
         <Route path="/favoritos" element={<RutaProtegida><Favoritos /></RutaProtegida>} />
+        <Route path="/mi-cuenta" element={<RutaProtegida><MiCuenta /></RutaProtegida>} />
         <Route path="/planes" element={<Planes />} />
         <Route path="/onboarding" element={<RegistroClub />} />
         <Route path="/contacto" element={<FormularioContacto />} />

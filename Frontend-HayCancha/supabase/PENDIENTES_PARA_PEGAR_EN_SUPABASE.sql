@@ -3,237 +3,10 @@
 -- (Dashboard > SQL Editor > New query > pegar todo > Run).
 -- Son copia de supabase/migrations/. Todas son idempotentes: si alguna ya estaba aplicada, no pasa nada.
 -- Borrá este archivo cuando las hayas aplicado.
+--
+-- Verificado contra producción el 2026-10-13: reseñas, reseñas destacadas, ubicación de clubes y
+-- prueba gratis YA están aplicadas (por eso no están acá). Falta lo de abajo.
 -- =============================================================================
-
--- >>>>>>>>>> 20260926000001_resenas_y_extras.sql
--- =============================================================================
--- GridPlay — Reseñas de clubes y edición de extras de una reserva
--- =============================================================================
---  * public.resenas: una reseña (1-5 estrellas + comentario) por jugador y club, editable.
---    Solo puede calificar quien ya jugó un turno en ese club. La tabla NO se lee directo desde
---    el público: se lee con RPC (nombre abreviado del autor, sin exponer ids ni datos personales).
---  * public.actualizar_extras: el jugador agrega/cambia/quita extras (bebidas, alquileres) de una
---    reserva futura suya. Precios y nombres salen de la base, nunca del cliente.
--- Idempotente: se puede volver a correr.
--- =============================================================================
-begin;
-
--- -----------------------------------------------------------------------------
--- 1. Tabla de reseñas
--- -----------------------------------------------------------------------------
-create table if not exists public.resenas (
-  id          bigint generated always as identity primary key,
-  club_id     uuid not null references public.clubes (id) on delete cascade,
-  usuario_id  uuid not null references auth.users (id) on delete cascade,
-  estrellas   smallint not null check (estrellas between 1 and 5),
-  comentario  text check (comentario is null or char_length(comentario) <= 600),
-  oculta      boolean not null default false,   -- moderación: solo la cambia el dueño del proyecto
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
-  constraint resenas_una_por_jugador unique (club_id, usuario_id)
-);
-
-create index if not exists resenas_club_idx on public.resenas (club_id, created_at desc) where not oculta;
-
-alter table public.resenas enable row level security;
-
--- El jugador ve y borra la suya. Alta/edición: solo por public.calificar_club(). Lectura pública: por RPC.
-revoke all on public.resenas from anon, authenticated;
-grant select, delete on public.resenas to authenticated;
-
-drop policy if exists resenas_select_propia on public.resenas;
-create policy resenas_select_propia on public.resenas
-  for select to authenticated
-  using (usuario_id = (select auth.uid()));
-
-drop policy if exists resenas_delete_propia on public.resenas;
-create policy resenas_delete_propia on public.resenas
-  for delete to authenticated
-  using (usuario_id = (select auth.uid()));
-
--- -----------------------------------------------------------------------------
--- 2. RPC: calificar un club (crea o actualiza la reseña propia)
--- -----------------------------------------------------------------------------
-create or replace function public.calificar_club(p_club_id uuid, p_estrellas int, p_comentario text default null)
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_uid   uuid := (select auth.uid());
-  v_ahora timestamp := now() at time zone 'America/Argentina/Cordoba';
-begin
-  if v_uid is null then raise exception 'SESION_REQUERIDA'; end if;
-  if p_estrellas is null or p_estrellas not between 1 and 5 then raise exception 'ESTRELLAS_INVALIDAS'; end if;
-  if not exists (select 1 from public.clubes where id = p_club_id) then raise exception 'CLUB_NO_ENCONTRADO'; end if;
-  if private.es_admin_de_club(p_club_id) then raise exception 'NO_PERMITIDO'; end if;
-
-  p_comentario := nullif(left(btrim(coalesce(p_comentario, '')), 600), '');
-
-  -- Solo reseña quien ya jugó (turno propio, ya pasado, en una cancha de ese club)
-  if not exists (
-    select 1
-      from public.turnos t
-      join public.canchas c on c.id = t.cancha_id
-     where c.club_id = p_club_id
-       and t.usuario_id = v_uid
-       and t.telefono_cliente is distinct from 'BLOQUEO'
-       and (t.fecha + t.hora_inicio::time) < v_ahora
-  ) then
-    raise exception 'SIN_TURNO_JUGADO';
-  end if;
-
-  insert into public.resenas (club_id, usuario_id, estrellas, comentario)
-  values (p_club_id, v_uid, p_estrellas, p_comentario)
-  on conflict (club_id, usuario_id) do update
-    set estrellas = excluded.estrellas,
-        comentario = excluded.comentario,
-        updated_at = now();
-end;
-$$;
-revoke all on function public.calificar_club(uuid, int, text) from public, anon;
-grant execute on function public.calificar_club(uuid, int, text) to authenticated;
-
--- -----------------------------------------------------------------------------
--- 3. RPC de lectura pública
--- -----------------------------------------------------------------------------
--- Promedio y cantidad para varios clubes a la vez (listas de clubes)
-create or replace function public.resumen_resenas(p_club_ids uuid[])
-returns table (club_id uuid, promedio numeric, cantidad int)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select r.club_id, round(avg(r.estrellas)::numeric, 1), count(*)::int
-    from public.resenas r
-   where r.club_id = any (p_club_ids[1:200])
-     and not r.oculta
-   group by r.club_id;
-$$;
-revoke all on function public.resumen_resenas(uuid[]) from public;
-grant execute on function public.resumen_resenas(uuid[]) to anon, authenticated;
-
--- Cuántas reseñas hay de cada puntaje (barras de la ficha del club)
-create or replace function public.distribucion_resenas(p_club_id uuid)
-returns table (estrellas int, cantidad int)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select r.estrellas::int, count(*)::int
-    from public.resenas r
-   where r.club_id = p_club_id and not r.oculta
-   group by r.estrellas;
-$$;
-revoke all on function public.distribucion_resenas(uuid) from public;
-grant execute on function public.distribucion_resenas(uuid) to anon, authenticated;
-
--- Reseñas de un club, paginadas, con el autor abreviado ("Lucas P.")
-create or replace function public.resenas_club(p_club_id uuid, p_limite int default 20, p_desde int default 0)
-returns table (id bigint, estrellas int, comentario text, created_at timestamptz, autor text, es_mia boolean)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select r.id,
-         r.estrellas::int,
-         r.comentario,
-         r.created_at,
-         coalesce(nullif(split_part(btrim(u.nombre_completo), ' ', 1), ''), 'Jugador')
-           || case when split_part(btrim(u.nombre_completo), ' ', 2) <> ''
-                   then ' ' || upper(left(split_part(btrim(u.nombre_completo), ' ', 2), 1)) || '.'
-                   else '' end,
-         coalesce(r.usuario_id = (select auth.uid()), false)
-    from public.resenas r
-    left join public.usuarios u on u.id = r.usuario_id
-   where r.club_id = p_club_id and not r.oculta
-   order by r.created_at desc
-   limit least(greatest(coalesce(p_limite, 20), 1), 50)
-  offset greatest(coalesce(p_desde, 0), 0);
-$$;
-revoke all on function public.resenas_club(uuid, int, int) from public;
-grant execute on function public.resenas_club(uuid, int, int) to anon, authenticated;
-
--- -----------------------------------------------------------------------------
--- 4. RPC: actualizar los extras de una reserva futura propia (agrega, cambia o quita)
--- -----------------------------------------------------------------------------
--- p_extras = [{id, cantidad}, ...] es la lista COMPLETA deseada; cantidad 0 (o ausente) quita el extra.
-create or replace function public.actualizar_extras(p_turno_id bigint, p_extras jsonb)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_uid    uuid := (select auth.uid());
-  v_ahora  timestamp := now() at time zone 'America/Argentina/Cordoba';
-  v_turno  public.turnos%rowtype;
-  v_club   uuid;
-  v_extras jsonb := '[]'::jsonb;
-  v_item   jsonb;
-  v_actual jsonb;
-  v_prod   public.productos%rowtype;
-  v_pid    bigint;
-  v_cant   int;
-  v_vistos bigint[] := '{}';
-begin
-  if v_uid is null then raise exception 'SESION_REQUERIDA'; end if;
-
-  select * into v_turno from public.turnos where id = p_turno_id and usuario_id = v_uid for update;
-  if not found then raise exception 'TURNO_NO_ENCONTRADO'; end if;
-  if (v_turno.fecha + v_turno.hora_inicio::time) <= v_ahora then raise exception 'TURNO_PASADO'; end if;
-
-  select club_id into v_club from public.canchas where id = v_turno.cancha_id;
-
-  if p_extras is null or jsonb_typeof(p_extras) <> 'array' or jsonb_array_length(p_extras) > 15 then
-    raise exception 'EXTRAS_INVALIDOS';
-  end if;
-
-  for v_item in select * from jsonb_array_elements(p_extras) loop
-    if coalesce(v_item ->> 'id', '') !~ '^[0-9]{1,18}$' or coalesce(v_item ->> 'cantidad', '') !~ '^[0-9]{1,2}$' then
-      raise exception 'EXTRAS_INVALIDOS';
-    end if;
-    v_pid := (v_item ->> 'id')::bigint;
-    v_cant := (v_item ->> 'cantidad')::int;
-    if v_pid = any (v_vistos) then raise exception 'EXTRAS_INVALIDOS'; end if;   -- ids repetidos
-    v_vistos := v_vistos || v_pid;
-    continue when v_cant = 0;
-
-    select * into v_prod
-      from public.productos
-     where id = v_pid and club_id = v_club and activo is not false;
-
-    if found then
-      v_extras := v_extras || jsonb_build_object(
-        'id', v_prod.id, 'nombre', v_prod.nombre, 'precio_unitario', v_prod.precio,
-        'cantidad', v_cant, 'subtotal', v_prod.precio * v_cant);
-    else
-      -- Producto dado de baja después de pedirlo: se conserva la línea existente, sin aumentar la cantidad
-      select e into v_actual
-        from jsonb_array_elements(coalesce(v_turno.extras, '[]'::jsonb)) e
-       where e ->> 'id' = v_pid::text;
-      if v_actual is null or v_cant > (v_actual ->> 'cantidad')::int then raise exception 'EXTRAS_INVALIDOS'; end if;
-      v_extras := v_extras || jsonb_build_object(
-        'id', v_pid, 'nombre', v_actual ->> 'nombre', 'precio_unitario', (v_actual ->> 'precio_unitario')::numeric,
-        'cantidad', v_cant, 'subtotal', (v_actual ->> 'precio_unitario')::numeric * v_cant);
-    end if;
-  end loop;
-
-  update public.turnos
-     set extras = case when jsonb_array_length(v_extras) > 0 then v_extras else null end
-   where id = p_turno_id;
-
-  return v_extras;
-end;
-$$;
-revoke all on function public.actualizar_extras(bigint, jsonb) from public, anon;
-grant execute on function public.actualizar_extras(bigint, jsonb) to authenticated;
-
-commit;
 
 -- >>>>>>>>>> 20261005000001_favoritos.sql
 -- =============================================================================
@@ -274,213 +47,6 @@ drop policy if exists favoritos_delete_propios on public.favoritos;
 create policy favoritos_delete_propios on public.favoritos
   for delete to authenticated
   using (usuario_id = (select auth.uid()));
-
-commit;
-
--- >>>>>>>>>> 20260927000001_resenas_destacadas.sql
--- =============================================================================
--- GridPlay — Reseñas destacadas para la portada
--- =============================================================================
--- Requiere 20260926000001_resenas_y_extras.sql (tabla public.resenas).
--- public.resenas_destacadas: las últimas reseñas buenas (4-5 estrellas, con comentario) de
--- cualquier club, para mostrar en la portada. Igual que el resto de las lecturas públicas:
--- autor abreviado ("Lucas P."), sin ids de usuario y sin las reseñas ocultas por moderación.
--- Idempotente: se puede volver a correr.
--- =============================================================================
-begin;
-
-create or replace function public.resenas_destacadas(p_limite int default 6)
-returns table (id bigint, estrellas int, comentario text, created_at timestamptz, autor text,
-               club_id uuid, club_nombre text, club_ciudad text)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select r.id,
-         r.estrellas::int,
-         r.comentario,
-         r.created_at,
-         coalesce(nullif(split_part(btrim(u.nombre_completo), ' ', 1), ''), 'Jugador')
-           || case when split_part(btrim(u.nombre_completo), ' ', 2) <> ''
-                   then ' ' || upper(left(split_part(btrim(u.nombre_completo), ' ', 2), 1)) || '.'
-                   else '' end,
-         c.id,
-         c.nombre,
-         c.ciudad
-    from public.resenas r
-    join public.clubes c on c.id = r.club_id
-    left join public.usuarios u on u.id = r.usuario_id
-   where not r.oculta
-     and r.estrellas >= 4
-     and char_length(btrim(coalesce(r.comentario, ''))) >= 20
-   order by r.created_at desc
-   limit least(greatest(coalesce(p_limite, 6), 1), 12);
-$$;
-revoke all on function public.resenas_destacadas(int) from public;
-grant execute on function public.resenas_destacadas(int) to anon, authenticated;
-
-commit;
-
--- >>>>>>>>>> 20260927000002_ubicacion_clubes.sql
--- =============================================================================
--- GridPlay — Ubicación de los clubes en el mapa
--- =============================================================================
--- Agrega latitud y longitud a public.clubes. Las coordenadas son públicas (el club quiere que lo
--- encuentren), igual que el resto de la ficha. Solo el dueño del club puede cargarlas o cambiarlas,
--- desde "Mi club" (la política clubes_update_admin ya limita la edición a su propio club).
--- Idempotente: se puede volver a correr.
--- =============================================================================
-begin;
-
-alter table public.clubes
-  add column if not exists latitud  double precision,
-  add column if not exists longitud double precision;
-
--- O las dos o ninguna, y dentro del rango del planeta (ojo: un CHECK con resultado NULL pasa,
--- por eso se exige "is not null" en la segunda rama)
-alter table public.clubes drop constraint if exists clubes_ubicacion_valida;
-alter table public.clubes add constraint clubes_ubicacion_valida check (
-  (latitud is null and longitud is null)
-  or (latitud is not null and longitud is not null
-      and latitud between -90 and 90 and longitud between -180 and 180)
-);
-
--- El dueño edita solo columnas explícitas: se suman estas dos
-grant update (latitud, longitud) on public.clubes to authenticated;
-
-commit;
-
--- >>>>>>>>>> 20260927000003_prueba_gratis.sql
--- =============================================================================
--- GridPlay — Prueba gratis de 30 días, sin tarjeta
--- =============================================================================
---  * suscripciones.vence_en: fecha de fin. Nula = sin vencimiento (planes pagos y "legado").
---  * public.iniciar_prueba(): el dueño arranca su prueba de 30 días. Una sola vez por cuenta.
---  * Al vencer, el club deja de recibir reservas nuevas (trigger sobre turnos). El panel sigue abierto
---    para que el dueño vea sus datos y se suscriba. Al pagar (suscripción vigente) se reactiva solo.
---  * public.club_recibe_reservas(): lo usa la web para avisar al jugador antes de intentar reservar.
--- Alcance: solo afecta a clubes que pasaron por una prueba vencida sin suscripción vigente.
--- Los clubes con plan pago o "legado", y las cuentas superadmin, no cambian.
--- Idempotente: se puede volver a correr.
--- =============================================================================
-begin;
-
-alter table public.suscripciones add column if not exists vence_en timestamptz;
-
--- -----------------------------------------------------------------------------
--- 1. Helpers privados
--- -----------------------------------------------------------------------------
--- ¿Tiene una suscripción activa y no vencida?
-create or replace function private.suscripcion_vigente(p_user uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1 from public.suscripciones s
-     where s.user_id = p_user
-       and s.estado = 'activa'
-       and (s.vence_en is null or s.vence_en > now())
-  );
-$$;
-
--- ¿Puede este club recibir reservas? Solo dice que NO si su dueño tiene una prueba vencida y ninguna
--- suscripción vigente (y no es superadmin).
-create or replace function private.club_recibe_reservas(p_club uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select not coalesce((
-    select exists (
-             select 1 from public.suscripciones s
-              where s.user_id = c.admin_id and s.plan = 'prueba' and s.vence_en <= now()
-           )
-       and not private.suscripcion_vigente(c.admin_id)
-       and not exists (select 1 from public.usuarios u where u.id = c.admin_id and u.rol = 'superadmin')
-      from public.clubes c
-     where c.id = p_club
-  ), false);
-$$;
-
-revoke all on function private.suscripcion_vigente(uuid) from public;
-revoke all on function private.club_recibe_reservas(uuid) from public;
-grant execute on function private.suscripcion_vigente(uuid) to anon, authenticated;
-grant execute on function private.club_recibe_reservas(uuid) to anon, authenticated;
-
--- -----------------------------------------------------------------------------
--- 2. Lectura pública: ¿este club recibe reservas?
--- -----------------------------------------------------------------------------
-create or replace function public.club_recibe_reservas(p_club_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select private.club_recibe_reservas(p_club_id);
-$$;
-revoke all on function public.club_recibe_reservas(uuid) from public;
-grant execute on function public.club_recibe_reservas(uuid) to anon, authenticated;
-
--- -----------------------------------------------------------------------------
--- 3. Iniciar la prueba
--- -----------------------------------------------------------------------------
-create or replace function public.iniciar_prueba()
-returns timestamptz
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_uid   uuid := (select auth.uid());
-  v_vence timestamptz;
-begin
-  if v_uid is null then raise exception 'SESION_REQUERIDA'; end if;
-  if exists (select 1 from public.suscripciones where user_id = v_uid and plan = 'prueba') then
-    raise exception 'PRUEBA_YA_USADA';
-  end if;
-  if private.suscripcion_vigente(v_uid) then raise exception 'YA_TIENE_SUSCRIPCION'; end if;
-
-  insert into public.suscripciones (user_id, plan, estado, monto, vence_en)
-  values (v_uid, 'prueba', 'activa', 0, now() + interval '30 days')
-  returning vence_en into v_vence;
-
-  return v_vence;
-end;
-$$;
-revoke all on function public.iniciar_prueba() from public, anon;
-grant execute on function public.iniciar_prueba() to authenticated;
-
--- -----------------------------------------------------------------------------
--- 4. Un club con la prueba vencida no recibe turnos nuevos (ni de jugadores ni cargados a mano)
--- -----------------------------------------------------------------------------
-create or replace function private.turnos_exige_suscripcion()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_club uuid;
-begin
-  select club_id into v_club from public.canchas where id = new.cancha_id;
-  if v_club is not null and not private.club_recibe_reservas(v_club) then
-    raise exception 'CLUB_SIN_SUSCRIPCION';
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists turnos_exige_suscripcion on public.turnos;
-create trigger turnos_exige_suscripcion
-  before insert on public.turnos
-  for each row execute function private.turnos_exige_suscripcion();
 
 commit;
 
@@ -781,3 +347,191 @@ create policy favoritos_insert_propios on public.favoritos
 
 commit;
 
+-- >>>>>>>>>> 20261013000001_plan_cancelado.sql
+-- =============================================================================
+-- GridPlay — Qué pasa cuando un plan pago se cancela o se pausa
+-- =============================================================================
+-- Requiere 20260927000003_prueba_gratis.sql.
+-- Antes solo se frenaban las reservas de un club con la PRUEBA vencida: un club que pagaba y
+-- después cancelaba seguía recibiendo reservas para siempre.
+--  * Baja de un plan pago: el backend guarda en vence_en el fin del período ya pago. Hasta esa fecha
+--    la suscripción sigue contando como vigente; después, no.
+--  * Un club deja de recibir reservas nuevas cuando su dueño tuvo alguna suscripción y ya no tiene
+--    ninguna vigente (prueba vencida, plan cancelado, pausado o pendiente).
+-- No cambian: los clubes con plan activo o "legado", las cuentas superadmin y los clubes cuyo dueño
+-- no tiene ninguna fila de suscripción.
+-- Idempotente: se puede volver a correr.
+-- =============================================================================
+begin;
+
+create or replace function private.suscripcion_vigente(p_user uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.suscripciones s
+     where s.user_id = p_user
+       and (
+         (s.estado = 'activa' and (s.vence_en is null or s.vence_en > now()))
+         -- baja pedida de un plan pago: sigue hasta el fin del período que ya pagó
+         or (s.estado = 'cancelada' and s.plan <> 'prueba' and s.vence_en > now())
+       )
+  );
+$$;
+
+create or replace function private.club_recibe_reservas(p_club uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select not coalesce((
+    select exists (select 1 from public.suscripciones s where s.user_id = c.admin_id)
+       and not private.suscripcion_vigente(c.admin_id)
+       and not exists (select 1 from public.usuarios u where u.id = c.admin_id and u.rol = 'superadmin')
+      from public.clubes c
+     where c.id = p_club
+  ), false);
+$$;
+
+revoke all on function private.suscripcion_vigente(uuid) from public;
+revoke all on function private.club_recibe_reservas(uuid) from public;
+grant execute on function private.suscripcion_vigente(uuid) to anon, authenticated;
+grant execute on function private.club_recibe_reservas(uuid) to anon, authenticated;
+
+commit;
+
+-- >>>>>>>>>> 20261013000002_moderacion_resenas.sql
+-- =============================================================================
+-- GridPlay — El dueño ve las reseñas de su club y puede ocultar un comentario
+-- =============================================================================
+-- Requiere 20260926000001_resenas_y_extras.sql.
+--  * public.resenas_de_mi_club(): todas las reseñas del club del dueño (para su panel).
+--  * public.moderar_resena(): el dueño oculta o vuelve a mostrar el COMENTARIO de una reseña de su club.
+--  * `oculta` pasa a significar "comentario oculto": las estrellas siguen contando en el promedio y en
+--    la distribución, y la reseña sigue en la lista pública sin el texto. Así el dueño puede sacar un
+--    insulto, pero no puede mejorar su puntaje escondiendo las reseñas malas.
+--  * La portada (resenas_destacadas) no cambia: nunca muestra reseñas con el comentario oculto.
+-- Para eliminar del todo una reseña falsa sigue haciendo falta borrarla a mano (dueño del proyecto).
+-- Idempotente: se puede volver a correr.
+-- =============================================================================
+begin;
+
+create index if not exists resenas_club_fecha_idx on public.resenas (club_id, created_at desc);
+
+-- -----------------------------------------------------------------------------
+-- 1. Lecturas públicas: las estrellas cuentan siempre; el comentario oculto no se publica
+-- -----------------------------------------------------------------------------
+create or replace function public.resumen_resenas(p_club_ids uuid[])
+returns table (club_id uuid, promedio numeric, cantidad int)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.club_id, round(avg(r.estrellas)::numeric, 1), count(*)::int
+    from public.resenas r
+   where r.club_id = any (p_club_ids[1:200])
+   group by r.club_id;
+$$;
+revoke all on function public.resumen_resenas(uuid[]) from public;
+grant execute on function public.resumen_resenas(uuid[]) to anon, authenticated;
+
+create or replace function public.distribucion_resenas(p_club_id uuid)
+returns table (estrellas int, cantidad int)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.estrellas::int, count(*)::int
+    from public.resenas r
+   where r.club_id = p_club_id
+   group by r.estrellas;
+$$;
+revoke all on function public.distribucion_resenas(uuid) from public;
+grant execute on function public.distribucion_resenas(uuid) to anon, authenticated;
+
+create or replace function public.resenas_club(p_club_id uuid, p_limite int default 20, p_desde int default 0)
+returns table (id bigint, estrellas int, comentario text, created_at timestamptz, autor text, es_mia boolean)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.id,
+         r.estrellas::int,
+         case when r.oculta then null else r.comentario end,
+         r.created_at,
+         coalesce(nullif(split_part(btrim(u.nombre_completo), ' ', 1), ''), 'Jugador')
+           || case when split_part(btrim(u.nombre_completo), ' ', 2) <> ''
+                   then ' ' || upper(left(split_part(btrim(u.nombre_completo), ' ', 2), 1)) || '.'
+                   else '' end,
+         coalesce(r.usuario_id = (select auth.uid()), false)
+    from public.resenas r
+    left join public.usuarios u on u.id = r.usuario_id
+   where r.club_id = p_club_id
+   order by r.created_at desc
+   limit least(greatest(coalesce(p_limite, 20), 1), 50)
+  offset greatest(coalesce(p_desde, 0), 0);
+$$;
+revoke all on function public.resenas_club(uuid, int, int) from public;
+grant execute on function public.resenas_club(uuid, int, int) to anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 2. Panel del dueño: las reseñas de su club (con el autor abreviado, igual que en público)
+-- -----------------------------------------------------------------------------
+create or replace function public.resenas_de_mi_club()
+returns table (id bigint, estrellas int, comentario text, oculta boolean, created_at timestamptz, autor text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.id,
+         r.estrellas::int,
+         r.comentario,
+         r.oculta,
+         r.created_at,
+         coalesce(nullif(split_part(btrim(u.nombre_completo), ' ', 1), ''), 'Jugador')
+           || case when split_part(btrim(u.nombre_completo), ' ', 2) <> ''
+                   then ' ' || upper(left(split_part(btrim(u.nombre_completo), ' ', 2), 1)) || '.'
+                   else '' end
+    from public.resenas r
+    join public.clubes c on c.id = r.club_id
+    left join public.usuarios u on u.id = r.usuario_id
+   where c.admin_id = (select auth.uid())
+   order by r.created_at desc
+   limit 500;
+$$;
+revoke all on function public.resenas_de_mi_club() from public, anon;
+grant execute on function public.resenas_de_mi_club() to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 3. Panel del dueño: ocultar o volver a mostrar el comentario de una reseña de su club
+-- -----------------------------------------------------------------------------
+create or replace function public.moderar_resena(p_resena_id bigint, p_oculta boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (select auth.uid()) is null then raise exception 'SESION_REQUERIDA'; end if;
+
+  update public.resenas r
+     set oculta = coalesce(p_oculta, false)
+   where r.id = p_resena_id
+     and private.es_admin_de_club(r.club_id);
+
+  if not found then raise exception 'RESENA_NO_ENCONTRADA'; end if;
+end;
+$$;
+revoke all on function public.moderar_resena(bigint, boolean) from public, anon;
+grant execute on function public.moderar_resena(bigint, boolean) to authenticated;
+
+commit;

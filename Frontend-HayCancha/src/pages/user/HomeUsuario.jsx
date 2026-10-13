@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Heart, ArrowLeft, SearchX } from 'lucide-react';
+import { Calendar, Heart, ArrowLeft, SearchX, UserRound } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { resumenPorClub } from '../../services/resenas';
 import { useFavoritos } from '../../hooks/useFavoritos';
+import { useAuth } from '../../context/authContext';
 import { filtrarYOrdenar, hayFiltros, FILTROS_INICIALES } from '../../utils/filtrosClubes';
 import TarjetaClub from '../../components/user/TarjetaClub';
 import FiltrosClubes from '../../components/user/FiltrosClubes';
@@ -18,6 +19,7 @@ const HomeUsuario = () => {
   const [error, setError] = useState('');
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
   const { esFavorito, alternar } = useFavoritos();
+  const { user } = useAuth();
 
   useEffect(() => {
     let cancelado = false;
@@ -61,18 +63,23 @@ const HomeUsuario = () => {
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="hu-titulo">Hay<span>Cancha</span></h1>
+            <h1 className="hu-titulo">Grid<span>Play</span></h1>
             <p className="hu-ubicacion">{ciudad}, {provincia === 'Córdoba' ? 'CBA' : provincia.substring(0, 3).toUpperCase()}</p>
           </div>
         </div>
 
         <div className="hu-navbar-der">
-          <button type="button" onClick={() => navigate('/favoritos')} className="hu-mis-reservas hu-mis-reservas--secundario">
-            <Heart size={16} /> Favoritos
+          <button type="button" onClick={() => navigate('/favoritos')} className="hu-mis-reservas hu-mis-reservas--secundario" aria-label="Favoritos">
+            <Heart size={16} aria-hidden="true" /> <span>Favoritos</span>
           </button>
-          <button type="button" onClick={() => navigate('/mis-reservas')} className="hu-mis-reservas">
-            <Calendar size={16} /> Mis Reservas
+          <button type="button" onClick={() => navigate('/mis-reservas')} className="hu-mis-reservas" aria-label="Mis reservas">
+            <Calendar size={16} aria-hidden="true" /> <span>Mis reservas</span>
           </button>
+          {user && (
+            <button type="button" onClick={() => navigate('/mi-cuenta')} className="hu-cuenta" aria-label="Mi cuenta" title="Mi cuenta">
+              <UserRound size={18} />
+            </button>
+          )}
         </div>
       </header>
 

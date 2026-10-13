@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/authContext';
 import '../../components/user/componentes.css';
@@ -20,7 +20,10 @@ const HeaderCliente = () => {
   return (
     <nav className="gp-barra-usuario" aria-label="Tu sesión">
       <span>Hola, <strong>{nombre}</strong></span>
-      <button type="button" onClick={cerrarSesion}>Cerrar sesión</button>
+      <div className="gp-barra-usuario-acciones">
+        <Link to="/mi-cuenta">Mi cuenta</Link>
+        <button type="button" onClick={cerrarSesion}>Cerrar sesión</button>
+      </div>
     </nav>
   );
 };

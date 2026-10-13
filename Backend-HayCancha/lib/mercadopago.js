@@ -39,6 +39,21 @@ export function estadoDesdeMP(status) {
   }
 }
 
+const MS_DIA = 86400000;
+const MAXIMO_DIAS_PAGOS = 31; // el plan es mensual: nunca queda más de un mes ya pago
+
+/**
+ * Hasta cuándo sigue vigente una suscripción que se da de baja: el próximo cobro que ya no se va a hacer
+ * (el dueño ya pagó hasta ese día). Si Mercado Pago no informa esa fecha, o ya pasó, la baja corta en el momento.
+ * Devuelve la fecha en formato ISO.
+ */
+export function vigenciaTrasBaja(suscripcion, ahora = new Date()) {
+  const proximoCobro = new Date(suscripcion?.next_payment_date ?? NaN);
+  if (Number.isNaN(proximoCobro.getTime()) || proximoCobro <= ahora) return ahora.toISOString();
+  const tope = new Date(ahora.getTime() + MAXIMO_DIAS_PAGOS * MS_DIA);
+  return (proximoCobro < tope ? proximoCobro : tope).toISOString();
+}
+
 export const PREFIJO_MOTIVO = 'GridPlay - Plan ';
 
 /** Devuelve el nombre del plan a partir del motivo de la suscripción, o null si no es de GridPlay. */

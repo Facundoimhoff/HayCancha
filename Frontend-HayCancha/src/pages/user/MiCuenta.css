@@ -1,0 +1,26 @@
+/* =============================================================================
+   Mi cuenta (prefijo mc-). Campos, botones y alertas: src/components/user/componentes.css
+   ============================================================================= */
+
+.mc-pagina { min-height: 100vh; background: var(--surface-page); font-family: var(--font-body); color: var(--text-strong); }
+.mc-contenedor { max-width: 560px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 16px; }
+
+.mc-cabecera { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+.mc-cabecera h1 { margin: 0; font: 900 1.8rem var(--font-display); letter-spacing: -0.5px; }
+.mc-cabecera p { margin: 4px 0 0; color: var(--text-muted); overflow-wrap: anywhere; }
+
+.mc-atajos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mc-atajos .gp-btn { text-decoration: none; }
+
+.mc-tarjeta { padding: 20px; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--shadow-sm); }
+.mc-tarjeta h2 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; }
+.mc-tarjeta h2 + form, .mc-tarjeta h2 + .gp-btn { margin-top: 14px; }
+.mc-ayuda { margin: 0 0 14px; color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; }
+.mc-ayuda:last-child { margin-bottom: 0; }
+.mc-ayuda a { color: var(--color-brand-700); font-weight: 700; overflow-wrap: anywhere; }
+.mc-boton { align-self: flex-start; }
+.mc-eliminar { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-slate-100); }
+
+@media (max-width: 480px) {
+  .mc-boton { width: 100%; }
+}

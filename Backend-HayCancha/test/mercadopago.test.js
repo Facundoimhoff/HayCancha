@@ -74,3 +74,22 @@ test('catalogoPublico expone solo el precio de cada plan', () => {
     { Full: { precio: 50000 }, Pro: { precio: 80000 } },
   );
 });
+
+import { vigenciaTrasBaja } from '../lib/mercadopago.js';
+
+test('vigenciaTrasBaja: la baja sigue vigente hasta el próximo cobro ya pago', () => {
+  const ahora = new Date('2026-10-13T12:00:00Z');
+  assert.equal(vigenciaTrasBaja({ next_payment_date: '2026-10-28T10:00:00.000-04:00' }, ahora), '2026-10-28T14:00:00.000Z');
+});
+
+test('vigenciaTrasBaja: sin fecha, con fecha inválida o ya pasada corta en el momento', () => {
+  const ahora = new Date('2026-10-13T12:00:00Z');
+  for (const suscripcion of [{}, null, { next_payment_date: null }, { next_payment_date: 'basura' }, { next_payment_date: '2026-10-01T00:00:00Z' }]) {
+    assert.equal(vigenciaTrasBaja(suscripcion, ahora), ahora.toISOString());
+  }
+});
+
+test('vigenciaTrasBaja: nunca deja más de un mes de vigencia', () => {
+  const ahora = new Date('2026-10-13T12:00:00Z');
+  assert.equal(vigenciaTrasBaja({ next_payment_date: '2027-10-13T12:00:00Z' }, ahora), '2026-11-13T12:00:00.000Z');
+});

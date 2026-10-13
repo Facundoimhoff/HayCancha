@@ -269,6 +269,8 @@
   text-transform: uppercase;
   box-shadow: var(--shadow-sm);
 }
+/* En el celular no entran la calificación, el corazón y este cartel: se pisaban */
+@media (max-width: 480px) { .gp-tc-abierto { display: none; } }
 
 /* ---------- Botón de favorito (corazón) ---------- */
 .gp-favorito {
@@ -417,3 +419,6 @@
 .gp-barra-usuario strong { color: var(--color-brand-700); }
 .gp-barra-usuario button { padding: 6px 4px; border: 0; background: none; color: var(--color-danger); font: 700 0.9rem var(--font-body); cursor: pointer; }
 .gp-barra-usuario button:hover { text-decoration: underline; }
+.gp-barra-usuario-acciones { display: flex; align-items: center; gap: 16px; }
+.gp-barra-usuario a { padding: 6px 4px; color: var(--color-brand-700); font: 700 0.9rem var(--font-body); text-decoration: none; }
+.gp-barra-usuario a:hover { text-decoration: underline; }

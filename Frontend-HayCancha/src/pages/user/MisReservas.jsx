@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  CalendarX2, ArrowLeft, Plus, MapPin, Navigation, MessageCircle, ShoppingBag, Star, RotateCcw, Trash2, History,
+  CalendarX2, ArrowLeft, Plus, MapPin, Navigation, MessageCircle, ShoppingBag, Star, RotateCcw, Trash2, History, UserRound,
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/authContext';
@@ -135,6 +135,7 @@ const MisReservas = () => {
           </div>
           <div className="mr-cabecera-acciones">
             <button type="button" onClick={() => navigate(-1)} className="gp-btn gp-btn--fantasma gp-btn--chico"><ArrowLeft size={16} /> Volver</button>
+            <Link to="/mi-cuenta" className="gp-btn gp-btn--fantasma gp-btn--chico"><UserRound size={16} /> Mi cuenta</Link>
             <Link to="/seleccionar-ubicacion" className="gp-btn gp-btn--primario gp-btn--chico"><Plus size={16} /> Nueva reserva</Link>
           </div>
         </header>

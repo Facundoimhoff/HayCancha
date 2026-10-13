@@ -49,6 +49,25 @@ export const borrarMiResena = async (clubId) => {
   if (error) throw error;
 };
 
+/**
+ * Panel del dueño: todas las reseñas de su club [{ id, estrellas, comentario, oculta, created_at, autor }].
+ * Devuelve null si la base todavía no tiene la función (migración pendiente) o falla la red.
+ */
+export const resenasDeMiClub = async () => {
+  const { data, error } = await supabase.rpc('resenas_de_mi_club');
+  if (error) {
+    console.warn('No se pudieron cargar las reseñas del club:', error.message);
+    return null;
+  }
+  return data || [];
+};
+
+/** Panel del dueño: oculta o vuelve a mostrar el comentario de una reseña (las estrellas siguen contando). */
+export const moderarResena = async (id, oculta) => {
+  const { error } = await supabase.rpc('moderar_resena', { p_resena_id: id, p_oculta: oculta });
+  if (error) throw error;
+};
+
 /** Últimas reseñas buenas de cualquier club, para la portada. Devuelve [] si falla o si no hay. */
 export const resenasDestacadas = async (limite = 6) => {
   const { data, error } = await supabase.rpc('resenas_destacadas', { p_limite: limite });

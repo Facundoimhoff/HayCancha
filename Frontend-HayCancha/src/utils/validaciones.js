@@ -65,6 +65,8 @@ const MENSAJES_SERVIDOR = {
   PRUEBA_YA_USADA: 'Ya usaste tu prueba gratis. Para seguir, suscribite al plan.',
   YA_TIENE_SUSCRIPCION: 'Tu cuenta ya tiene una suscripción activa.',
   CLUB_SIN_SUSCRIPCION: 'Este club no está recibiendo reservas por ahora.',
+  CUENTA_REQUERIDA: 'Creá tu cuenta para continuar.',
+  RESENA_NO_ENCONTRADA: 'No encontramos esa reseña.',
 };
 
 /** Traduce los códigos que lanzan las funciones SQL (`raise exception 'CODIGO'`) a texto para el usuario. */

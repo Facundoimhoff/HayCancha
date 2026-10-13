@@ -504,3 +504,36 @@
 .dash-giro { animation: dash-giro 1s linear infinite; }
 @keyframes dash-giro { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .dash-giro { animation: none; } }
+
+/* ---------- Mi plan ---------- */
+.dash-chip--rojo { background: var(--color-danger-bg); color: #b91c1c; }
+.dash-plan { display: flex; gap: 14px; align-items: flex-start; }
+.dash-plan-icono { display: inline-grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: var(--color-brand-100); color: var(--color-brand-700); }
+.dash-plan strong { display: block; color: var(--text-strong); font-size: 17px; line-height: 1.3; }
+.dash-plan p { margin: 4px 0 0; color: var(--color-slate-600); font-size: 14px; line-height: 1.5; }
+.dash-plan-acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.dash-plan-nota { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--color-slate-100); color: var(--color-slate-500); font-size: 13px; line-height: 1.5; }
+.dash-plan-incluye { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.dash-plan-incluye li { display: flex; align-items: flex-start; gap: 8px; color: var(--color-slate-700); font-size: 14px; line-height: 1.4; }
+.dash-plan-incluye svg { flex-shrink: 0; margin-top: 2px; color: var(--color-brand-600); }
+.dash-aviso-ok { margin: 16px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--color-brand-50); border: 1px solid var(--color-brand-200); color: var(--color-brand-700); font-size: 13.5px; font-weight: 600; }
+.dash-plan + .dash-error { margin-top: 16px; }
+
+/* ---------- Reseñas ---------- */
+.dash-mensaje--chico { min-height: 160px; }
+.dash-error--panel { margin: 14px 18px 0; }
+.dash-resenas { list-style: none; margin: 0; padding: 0; }
+.dash-resena { display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; border-top: 1px solid var(--color-slate-100); }
+.dash-resena:first-child { border-top: 0; }
+.dash-resena-cuerpo { flex: 1; min-width: 0; }
+.dash-resena-cabecera { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.dash-resena-cabecera strong { color: var(--text-strong); font-weight: 600; }
+.dash-resena-cabecera time { color: var(--color-slate-500); font-size: 12.5px; }
+.dash-resena-cuerpo p { margin: 6px 0 0; color: var(--color-slate-700); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.dash-resena.oculta .dash-resena-cuerpo p { color: var(--color-slate-500); text-decoration: line-through; }
+.dash-resena-cuerpo p.dash-resena-sin-texto { color: var(--color-slate-500); text-decoration: none; }
+@media (max-width: 640px) {
+  .dash-resena { flex-wrap: wrap; }
+  .dash-resena > .dash-btn { width: 100%; justify-content: center; }
+  .dash-plan-acciones .dash-btn { width: 100%; justify-content: center; }
+}
