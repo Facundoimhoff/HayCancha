@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert, X } from 'lucide-react';
+import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert, X, MessageCircle } from 'lucide-react';
 import { Modal, ModalCuerpo, ModalPie, Campo } from '../components/ui.jsx';
 import { moneda, fechaCorta } from '../lib/formato.js';
 import { OPCIONES_DEPORTE, DEPORTES, canchaVacia } from '../lib/deportes.js';
 import { TIPOS_IMAGEN_ACEPTADOS } from '../../../services/storage.js';
 import { validarTelefono } from '../../../utils/validaciones.js';
+import { enlaceWhatsApp, mensajeRecordatorio, yaEmpezo } from '../../../utils/reservas.js';
 
 /** Ejecuta `accion` mostrando "guardando" y el error (si hay) dentro de la ventana. */
 const useEnvio = () => {
@@ -88,7 +89,11 @@ export const ModalBloqueo = ({ canchas, hoy, onGuardar, onCerrar }) => {
   );
 };
 
-export const ModalDetalles = ({ turno, onCancelar, onCerrar }) => {
+export const ModalDetalles = ({ turno, club, onCancelar, onCerrar }) => {
+  const recordatorio = turno.esBloqueo || yaEmpezo(turno.fecha, turno.hora_inicio) ? null : enlaceWhatsApp(
+    turno.telefono_cliente,
+    mensajeRecordatorio({ club: club?.nombre, cliente: turno.nombre_cliente, cancha: turno.nombre_cancha, fecha: turno.fecha, hora: turno.hora_inicio, total: turno.total }),
+  );
   const filas = [
     ['Cliente', turno.esBloqueo ? turno.nombre_cliente.replace('Bloqueado:', 'Bloqueo por:') : turno.nombre_cliente],
     ['Teléfono', turno.esBloqueo ? '—' : turno.telefono_cliente],
@@ -118,6 +123,11 @@ export const ModalDetalles = ({ turno, onCancelar, onCerrar }) => {
       </ModalCuerpo>
       <ModalPie>
         <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>Cerrar</button>
+        {recordatorio && (
+          <a className="dash-btn dash-btn--primario" href={recordatorio} target="_blank" rel="noopener noreferrer">
+            <MessageCircle size={16} /> Recordarle el turno
+          </a>
+        )}
         <button type="button" className="dash-btn dash-btn--peligro" onClick={() => onCancelar(turno)}>
           <Trash2 size={16} /> {turno.esBloqueo ? 'Liberar horario' : 'Cancelar turno'}
         </button>

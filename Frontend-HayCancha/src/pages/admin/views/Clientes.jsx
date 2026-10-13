@@ -3,6 +3,7 @@ import { Search, MessageCircle, Users, UserRound } from 'lucide-react';
 import { Panel, Chip, Vacio } from '../components/ui.jsx';
 import { moneda, fechaCorta, iniciales, pluralizar } from '../lib/formato.js';
 import { clientesDe } from '../lib/metricas.js';
+import { enlaceWhatsApp } from '../../../utils/reservas.js';
 
 const Clientes = ({ turnos }) => {
   const [busqueda, setBusqueda] = useState('');
@@ -73,7 +74,7 @@ const Clientes = ({ turnos }) => {
                     <td className="num"><strong>{moneda(c.gastado)}</strong></td>
                     <td className="ocultar-sm">{c.ultima ? fechaCorta(c.ultima) : '—'}</td>
                     <td className="acciones">
-                      <a className="dash-icon-btn" href={`https://wa.me/${String(c.telefono).replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label={`Escribirle a ${c.nombre} por WhatsApp`} title="WhatsApp">
+                      <a className="dash-icon-btn" href={enlaceWhatsApp(c.telefono) || undefined} target="_blank" rel="noopener noreferrer" aria-label={`Escribirle a ${c.nombre} por WhatsApp`} title="WhatsApp">
                         <MessageCircle size={17} />
                       </a>
                     </td>

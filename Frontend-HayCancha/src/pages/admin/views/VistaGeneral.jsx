@@ -1,20 +1,24 @@
 import { useMemo, useState } from 'react';
-import { Ban, Plus, DollarSign, CalendarCheck, Gauge, CalendarClock, Users, CheckCircle, Trash2, Inbox, MapPin } from 'lucide-react';
+import { Ban, Plus, DollarSign, CalendarCheck, Gauge, CalendarClock, Users, MessageCircle, Trash2, Inbox, MapPin } from 'lucide-react';
 import { KpiCard, Panel, Chip, Vacio, Progreso, Segmentado, MenuAcciones } from '../components/ui.jsx';
 import { moneda, etiquetaDia, pluralizar, desdeISO } from '../lib/formato.js';
 import {
   rangoPeriodo, enRango, resumen, variacion, serieDiaria, ocupacionPorCancha, ocupacionGlobal,
   proximosTurnos, historialTurnos, reservadoFuturo,
 } from '../lib/metricas.js';
+import { enlaceWhatsApp, mensajeRecordatorio } from '../../../utils/reservas.js';
 
 const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const FilaTurno = ({ turno, hoy, club, historial, onDetalles, onCancelar }) => {
   const fecha = desdeISO(turno.fecha);
-  const mensajeWhatsApp = `Hola! Te recordamos tu turno en ${club?.nombre} el día ${turno.fecha.split('-').reverse().join('/')} a las ${turno.hora_inicio}hs.`;
+  const recordatorio = turno.esBloqueo ? null : enlaceWhatsApp(
+    turno.telefono_cliente,
+    mensajeRecordatorio({ club: club?.nombre, cliente: turno.nombre_cliente, cancha: turno.nombre_cancha, fecha: turno.fecha, hora: turno.hora_inicio, total: turno.total }),
+  );
 
   const acciones = [
-    !turno.esBloqueo && { icono: CheckCircle, texto: 'Enviar WhatsApp', href: `https://wa.me/${String(turno.telefono_cliente).replace(/\D/g, '')}?text=${encodeURIComponent(mensajeWhatsApp)}` },
+    recordatorio && { icono: MessageCircle, texto: 'Recordarle el turno', href: recordatorio },
     { icono: Users, texto: 'Ver detalles', onClick: () => onDetalles(turno) },
     { icono: historial ? Trash2 : Ban, texto: turno.esBloqueo ? 'Liberar horario' : historial ? 'Eliminar registro' : 'Cancelar turno', onClick: () => onCancelar(turno), peligro: true },
   ];
@@ -42,7 +46,15 @@ const FilaTurno = ({ turno, hoy, club, historial, onDetalles, onCancelar }) => {
           </>
         )}
       </div>
+      <div className="dash-turno-acciones">
+      {recordatorio && !historial && (
+        <a className="dash-icon-btn dash-turno-recordar" href={recordatorio} target="_blank" rel="noopener noreferrer"
+          aria-label={`Recordarle el turno a ${turno.nombre_cliente} por WhatsApp`} title="Recordarle el turno por WhatsApp">
+          <MessageCircle size={18} />
+        </a>
+      )}
       <MenuAcciones items={acciones} etiqueta="Acciones del turno" />
+      </div>
     </li>
   );
 };

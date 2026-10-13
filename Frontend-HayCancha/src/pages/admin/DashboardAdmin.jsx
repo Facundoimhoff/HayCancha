@@ -317,7 +317,7 @@ const DashboardAdmin = () => {
 
       {modal?.tipo === 'turno' && <ModalTurno canchas={canchas} hoy={hoy} onGuardar={guardarTurno} onCerrar={cerrarModal} />}
       {modal?.tipo === 'bloqueo' && <ModalBloqueo canchas={canchas} hoy={hoy} onGuardar={guardarBloqueo} onCerrar={cerrarModal} />}
-      {modal?.tipo === 'detalles' && <ModalDetalles turno={modal.turno} onCancelar={pedirCancelarTurno} onCerrar={cerrarModal} />}
+      {modal?.tipo === 'detalles' && <ModalDetalles turno={modal.turno} club={miClub} onCancelar={pedirCancelarTurno} onCerrar={cerrarModal} />}
       {modal?.tipo === 'cancha' && <ModalCancha modo={modal.modo} inicial={modal.inicial} onGuardar={(form, archivos) => guardarCancha(form, archivos, modal.modo)} onCerrar={cerrarModal} />}
       {modal?.tipo === 'confirmar' && <ModalConfirmar titulo={modal.titulo} texto={modal.texto} textoBoton={modal.textoBoton} onConfirmar={modal.onConfirmar} onCerrar={cerrarModal} />}
     </div>

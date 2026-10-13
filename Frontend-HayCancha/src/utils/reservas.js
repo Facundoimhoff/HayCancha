@@ -89,8 +89,35 @@ export const cantidadesDesdeExtras = (extras) =>
 /** Solo dígitos, para armar links de WhatsApp. */
 export const soloDigitos = (telefono) => String(telefono || '').replace(/\D/g, '');
 
+/**
+ * Número listo para wa.me, que exige formato internacional. Los teléfonos se cargan como se dicen acá
+ * ("3564 609641"), así que a un número argentino sin código de país se le agrega el 549 de los celulares.
+ * Lo que ya viene con código de país (o no parece argentino) se deja como está.
+ */
+export const numeroWhatsApp = (telefono) => {
+  let numero = soloDigitos(telefono).replace(/^00/, '');
+  if (!numero) return '';
+  if (numero.startsWith('54')) {
+    const resto = numero.slice(2).replace(/^0/, '');
+    return resto.startsWith('9') ? `54${resto}` : `549${resto}`;
+  }
+  numero = numero.replace(/^0/, '');
+  return numero.length === 10 ? `549${numero}` : numero;
+};
+
+/** Recordatorio de un turno, para que el club lo mande por WhatsApp con un toque. */
+export const mensajeRecordatorio = ({ club, cliente, cancha, fecha, hora, total }) => {
+  const nombre = String(cliente || '').trim().split(/\s+/)[0];
+  const saludo = nombre ? `¡Hola ${nombre}!` : '¡Hola!';
+  const donde = [cancha, club].filter(Boolean).join(' · ');
+  const dia = fechaLarga(fecha);
+  const cuando = dia.charAt(0).toLowerCase() + dia.slice(1); // "Hoy, martes…" va en medio de la frase
+  const cobro = Number(total) > 0 ? ` Total: ${moneda(total)}.` : '';
+  return `${saludo} Te recordamos tu turno: ${donde}, ${cuando} a las ${String(hora).slice(0, 5)} hs.${cobro} Si no podés venir, avisanos así liberamos el horario. ¡Te esperamos!`;
+};
+
 export const enlaceWhatsApp = (telefono, texto = '') => {
-  const numero = soloDigitos(telefono);
+  const numero = numeroWhatsApp(telefono);
   if (!numero) return null;
   return `https://wa.me/${numero}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`;
 };

@@ -203,7 +203,7 @@
 
 /* ---------- Turnos ---------- */
 .dash-turnos { display: flex; flex-direction: column; }
-.dash-turno { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto 34px; align-items: center; gap: 14px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--color-slate-100); transition: background var(--dur-fast); }
+.dash-turno { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--color-slate-100); transition: background var(--dur-fast); }
 .dash-turno:last-child { border-bottom: 0; }
 .dash-turno:hover { background: var(--color-slate-50); }
 .dash-turno--pasado .dash-turno-nombre, .dash-turno--pasado .dash-turno-monto strong { color: var(--color-slate-600); }
@@ -458,7 +458,7 @@
 
 @media (max-width: 640px) {
   .dash-fila-2 { grid-template-columns: 1fr; }
-  .dash-turno { grid-template-columns: 44px minmax(0, 1fr) 34px; padding: 12px 10px 12px 14px; }
+  .dash-turno { grid-template-columns: 44px minmax(0, 1fr) auto; padding: 12px 10px 12px 14px; }
   .dash-turno-monto { grid-column: 2 / 3; grid-row: 2; align-items: flex-start; flex-direction: row; gap: 8px; }
   .dash-turno > .dash-menu { grid-row: 1 / span 2; grid-column: 3; }
   .dash-tabla .ocultar-sm { display: none; }
@@ -560,3 +560,9 @@
   .dash-compartir-acciones .dash-btn { width: 100%; justify-content: center; }
   .dash-compartir-texto { flex-direction: column; }
 }
+
+/* Recordatorio por WhatsApp en cada turno */
+.dash-turno-acciones { display: flex; align-items: center; gap: 2px; }
+.dash-turno-recordar { color: #128c7e; text-decoration: none; }
+.dash-turno-recordar:hover { background: #dcfce7; }
+.dash-modal-pie a.dash-btn { text-decoration: none; }

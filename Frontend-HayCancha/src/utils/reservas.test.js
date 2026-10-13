@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   proximosDias, fechaLarga, cuandoEs, totalDeTurno, totalSeleccion, extrasParaEnviar, cantidadesDesdeExtras,
-  enlaceWhatsApp, enlaceMapa, enlaceCalendario, precioDesde, deportesDelClub, yaEmpezo, partesDeFecha, fechaCorta,
+  enlaceWhatsApp, numeroWhatsApp, mensajeRecordatorio, enlaceMapa, enlaceCalendario, precioDesde, deportesDelClub, yaEmpezo, partesDeFecha, fechaCorta,
 } from './reservas.js';
 import { filtrarYOrdenar, FILTROS_INICIALES } from './filtrosClubes.js';
 
@@ -45,7 +45,19 @@ test('totales: cancha + extras y selección del editor', () => {
 });
 
 test('enlaces: WhatsApp, mapa y calendario', () => {
-  assert.equal(enlaceWhatsApp('(3564) 60-9641', 'Hola'), 'https://wa.me/3564609641?text=Hola');
+  assert.equal(enlaceWhatsApp('(3564) 60-9641', 'Hola'), 'https://wa.me/5493564609641?text=Hola');
+  // wa.me exige formato internacional: a un número argentino sin código de país se le agrega el 549
+  assert.equal(numeroWhatsApp('3564609641'), '5493564609641');
+  assert.equal(numeroWhatsApp('03564 609641'), '5493564609641');
+  assert.equal(numeroWhatsApp('+54 9 3564 609641'), '5493564609641');
+  assert.equal(numeroWhatsApp('+54 3564 609641'), '5493564609641');
+  assert.equal(numeroWhatsApp('0054 9 11 2345-6789'), '5491123456789');
+  assert.equal(numeroWhatsApp('123456'), '123456');
+  assert.equal(numeroWhatsApp('BLOQUEO'), '');
+  const recordatorio = mensajeRecordatorio({ club: 'Sport Club', cliente: 'Juan Pérez', cancha: 'Fútbol 5', fecha: '2026-10-17', hora: '20:00:00', total: 47000 });
+  assert.ok(recordatorio.startsWith('¡Hola Juan! Te recordamos tu turno: Fútbol 5 · Sport Club, '));
+  assert.ok(recordatorio.includes('a las 20:00 hs. Total: ') && recordatorio.includes('47.000'));
+  assert.ok(mensajeRecordatorio({ club: 'X', cliente: '', cancha: 'Y', fecha: '2026-10-17', hora: '20:00', total: 0 }).startsWith('¡Hola! Te recordamos'));
   assert.equal(enlaceWhatsApp(''), null);
   assert.match(enlaceMapa({ nombre: 'Club', direccion: 'Cabrera 4012', ciudad: 'Freyre' }), /query=Club%2C%20Cabrera%204012%2C%20Freyre$/);
   assert.equal(enlaceMapa({}), null);
