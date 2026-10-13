@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BarChart3, Users, LayoutGrid, Store, Building, LogOut, Menu, X, Building2, Star, CreditCard } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Users, LayoutGrid, Store, Building, LogOut, Menu, X, Building2, Star, CreditCard, Share2 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { subirImagen } from '../../services/storage';
 import { leerTodas } from '../../services/paginado';
@@ -19,6 +19,7 @@ import { estadoDeSuscripcion } from '../../utils/suscripcion';
 import Kiosco from './views/Kiosco.jsx';
 import Resenas from './views/Resenas.jsx';
 import MiPlan from './views/MiPlan.jsx';
+import Compartir from './views/Compartir.jsx';
 import { ModalTurno, ModalBloqueo, ModalDetalles, ModalCancha, ModalConfirmar } from './modals/modales.jsx';
 import './dashboard.css';
 
@@ -28,6 +29,7 @@ const NAV = [
     { id: 'metricas', texto: 'Reportes', icono: BarChart3 },
     { id: 'clientes', texto: 'Clientes', icono: Users },
     { id: 'resenas', texto: 'Reseñas', icono: Star },
+    { id: 'compartir', texto: 'Compartí tu club', icono: Share2 },
   ] },
   { seccion: 'Configuración', items: [
     { id: 'canchas', texto: 'Canchas', icono: LayoutGrid },
@@ -307,6 +309,7 @@ const DashboardAdmin = () => {
           )}
           {vista === 'kiosco' && <Kiosco clubId={miClub?.id} />}
           {vista === 'resenas' && <Resenas />}
+          {vista === 'compartir' && <Compartir club={miClub} canchas={canchas} />}
           {vista === 'perfil' && <MiClub miClub={miClub} setMiClub={setMiClub} />}
           {vista === 'plan' && <MiPlan estado={suscripcion} filas={filasSuscripcion || []} onCambio={cargarSuscripcion} />}
         </div>
