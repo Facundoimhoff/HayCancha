@@ -22,6 +22,7 @@ import Privacidad from './pages/user/Privacidad';
 import Terminos from './pages/user/Terminos';
 import CookieBanner from './pages/user/CookieBanner';
 import Funcionalidades from './pages/user/Funcionalidades';
+import NoEncontrada from './pages/user/NoEncontrada';
 import { AuthProvider } from './context/AuthProvider';
 import RutaProtegida from './components/RutaProtegida';
 
@@ -63,6 +64,7 @@ function RutasAnimadas() {
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/funcionalidades" element={<Funcionalidades />} />
+        <Route path="*" element={<NoEncontrada />} />
       </Routes>
     </div>
   );

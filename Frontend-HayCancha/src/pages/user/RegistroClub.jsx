@@ -11,16 +11,11 @@ import { usePrecioPlan } from '../../hooks/usePlanes';
 import { CampoTexto, CampoPassword } from '../../components/user/Formulario';
 import { evaluarPassword, validarTelefono, mensajeDeServidor } from '../../utils/validaciones';
 import { moneda } from '../../utils/reservas';
+import { leerPendiente, guardarPendiente, borrarPendiente, recordarPago, olvidarPago } from '../../utils/clubPendiente';
 import { CheckCircle2, ImagePlus, MapPin, Mail, Building2, Car } from 'lucide-react';
 import './RegistroClub.css';
 
 const ROLES_ADMIN = ['admin', 'superadmin'];
-const CLAVE_PENDIENTE = 'gridplay_club_pendiente';
-
-// { club: {...formData}, preapprovalId: string|null }
-const guardarPendiente = (datos) => { try { localStorage.setItem(CLAVE_PENDIENTE, JSON.stringify(datos)); } catch { /* localStorage puede fallar (modo privado): no es crítico */ } };
-const leerPendiente = () => { try { return JSON.parse(localStorage.getItem(CLAVE_PENDIENTE) || 'null'); } catch { return null; } };
-const borrarPendiente = () => { try { localStorage.removeItem(CLAVE_PENDIENTE); } catch { /* idem */ } };
 
 const AceptaTerminos = ({ checked, onChange, error }) => (
   <div className={`rg-terminos ${error ? 'con-error' : ''}`}>
@@ -41,8 +36,9 @@ const AceptaTerminos = ({ checked, onChange, error }) => (
  *  - Pago: /planes manda derecho a Mercado Pago. Se vuelve con ?preapproval_id=… y TODAVÍA sin cuenta;
  *    esta pantalla pide mail/contraseña y los datos del club juntos. Al enviar: signUp -> se vincula el
  *    pago con ese preapproval_id (recién ahí se confirma) -> registrar_club.
- * Si Supabase exige confirmar el mail antes de dar sesión, se guardan los datos del club (y el
- * preapproval_id, si venía pagando) para no pedirlos de nuevo cuando vuelva ya confirmado.
+ * El preapproval_id se guarda en el navegador apenas llega: si el dueño tiene que salir de esta pantalla
+ * (confirmar el mail, ingresar con una cuenta que ya tenía) el pago no se pierde. Los datos del club
+ * se guardan también cuando Supabase exige confirmar el mail antes de dar sesión.
  */
 const RegistroClub = () => {
   const navigate = useNavigate();
@@ -61,6 +57,7 @@ const RegistroClub = () => {
   const [imagenFile, setImagenFile] = useState(null);
   const [previewLogo, setPreviewLogo] = useState(null);
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [pagoRechazado, setPagoRechazado] = useState(false);
 
   const [cuenta, setCuenta] = useState({ email: '', password: '' });
   // Si venía de confirmar el mail, recupera lo que ya había tipeado del club.
@@ -79,6 +76,8 @@ const RegistroClub = () => {
     if (!cargandoSesion && user && esAdmin && !idPago) navigate('/panel', { replace: true });
   }, [cargandoSesion, user, esAdmin, idPago, navigate]);
 
+  useEffect(() => { if (idPagoUrl) recordarPago(idPagoUrl); }, [idPagoUrl]);
+
   useEffect(() => () => { if (previewLogo) URL.revokeObjectURL(previewLogo); }, [previewLogo]);
 
   // Al volver de Mercado Pago (o antes de ir a pagar) el backend tiene que estar despierto.
@@ -91,7 +90,9 @@ const RegistroClub = () => {
     let cancelado = false;
     (async () => {
       const { ok } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
-      if (!cancelado) navigate(`/panel?pago=${ok ? 'ok' : 'error'}`, { replace: true });
+      if (cancelado) return;
+      olvidarPago(); // salga bien o mal, no se reintenta solo en cada ingreso: el panel muestra el resultado
+      navigate(`/panel?pago=${ok ? 'ok' : 'error'}`, { replace: true });
     })();
     return () => { cancelado = true; };
   }, [cargandoSesion, user, esAdmin, idPago, navigate]);
@@ -110,10 +111,19 @@ const RegistroClub = () => {
     setErrores((prev) => ({ ...prev, logo: undefined }));
   };
 
+  // El pago no se pudo confirmar (o es de otra cuenta): se puede seguir igual con la prueba gratis.
+  const seguirSinPago = () => {
+    olvidarPago();
+    setPagoRechazado(false);
+    setErrorGeneral('');
+    navigate('/registro-club', { replace: true });
+  };
+
   const finalizar = async (e) => {
     e.preventDefault();
     setErrorGeneral('');
     setAviso('');
+    setPagoRechazado(false);
 
     const nuevosErrores = {};
     if (pideCredenciales) {
@@ -125,7 +135,6 @@ const RegistroClub = () => {
     if (!formData.ciudad.trim()) nuevosErrores.ciudad = 'Ingresá la ciudad.';
     if (!formData.direccion.trim()) nuevosErrores.direccion = 'Ingresá la dirección.';
     if (!validarTelefono(formData.telefono_contacto)) nuevosErrores.telefono_contacto = 'Solo números, entre 6 y 20 dígitos.';
-    if (!imagenFile) nuevosErrores.logo = 'Subí el logo de tu club (JPG, PNG o WebP).';
     if (!aceptaTerminos) nuevosErrores.terminos = 'Tenés que aceptar los términos para continuar.';
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length) {
@@ -148,32 +157,37 @@ const RegistroClub = () => {
         // Con confirmación de mail, Supabase no avisa que el email ya existe: devuelve un usuario sin identidades.
         if (data.user && data.user.identities?.length === 0) {
           setErrores({ email: 'Ya existe una cuenta con este email.', emailExistente: true });
-          setCargando(false);
           return;
         }
         if (!data.session) {
           guardarPendiente({ club: formData, preapprovalId: idPago });
           setAviso(modo === 'pagar'
-            ? '¡Ya pagaste! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes": ahí vinculamos tu pago y creamos tu club, sin pedirte nada de nuevo.'
-            : '¡Ya casi! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes" para terminar: no vas a tener que volver a cargar los datos del club.');
-          setCargando(false);
+            ? '¡Ya pagaste! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes": ahí vinculamos tu pago y creamos tu club con los datos que ya cargaste.'
+            : '¡Ya casi! Te enviamos un correo para confirmar tu cuenta. Confirmala y volvé a entrar desde "Panel de Clubes" para terminar: los datos del club ya quedaron cargados.');
           return;
         }
         cuentaUsuario = data.session.user;
       }
 
       if (modo === 'pagar') {
-        const { ok, data: datosPago } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
-        if (!ok) throw new Error(datosPago?.error || 'No pudimos confirmar tu pago. Si ya pagaste, esperá unos segundos y volvé a intentar.');
+        const { ok, status, data: datosPago } = await postApi('/api/vincular-suscripcion', { preapproval_id: idPago });
+        if (!ok) {
+          // Solo se ofrece seguir sin el pago si el servidor lo rechazó; si fue un corte de red, puede estar pago.
+          setPagoRechazado(status >= 400 && status < 500);
+          setErrorGeneral(datosPago?.error || 'No pudimos confirmar tu pago. Si ya pagaste, esperá unos segundos y volvé a intentar.');
+          return;
+        }
       }
 
-      let logoUrl;
-      try {
-        logoUrl = await subirImagen(imagenFile, 'logos');
-      } catch (err) {
-        setErrores({ logo: err.message || 'No pudimos subir el logo. Probá con otra imagen.' });
-        setCargando(false);
-        return;
+      // El logo es opcional: se puede cargar después desde "Mi club".
+      let logoUrl = '';
+      if (imagenFile) {
+        try {
+          logoUrl = await subirImagen(imagenFile, 'logos');
+        } catch (err) {
+          setErrores({ logo: err.message || 'No pudimos subir el logo. Probá con otra imagen o cargalo después desde tu panel.' });
+          return;
+        }
       }
 
       if (modo === 'prueba') {
@@ -281,7 +295,7 @@ const RegistroClub = () => {
                   <input id="logo-upload" type="file" accept={TIPOS_IMAGEN_ACEPTADOS} onChange={cambiarLogo} className="gp-solo-lector" aria-describedby="logo-ayuda" />
                 </label>
                 <small id="logo-ayuda" className={errores.logo ? 'gp-campo-error rg-logo-error' : 'gp-campo-ayuda'} role={errores.logo ? 'alert' : undefined}>
-                  {errores.logo || 'JPG, PNG o WebP, hasta 5 MB.'}
+                  {errores.logo || 'Opcional. JPG, PNG o WebP, hasta 5 MB.'}
                 </small>
               </div>
 
@@ -337,6 +351,11 @@ const RegistroClub = () => {
           )}
 
           {errorGeneral && <p className="gp-alerta gp-alerta--error" role="alert">{errorGeneral}</p>}
+          {pagoRechazado && (
+            <p className="gp-alerta gp-alerta--aviso">
+              ¿No llegaste a pagar? <button type="button" className="rg-enlace" onClick={seguirSinPago}>Empezá con la prueba gratis</button> y suscribite después desde tu panel.
+            </p>
+          )}
           {aviso && <p className="gp-alerta gp-alerta--exito" role="status">{aviso}</p>}
 
           <button type="submit" disabled={cargando} className="gp-btn gp-btn--primario rg-enviar">

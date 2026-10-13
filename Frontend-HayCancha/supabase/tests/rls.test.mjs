@@ -395,6 +395,30 @@ await como('authenticated', U_PRUEBA);
 a = await intenta('select public.iniciar_prueba()');
 ok('Prueba: no se puede reiniciar después de haberla usado', !!a.e, a.e);
 
+// Plan pago que se cancela o se pausa: sigue hasta el fin del período ya pago y después se frena
+const recibe = async () => { await como('anon'); return (await intenta(`select public.club_recibe_reservas('${CLUB_PRUEBA}') as r`)).r?.rows[0].r; };
+const planPago = async (sql) => { await raiz(); await db.query(`update public.suscripciones set ${sql} where user_id = '${U_PRUEBA}' and plan = 'Full'`); };
+await planPago("estado = 'cancelada', vence_en = now() + interval '10 days'");
+ok('Baja: con el período pago todavía vigente el club sigue recibiendo reservas', await recibe() === true);
+await planPago("estado = 'cancelada', vence_en = now() - interval '1 day'");
+ok('Baja: terminado el período pago el club NO recibe reservas', await recibe() === false);
+await como('authenticated', U.cliente);
+a = await intenta(`select public.crear_reserva('${CANCHA_PRUEBA}', '${sumar(4)}', '11:00', 'Laura Test', '3564123456')`);
+ok('Baja: terminado el período pago un jugador NO puede reservar', a.e?.includes('CLUB_SIN_SUSCRIPCION'), a.e);
+await planPago("estado = 'cancelada', vence_en = null");
+ok('Baja: una cancelación sin fecha de fin corta en el momento', await recibe() === false);
+await planPago("estado = 'pausada', vence_en = null");
+ok('Baja: un plan pausado tampoco recibe reservas', await recibe() === false);
+await planPago("estado = 'activa', vence_en = null");
+ok('Baja: al reactivarse el plan el club vuelve a recibir reservas', await recibe() === true);
+await raiz();
+await db.query(`update public.suscripciones set estado = 'cancelada', vence_en = now() + interval '10 days' where user_id = '${U_PRUEBA}' and plan = 'prueba'`);
+await planPago("estado = 'cancelada', vence_en = null");
+ok('Baja: una prueba cancelada nunca cuenta como período pago', await recibe() === false);
+await planPago("estado = 'activa', vence_en = null");
+a = await (async () => { await como('anon'); return intenta(`select public.club_recibe_reservas('${CLUB_SANI}') as sani, public.club_recibe_reservas('${CLUB_SPORT}') as sport`); })();
+ok('Baja: los clubes con plan "legado" siguen recibiendo reservas', a.r?.rows[0].sani === true && a.r.rows[0].sport === true, a.e);
+
 // ---------- 11. Bucket ----------
 await raiz();
 const b = (await db.query("select file_size_limit::int l, allowed_mime_types m from storage.buckets where id='imagenes'")).rows[0];

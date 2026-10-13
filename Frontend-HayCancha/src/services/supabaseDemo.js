@@ -175,14 +175,16 @@ const resenas = resenasBase.map(([club_id, autor, estrellas, comentario, delta])
   created_at: new Date(Date.now() + delta * 86400000).toISOString(), oculta: false,
 }));
 
-// Escenarios de suscripción del demo: localStorage.setItem('demoRol', 'cliente' | 'admin-prueba' | 'admin-prueba-corta' | 'admin-vencida')
+// Escenarios de suscripción del demo: localStorage.setItem('demoRol', 'cliente' | 'admin-prueba' | 'admin-prueba-corta' | 'admin-vencida' | 'admin-baja' | 'admin-cancelada')
 const enDias = (n) => new Date(Date.now() + n * 86400000).toISOString();
 function suscripcionesDemo() {
   if (ESCENARIO === 'cliente') return [];
   if (ESCENARIO === 'admin-prueba') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(12) }];
   if (ESCENARIO === 'admin-prueba-corta') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(3) }];
   if (ESCENARIO === 'admin-vencida') return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: enDias(-2) }];
-  return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full', vence_en: null }];
+  if (ESCENARIO === 'admin-baja') return [{ user_id: ID_USUARIO, estado: 'cancelada', plan: 'Full', vence_en: enDias(18), monto: 50000, mp_preapproval_id: 'demo' }];
+  if (ESCENARIO === 'admin-cancelada') return [{ user_id: ID_USUARIO, estado: 'cancelada', plan: 'Full', vence_en: enDias(-3), monto: 50000, mp_preapproval_id: 'demo' }];
+  return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full', vence_en: null, monto: 50000, mp_preapproval_id: 'demo' }];
 }
 
 const tablas = {
@@ -237,11 +239,13 @@ class Consulta {
   }
   order(col, { ascending = true } = {}) { this.orden.push([col, ascending]); return this; }
   limit(n) { this.tope = n; return this; }
+  range(desde, hasta) { this.rango = [desde, hasta]; return this; }
   filas() {
     let filas = (tablas[this.tabla] || []).filter((f) => this.filtros.every((fn) => fn(f)) && esPropia(this.tabla, f));
     for (const [col, asc] of [...this.orden].reverse()) {
       filas = [...filas].sort((a, b) => (a[col] > b[col] ? 1 : a[col] < b[col] ? -1 : 0) * (asc ? 1 : -1));
     }
+    if (this.rango) filas = filas.slice(this.rango[0], this.rango[1] + 1);
     return (this.tope ? filas.slice(0, this.tope) : filas).map((f) => conRelaciones(this.tabla, f));
   }
   single() { return Promise.resolve({ data: this.filas()[0] ?? null, error: null }); }
@@ -293,7 +297,7 @@ const rpcs = {
     tablas.suscripciones.push({ user_id: ID_USUARIO, estado: 'activa', plan: 'prueba', vence_en: vence });
     return ok(vence);
   },
-  club_recibe_reservas: () => ok(ESCENARIO !== 'admin-vencida'),
+  club_recibe_reservas: () => ok(!['admin-vencida', 'admin-cancelada'].includes(ESCENARIO)),
   resenas_destacadas: ({ p_limite = 6 } = {}) => ok(
     resenas.filter((r) => !r.oculta && r.estrellas >= 4 && (r.comentario || '').trim().length >= 20)
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, p_limite)

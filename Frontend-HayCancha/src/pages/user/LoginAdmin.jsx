@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Zap, KeyRound, Store } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { precalentarApi } from '../../services/api';
 import { CampoTexto, CampoPassword } from '../../components/user/Formulario';
+import { pagoPendiente } from '../../utils/clubPendiente';
 import './Auth.css';
 
 const ROLES_ADMIN = ['admin', 'superadmin'];
@@ -33,7 +34,8 @@ const LoginAdmin = () => {
 
       // El rol sale de public.usuarios (lo escribe el servidor)
       const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', data.user.id).maybeSingle();
-      navigate(ROLES_ADMIN.includes(perfil?.rol) ? '/panel' : '/registro-club');
+      // Con un pago de Mercado Pago sin vincular, /registro-club lo confirma primero (también para quien ya tiene club).
+      navigate(ROLES_ADMIN.includes(perfil?.rol) && !pagoPendiente() ? '/panel' : '/registro-club');
     } catch (err) {
       const texto = err?.message || '';
       if (texto.includes('not confirmed')) setError('Tenés que confirmar tu correo antes de ingresar. Revisá tu bandeja de entrada.');

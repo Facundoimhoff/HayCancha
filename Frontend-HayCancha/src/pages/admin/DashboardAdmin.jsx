@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable';
 import { LayoutDashboard, BarChart3, Users, LayoutGrid, Store, Building, LogOut, Menu, X, Building2 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { subirImagen } from '../../services/storage';
+import { leerTodas } from '../../services/paginado';
 import { Vacio } from './components/ui.jsx';
 import { fechaISO, fechaCorta, moneda } from './lib/formato.js';
 import { enriquecerTurnos } from './lib/metricas.js';
@@ -69,13 +70,15 @@ const DashboardAdmin = () => {
 
     if (!canchasData?.length) { setTurnosCrudos([]); setCargando(false); return; }
 
-    const { data: turnosData } = await supabase
+    const idsCanchas = canchasData.map((c) => c.id);
+    const turnosData = await leerTodas(() => supabase
       .from('turnos')
       .select('*')
-      .in('cancha_id', canchasData.map((c) => c.id))
+      .in('cancha_id', idsCanchas)
       .order('fecha', { ascending: true })
-      .order('hora_inicio', { ascending: true });
-    setTurnosCrudos(turnosData || []);
+      .order('hora_inicio', { ascending: true })
+      .order('id', { ascending: true }));
+    setTurnosCrudos(turnosData);
     setCargando(false);
   }, [navigate]);
 
