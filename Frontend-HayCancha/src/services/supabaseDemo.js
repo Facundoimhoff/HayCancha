@@ -189,11 +189,51 @@ function suscripcionesDemo() {
   return [{ user_id: ID_USUARIO, estado: 'activa', plan: 'Full', vence_en: null, monto: 50000, mp_preapproval_id: 'demo' }];
 }
 
+// ---- Turnos fijos: un turno que se repite todos los martes y un bloqueo de los jueves ----
+const SEMANAS_FIJOS = 9;
+const generarSemanas = (fijo, lista, desdeISO = hoyLocalISO()) => {
+  const resultado = { creados: 0, ocupadas: [] };
+  const fecha = new Date(`${desdeISO}T12:00:00`);
+  fecha.setDate(fecha.getDate() + ((fijo.dia_semana - fecha.getDay() + 7) % 7));
+  for (let i = 0; i < SEMANAS_FIJOS; i++, fecha.setDate(fecha.getDate() + 7)) {
+    const dia = iso(fecha);
+    if (fijo.hasta && dia > fijo.hasta) break;
+    if (new Date(`${dia}T${fijo.hora_inicio}:00`) <= new Date()) continue;
+    if (lista.some((t) => t.cancha_id === fijo.cancha_id && t.fecha === dia && t.hora_inicio === fijo.hora_inicio)) { resultado.ocupadas.push(dia); continue; }
+    lista.push({
+      id: Math.max(0, ...lista.map((t) => t.id)) + 1, cancha_id: fijo.cancha_id, fecha: dia, hora_inicio: fijo.hora_inicio,
+      nombre_cliente: fijo.nombre_cliente, telefono_cliente: fijo.es_bloqueo ? 'BLOQUEO' : fijo.telefono_cliente,
+      precio_final: fijo.es_bloqueo ? null : fijo.precio, extras: null, turno_fijo_id: fijo.id,
+    });
+    resultado.creados++;
+  }
+  return resultado;
+};
+function hoyLocalISO() { return iso(new Date()); }
+
+const turnosFijos = [
+  { id: 1, cancha_id: 'c1', dia_semana: 2, hora_inicio: '21:00', nombre_cliente: 'Lucas Pérez (los del martes)', telefono_cliente: '3564100001', es_bloqueo: false, precio: 42000, desde: hoyLocalISO(), hasta: null, activo: true },
+  { id: 2, cancha_id: 'c3', dia_semana: 4, hora_inicio: '18:00', nombre_cliente: 'Bloqueo por: Escuelita de pádel', telefono_cliente: 'BLOQUEO', es_bloqueo: true, precio: null, desde: hoyLocalISO(), hasta: null, activo: true },
+];
+const turnosConFijos = () => {
+  const lista = [...generarTurnos(), ...turnosJugador()];
+  for (const fijo of turnosFijos) {
+    // El turno fijo ocupa su horario: se sacan los turnos de ejemplo que caían justo ahí
+    for (let i = lista.length - 1; i >= 0; i--) {
+      const t = lista[i];
+      if (t.cancha_id === fijo.cancha_id && t.hora_inicio === fijo.hora_inicio && new Date(`${t.fecha}T12:00:00`).getDay() === fijo.dia_semana && t.fecha >= hoyLocalISO()) lista.splice(i, 1);
+    }
+    generarSemanas(fijo, lista);
+  }
+  return lista;
+};
+
 const tablas = {
   usuarios: [{ id: ID_USUARIO, nombre_completo: 'Admin Demo', telefono: null, rol: ESCENARIO.startsWith('cliente') ? 'cliente' : 'admin' }],
   clubes: [club, ...clubesJugador],
   canchas: [...canchas, ...canchasJugador],
-  turnos: [...generarTurnos(), ...turnosJugador()],
+  turnos: turnosConFijos(),
+  turnos_fijos: turnosFijos,
   productos: [...productos, ...productosJugador],
   resenas,
   kiosco: [],
@@ -347,6 +387,36 @@ const rpcs = {
     const id = Math.max(...tablas.turnos.map((t) => t.id)) + 1;
     tablas.turnos.push({ id, cancha_id: p_cancha_id, fecha: p_fecha, hora_inicio: p_hora, nombre_cliente: p_nombre, telefono_cliente: p_telefono, precio_final: cancha.precio_hora, extras: extras.length ? extras : null, usuario_id: ID_USUARIO });
     return ok(id);
+  },
+  crear_turno_fijo: ({ p_cancha_id, p_desde, p_hora, p_nombre, p_telefono, p_hasta = null, p_bloqueo = false }) => {
+    if (!p_desde || p_desde < hoyISO()) return falla('FECHA_INVALIDA');
+    const cancha = tablas.canchas.find((c) => c.id === p_cancha_id && c.club_id === ID_CLUB);
+    if (!cancha) return falla('NO_PERMITIDO');
+    const fijo = {
+      id: Math.max(0, ...tablas.turnos_fijos.map((f) => f.id)) + 1, cancha_id: p_cancha_id,
+      dia_semana: new Date(`${p_desde}T12:00:00`).getDay(), hora_inicio: p_hora,
+      nombre_cliente: p_bloqueo ? `Bloqueo por: ${(p_nombre || '').trim() || 'Mantenimiento'}` : p_nombre,
+      telefono_cliente: p_bloqueo ? 'BLOQUEO' : p_telefono, es_bloqueo: Boolean(p_bloqueo),
+      precio: p_bloqueo ? null : cancha.precio_hora, desde: p_desde, hasta: p_hasta, activo: true,
+    };
+    tablas.turnos_fijos.push(fijo);
+    return ok({ ...generarSemanas(fijo, tablas.turnos, p_desde), id: fijo.id });
+  },
+  terminar_turno_fijo: ({ p_id }) => {
+    const fijo = tablas.turnos_fijos.find((f) => f.id === p_id);
+    if (!fijo) return falla('NO_PERMITIDO');
+    fijo.activo = false;
+    const futuros = tablas.turnos.filter((t) => t.turno_fijo_id === p_id && !yaPaso(t.fecha, t.hora_inicio));
+    for (const t of futuros) tablas.turnos.splice(tablas.turnos.indexOf(t), 1);
+    return ok(futuros.length);
+  },
+  extender_mis_turnos_fijos: () => ok(0),
+  actualizar_precio_turnos_fijos: ({ p_cancha_id }) => {
+    const precio = tablas.canchas.find((c) => c.id === p_cancha_id)?.precio_hora;
+    const ids = tablas.turnos_fijos.filter((f) => f.cancha_id === p_cancha_id && f.activo && !f.es_bloqueo).map((f) => { f.precio = precio; return f.id; });
+    const futuros = tablas.turnos.filter((t) => ids.includes(t.turno_fijo_id) && !yaPaso(t.fecha, t.hora_inicio));
+    for (const t of futuros) t.precio_final = precio;
+    return ok(futuros.length);
   },
   actualizar_extras: ({ p_turno_id, p_extras }) => {
     const turno = tablas.turnos.find((t) => t.id === p_turno_id && t.usuario_id === ID_USUARIO);

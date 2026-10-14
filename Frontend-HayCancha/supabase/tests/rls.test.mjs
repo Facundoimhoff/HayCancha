@@ -533,6 +533,86 @@ await como('anon');
 a = await intenta('select * from public.avisos_enviados');
 ok('Avisos: ni el dueño ni el anónimo leen o escriben el registro de avisos', leeDueno && escribeDueno && !!a.e, a.e);
 
+// ---------- 15. Turnos fijos ----------
+await raiz();
+const U_JUG = 'c1c2c3c4-0000-4000-8000-000000000015';
+await db.query(`insert into auth.users (id, email) values ('${U_JUG}', 'jugador15@test.com')`);
+// Primer día de la serie: dentro de 2 a 8 días, para no depender de la hora actual
+const d0 = 2;
+const semanasEsperadas = Math.floor((63 - d0) / 7) + 1;
+await db.query(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente) values ('${C67}', '${sumar(d0 + 14)}', '21:00', 'Ya reservado', '3564000001')`);
+
+await como('authenticated', U.sani);
+a = await intenta(`select public.crear_turno_fijo('${C67}', '${sumar(d0)}', '21:00', 'Los del martes', '3564111222') r`);
+const fijo = a.r?.rows[0].r;
+ok('Turnos fijos: el admin crea uno y se generan las semanas hasta 63 días', !a.e && fijo?.creados === semanasEsperadas - 1, a.e || JSON.stringify(fijo));
+ok('Turnos fijos: la semana ya ocupada se saltea y se informa', JSON.stringify(fijo?.ocupadas) === JSON.stringify([sumar(d0 + 14)]), JSON.stringify(fijo?.ocupadas));
+a = await intenta(`select count(*)::int n, min(precio_final)::float pmin, max(precio_final)::float pmax, count(distinct extract(dow from fecha))::int dias from public.turnos where turno_fijo_id = ${fijo?.id}`);
+ok('Turnos fijos: todos caen el mismo día de la semana con el precio de la cancha', a.r?.rows[0].n === fijo?.creados && a.r.rows[0].pmin === 67000 && a.r.rows[0].pmax === 67000 && a.r.rows[0].dias === 1, JSON.stringify(a.r?.rows[0]));
+a = await intenta('select public.extender_mis_turnos_fijos() n');
+ok('Turnos fijos: volver a extender no duplica nada', a.r?.rows[0].n === 0, a.e || `creó ${a.r?.rows[0].n}`);
+a = await intenta(`delete from public.turnos where turno_fijo_id = ${fijo?.id} and fecha = '${sumar(d0 + 7)}' returning id`);
+await intenta('select public.extender_mis_turnos_fijos()');
+a = await intenta(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id} and fecha = '${sumar(d0 + 7)}'`);
+ok('Turnos fijos: un día cancelado no se vuelve a crear', a.r?.rows[0].n === 0, a.e);
+
+await como('authenticated', U.sport);
+a = await intenta('select count(*)::int n from public.turnos_fijos');
+ok('Turnos fijos: otro dueño no ve los turnos fijos ajenos', a.r?.rows[0].n === 0, a.e);
+a = await intenta(`select public.crear_turno_fijo('${C67}', '${sumar(d0)}', '10:00', 'Intruso', '3564111222')`);
+ok('Turnos fijos: otro dueño no puede crear uno en una cancha ajena', a.e?.includes('NO_PERMITIDO'), a.e);
+a = await intenta(`select public.terminar_turno_fijo(${fijo?.id})`);
+ok('Turnos fijos: otro dueño no puede terminar uno ajeno', a.e?.includes('NO_PERMITIDO'), a.e);
+a = await intenta(`insert into public.turnos_fijos (cancha_id, dia_semana, hora_inicio, nombre_cliente, telefono_cliente, desde) values ('${C_SPORT_FUTBOL}', 1, '10:00', 'Directo', '3564111222', '${sumar(1)}')`);
+ok('Turnos fijos: nadie inserta reglas sin pasar por la función', !!a.e, a.e);
+await como('anon');
+a = await intenta(`select public.crear_turno_fijo('${C67}', '${sumar(d0)}', '10:00', 'Anon', '3564111222')`);
+ok('Turnos fijos: el anónimo no puede crear', !!a.e, a.e);
+
+await como('authenticated', U_JUG);
+a = await intenta(`select public.crear_reserva('${C67}', '${sumar(d0 + 21)}', '21:00', 'Jugador', '3564222333')`);
+ok('Turnos fijos: un jugador no puede reservar el horario de un turno fijo', a.e?.includes('SLOT_OCUPADO'), a.e);
+a = await intenta(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`);
+ok('Turnos fijos: el jugador no ve los turnos fijos del club', a.r?.rows[0].n === 0, a.e);
+
+await como('authenticated', U.sani);
+await intenta(`update public.canchas set precio_hora = 70000 where id = '${C67}'`);
+a = await intenta(`select max(precio_final)::float p from public.turnos where turno_fijo_id = ${fijo?.id}`);
+ok('Turnos fijos: si el dueño no elige actualizar, mantienen el precio anterior', a.r?.rows[0].p === 67000, JSON.stringify(a.r?.rows[0]));
+a = await intenta(`select public.actualizar_precio_turnos_fijos('${C67}') n`);
+const actualizados = a.r?.rows[0].n;
+a = await intenta(`select min(t.precio_final)::float tp, max(f.precio)::float fp from public.turnos t join public.turnos_fijos f on f.id = t.turno_fijo_id where f.id = ${fijo?.id}`);
+ok('Turnos fijos: al elegir actualizar, pasan al precio nuevo (turnos y regla)', actualizados > 0 && a.r?.rows[0].tp === 70000 && a.r.rows[0].fp === 70000, a.e || JSON.stringify(a.r?.rows[0]));
+
+a = await intenta(`select public.crear_turno_fijo('${C_SANI2}', '${sumar(d0 + 1)}', '18:00', 'Escuelita', '', null, true) r`);
+a = await intenta(`select nombre_cliente, telefono_cliente, precio_final from public.turnos where turno_fijo_id = ${a.r?.rows[0].r?.id} limit 1`);
+ok('Turnos fijos: también sirven para bloqueos (sin precio)', a.r?.rows[0]?.telefono_cliente === 'BLOQUEO' && a.r.rows[0].precio_final === null && a.r.rows[0].nombre_cliente === 'Bloqueo por: Escuelita', JSON.stringify(a.r?.rows[0]));
+
+a = await intenta(`select public.crear_turno_fijo('${C67}', '${sumar(d0)}', '22:00', 'Con fin', '3564111222', '${sumar(d0 + 7)}') r`);
+ok('Turnos fijos: con fecha de fin, solo se generan las semanas hasta ahí', a.r?.rows[0].r?.creados === 2, a.e || JSON.stringify(a.r?.rows[0].r));
+a = await intenta(`select public.crear_turno_fijo('${C67}', '${sumar(-7)}', '23:00', 'Pasado', '3564111222')`);
+ok('Turnos fijos: no se puede empezar en una fecha pasada', a.e?.includes('FECHA_INVALIDA'), a.e);
+
+// Pasa el tiempo: el backend (service_role) agrega las semanas que faltan
+await raiz();
+await db.query(`update public.turnos_fijos set generado_hasta = generado_hasta - 14 where id = ${fijo?.id}`);
+await db.query(`delete from public.turnos where turno_fijo_id = ${fijo?.id} and fecha > (select generado_hasta from public.turnos_fijos where id = ${fijo?.id})`);
+const antes = (await db.query(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`)).rows[0].n;
+await como('authenticated', U.sani);
+a = await intenta('select public.extender_turnos_fijos()');
+ok('Turnos fijos: la extensión general es solo para el backend', !!a.e, a.e);
+await como('service_role', null);
+a = await intenta('select public.extender_turnos_fijos() n');
+const despues = (await db.query(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`)).rows[0].n;
+ok('Turnos fijos: el backend agrega las semanas nuevas', !a.e && despues === antes + 2, a.e || `antes ${antes}, después ${despues}`);
+
+await como('authenticated', U.sani);
+a = await intenta(`select public.terminar_turno_fijo(${fijo?.id}) n`);
+const quedan = (await intenta(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`)).r?.rows[0].n;
+await intenta('select public.extender_mis_turnos_fijos()');
+const quedanLuego = (await intenta(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`)).r?.rows[0].n;
+ok('Turnos fijos: terminarlo borra los turnos que vienen y no genera más', a.r?.rows[0].n > 0 && quedan === 0 && quedanLuego === 0, a.e || `borró ${a.r?.rows[0].n}, quedan ${quedan}/${quedanLuego}`);
+
 // ---------- Resumen ----------
 const fallos = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FALLA') + ' ' + r.nombre + (r.ok || !r.detalle ? '' : '  -> ' + r.detalle));

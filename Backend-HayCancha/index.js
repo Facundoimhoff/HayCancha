@@ -449,6 +449,19 @@ async function revisarPruebas() {
 
 const revisarPruebasSinRomper = () => revisarPruebas().catch((error) => console.error('Error al revisar las pruebas gratis:', error));
 
+// Turnos fijos: agrega las semanas que faltan (la base los mantiene cargados 63 días adelante).
+// Si la migración turnos_fijos todavía no está aplicada, la función no existe y no pasa nada.
+async function extenderTurnosFijos() {
+  if (!supabaseAdmin) return;
+  const { data, error } = await supabaseAdmin.rpc('extender_turnos_fijos');
+  if (error) {
+    if (error.code !== 'PGRST202') console.error('No se pudieron extender los turnos fijos:', error.message);
+    return;
+  }
+  if (data) console.log(`Turnos fijos: ${data} turnos nuevos cargados`);
+}
+const extenderTurnosFijosSinRomper = () => extenderTurnosFijos().catch((error) => console.error('Error al extender los turnos fijos:', error));
+
 // Las rutas /api/buscar y /api/clubes/:id devolvían datos de prueba fijos y no las usa el frontend
 // (consulta Supabase directamente, protegido por RLS): se eliminaron para no exponer respuestas falsas.
 
@@ -462,4 +475,6 @@ app.listen(PORT, () => {
   console.log(correoConfigurado() ? 'Avisos por mail: encendidos' : 'Avisos por mail: apagados (faltan RESEND_API_KEY / CORREO_REMITENTE)');
   setTimeout(revisarPruebasSinRomper, 60_000).unref();
   setInterval(revisarPruebasSinRomper, 60 * 60_000).unref();
+  setTimeout(extenderTurnosFijosSinRomper, 90_000).unref();
+  setInterval(extenderTurnosFijosSinRomper, 60 * 60_000).unref();
 });

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Ban, Plus, DollarSign, CalendarCheck, Gauge, CalendarClock, Users, MessageCircle, Trash2, Inbox, MapPin } from 'lucide-react';
+import { Ban, Plus, DollarSign, CalendarCheck, Gauge, CalendarClock, Users, MessageCircle, Trash2, Inbox, MapPin, Repeat } from 'lucide-react';
 import { KpiCard, Panel, Chip, Vacio, Progreso, Segmentado, MenuAcciones } from '../components/ui.jsx';
-import { moneda, etiquetaDia, pluralizar, desdeISO } from '../lib/formato.js';
+import { moneda, etiquetaDia, pluralizar, desdeISO, fechaCorta } from '../lib/formato.js';
+import { describirTurnoFijo } from '../lib/turnosFijos.js';
 import {
   rangoPeriodo, enRango, resumen, variacion, serieDiaria, ocupacionPorCancha, ocupacionGlobal,
   proximosTurnos, historialTurnos, reservadoFuturo,
@@ -36,6 +37,7 @@ const FilaTurno = ({ turno, hoy, club, historial, onDetalles, onCancelar }) => {
         <p className="dash-turno-detalle">
           <span>{etiquetaDia(turno.fecha, hoy)} · {turno.hora_inicio} hs</span>
           <span className="dash-turno-cancha"><MapPin size={12} />{turno.nombre_cancha}</span>
+          {turno.esFijo && <span className="dash-turno-fijo" title="Se repite todas las semanas"><Repeat size={12} />Fijo</span>}
         </p>
       </div>
       <div className="dash-turno-monto">
@@ -59,8 +61,46 @@ const FilaTurno = ({ turno, hoy, club, historial, onDetalles, onCancelar }) => {
   );
 };
 
+/** Lista de turnos fijos activos (null = la base todavía no los tiene: no se muestra nada). */
+const PanelTurnosFijos = ({ turnosFijos, canchas, onNuevoTurno, onTerminar }) => {
+  if (!turnosFijos) return null;
+  const nombreCancha = (id) => canchas.find((c) => c.id === id)?.nombre || '—';
+  return (
+    <Panel titulo="Turnos fijos" descripcion="Se cargan solos todas las semanas" flush>
+      {turnosFijos.length === 0 ? (
+        <Vacio icono={Repeat} titulo="Todavía no hay turnos fijos"
+          texto={'Para quien juega siempre el mismo día y a la misma hora: al cargar un turno, marcá "Repetir todas las semanas".'}
+          accion={<button type="button" className="dash-btn dash-btn--secundario" onClick={onNuevoTurno}><Plus size={16} /> Cargar turno fijo</button>} />
+      ) : (
+        <ul className="dash-turnos">
+          {turnosFijos.map((f) => (
+            <li key={f.id} className={`dash-turno ${f.es_bloqueo ? 'dash-turno--bloqueo' : ''}`}>
+              <div className="dash-turno-fecha dash-turno-fecha--fijo" aria-hidden="true"><Repeat size={18} /></div>
+              <div className="dash-turno-info">
+                <p className="dash-turno-nombre">{f.es_bloqueo ? <><Ban size={14} /> {f.nombre_cliente}</> : f.nombre_cliente}</p>
+                <p className="dash-turno-detalle">
+                  <span>{describirTurnoFijo(f)}</span>
+                  <span className="dash-turno-cancha"><MapPin size={12} />{nombreCancha(f.cancha_id)}</span>
+                  {f.hasta && <span>hasta el {fechaCorta(f.hasta)}</span>}
+                </p>
+              </div>
+              <div className="dash-turno-monto">
+                {f.es_bloqueo ? <Chip tono="ambar">Bloqueo</Chip> : <strong>{moneda(f.precio)}</strong>}
+              </div>
+              <div className="dash-turno-acciones">
+                <MenuAcciones items={[{ icono: Trash2, texto: f.es_bloqueo ? 'Terminar bloqueo fijo' : 'Terminar turno fijo', onClick: () => onTerminar(f), peligro: true }]}
+                  etiqueta={`Acciones del turno fijo de ${f.nombre_cliente}`} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+};
+
 /** Pantalla principal: indicadores del mes, próximos turnos / historial y ocupación por cancha. */
-const VistaGeneral = ({ club, turnos, canchas, hoy, onNuevoTurno, onBloqueo, onDetalles, onCancelar }) => {
+const VistaGeneral = ({ club, turnos, canchas, hoy, turnosFijos, onNuevoTurno, onBloqueo, onDetalles, onCancelar, onTerminarFijo }) => {
   const [pestana, setPestana] = useState('proximos');
 
   const datos = useMemo(() => {
@@ -157,6 +197,8 @@ const VistaGeneral = ({ club, turnos, canchas, hoy, onNuevoTurno, onBloqueo, onD
           )}
         </Panel>
       </div>
+
+      <PanelTurnosFijos turnosFijos={turnosFijos} canchas={canchas} onNuevoTurno={onNuevoTurno} onTerminar={onTerminarFijo} />
     </>
   );
 };

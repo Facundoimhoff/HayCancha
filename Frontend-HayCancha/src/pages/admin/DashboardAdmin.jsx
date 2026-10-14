@@ -5,7 +5,8 @@ import { supabase } from '../../services/supabase';
 import { subirImagen } from '../../services/storage';
 import { leerTodas } from '../../services/paginado';
 import { Vacio } from './components/ui.jsx';
-import { fechaISO, fechaCorta, moneda } from './lib/formato.js';
+import { fechaISO, fechaCorta, moneda, pluralizar } from './lib/formato.js';
+import { describirTurnoFijo, fijosConPrecio, mensajeTurnoFijo, resumenCreacion } from './lib/turnosFijos.js';
 import { enriquecerTurnos } from './lib/metricas.js';
 import { canchaVacia, canchaParaEditar } from './lib/deportes.js';
 import VistaGeneral from './views/VistaGeneral.jsx';
@@ -20,7 +21,7 @@ import Kiosco from './views/Kiosco.jsx';
 import Resenas from './views/Resenas.jsx';
 import MiPlan from './views/MiPlan.jsx';
 import Compartir from './views/Compartir.jsx';
-import { ModalTurno, ModalBloqueo, ModalDetalles, ModalCancha, ModalConfirmar } from './modals/modales.jsx';
+import { ModalTurno, ModalBloqueo, ModalDetalles, ModalCancha, ModalConfirmar, ModalCancelarFijo } from './modals/modales.jsx';
 import './dashboard.css';
 
 const NAV = [
@@ -54,6 +55,7 @@ const DashboardAdmin = () => {
   const resultadoPago = new URLSearchParams(window.location.search).get('pago'); // 'ok' | 'error' al volver de Mercado Pago
   const [canchas, setCanchas] = useState([]);
   const [turnosCrudos, setTurnosCrudos] = useState([]);
+  const [turnosFijos, setTurnosFijos] = useState(null); // null = la base todavía no tiene turnos fijos
   const [modal, setModal] = useState(null); // { tipo, ...datos }
   const [exportando, setExportando] = useState(null); // 'pdf' | 'excel' mientras se genera el archivo
   const [errorExportar, setErrorExportar] = useState('');
@@ -82,6 +84,15 @@ const DashboardAdmin = () => {
     if (!canchasData?.length) { setTurnosCrudos([]); setCargando(false); return; }
 
     const idsCanchas = canchasData.map((c) => c.id);
+    // Antes de leer los turnos, completa las semanas que falten de los turnos fijos (el backend también lo hace cada hora).
+    const { data: fijosData, error: errorFijos } = await supabase.from('turnos_fijos').select('*').in('cancha_id', idsCanchas).eq('activo', true).order('dia_semana').order('hora_inicio');
+    if (errorFijos) {
+      setTurnosFijos(null);
+    } else {
+      setTurnosFijos(fijosData || []);
+      if (fijosData?.length) await supabase.rpc('extender_mis_turnos_fijos');
+    }
+
     const turnosData = await leerTodas(() => supabase
       .from('turnos')
       .select('*')
@@ -102,14 +113,28 @@ const DashboardAdmin = () => {
   const cerrarSesion = async () => { await supabase.auth.signOut(); navigate('/'); };
 
   // ---------- Turnos ----------
+  /** Crea un turno fijo y devuelve el resumen para mostrar en la ventana (no la cierra). */
+  const crearTurnoFijo = async ({ cancha_id, fecha, hora_inicio, hasta }, nombre, telefono, bloqueo) => {
+    const { data, error } = await supabase.rpc('crear_turno_fijo', {
+      p_cancha_id: cancha_id, p_desde: fecha, p_hora: hora_inicio, p_nombre: nombre, p_telefono: telefono,
+      p_hasta: hasta || null, p_bloqueo: bloqueo,
+    });
+    if (error) throw new Error(mensajeTurnoFijo(error));
+    await cargarDatos();
+    return resumenCreacion(data);
+  };
+
   const guardarTurno = async (form) => {
-    const { error } = await supabase.from('turnos').insert([{ ...form, nombre_cliente: form.nombre_cliente.trim() }]);
+    if (form.repetir) return crearTurnoFijo(form, form.nombre_cliente.trim(), form.telefono_cliente, false);
+    const { cancha_id, fecha, hora_inicio, telefono_cliente } = form;
+    const { error } = await supabase.from('turnos').insert([{ cancha_id, fecha, hora_inicio, telefono_cliente, nombre_cliente: form.nombre_cliente.trim() }]);
     if (error) throw new Error(mensajeDeBase(error, 'No se pudo cargar el turno. Revisá los datos.'));
     await cargarDatos();
     cerrarModal();
   };
 
   const guardarBloqueo = async (form) => {
+    if (form.repetir) return crearTurnoFijo(form, form.motivo, '', true);
     const { error } = await supabase.from('turnos').insert([{
       cancha_id: form.cancha_id,
       fecha: form.fecha,
@@ -122,19 +147,37 @@ const DashboardAdmin = () => {
     cerrarModal();
   };
 
-  const pedirCancelarTurno = (turno) => setModal({
+  const borrarTurno = async (turno) => {
+    const { data, error } = await supabase.from('turnos').delete().eq('id', turno.id).select('id');
+    if (error || !data?.length) throw new Error('No se pudo cancelar el turno.');
+    await cargarDatos();
+    cerrarModal();
+  };
+
+  const terminarTurnoFijo = async (idFijo) => {
+    const { error } = await supabase.rpc('terminar_turno_fijo', { p_id: idFijo });
+    if (error) throw new Error(mensajeTurnoFijo(error, 'No se pudo terminar el turno fijo.'));
+    await cargarDatos();
+    cerrarModal();
+  };
+
+  const pedirTerminarFijo = (fijo) => setModal({
+    tipo: 'confirmar',
+    titulo: fijo.es_bloqueo ? 'Terminar bloqueo fijo' : 'Terminar turno fijo',
+    texto: `${describirTurnoFijo(fijo)} · ${fijo.nombre_cliente}. Se borran los turnos que todavía no se jugaron y no se carga ninguno más.`,
+    textoBoton: 'Terminar',
+    onConfirmar: () => terminarTurnoFijo(fijo.id),
+  });
+
+  const fijoActivo = (turno) => turno.esFijo && turno.fecha >= hoy && turnosFijos?.some((f) => f.id === turno.turno_fijo_id);
+  const pedirCancelarTurno = (turno) => setModal(fijoActivo(turno) ? { tipo: 'cancelarFijo', turno } : {
     tipo: 'confirmar',
     titulo: turno.esBloqueo ? 'Liberar horario' : 'Cancelar turno',
     texto: turno.esBloqueo
       ? '¿Querés liberar este horario bloqueado? Volverá a estar disponible para reservar.'
       : `¿Cancelar el turno de ${turno.nombre_cliente} del ${fechaCorta(turno.fecha)} a las ${turno.hora_inicio}? El horario quedará libre.`,
     textoBoton: turno.esBloqueo ? 'Liberar' : 'Cancelar turno',
-    onConfirmar: async () => {
-      const { data, error } = await supabase.from('turnos').delete().eq('id', turno.id).select('id');
-      if (error || !data?.length) throw new Error('No se pudo cancelar el turno.');
-      await cargarDatos();
-      cerrarModal();
-    },
+    onConfirmar: () => borrarTurno(turno),
   });
 
   // ---------- Canchas ----------
@@ -165,6 +208,27 @@ const DashboardAdmin = () => {
     if (error) throw new Error('No se pudo guardar la cancha. Revisá los datos e intentá de nuevo.');
 
     await cargarDatos();
+
+    // Si cambió el precio y la cancha tiene turnos fijos, el dueño elige si pasarlos al precio nuevo.
+    const anterior = canchas.find((c) => c.id === form.id);
+    const fijos = modo === 'editar' && turnosFijos ? fijosConPrecio(turnosFijos, form.id) : [];
+    if (anterior && fijos.length && Number(anterior.precio_hora) !== datos.precio_hora) {
+      setModal({
+        tipo: 'confirmar',
+        titulo: 'Cambiaste el precio',
+        texto: `${datos.nombre} tiene ${pluralizar(fijos.length, 'turno fijo', 'turnos fijos')}. ¿Querés pasar los que todavía no se jugaron de ${moneda(anterior.precio_hora)} a ${moneda(datos.precio_hora)}? Si no, siguen con el precio anterior.`,
+        textoBoton: 'Pasar al precio nuevo',
+        textoVolver: 'Mantener el anterior',
+        estilo: 'primario',
+        onConfirmar: async () => {
+          const { error: errorPrecio } = await supabase.rpc('actualizar_precio_turnos_fijos', { p_cancha_id: form.id });
+          if (errorPrecio) throw new Error(mensajeTurnoFijo(errorPrecio, 'No se pudo actualizar el precio de los turnos fijos.'));
+          await cargarDatos();
+          cerrarModal();
+        },
+      });
+      return;
+    }
     cerrarModal();
   };
 
@@ -297,9 +361,9 @@ const DashboardAdmin = () => {
         {vista !== 'plan' && <AvisoSuscripcion estado={suscripcion} pago={resultadoPago} />}
         <div className="dash-contenido" key={vista}>
           {vista === 'general' && (
-            <VistaGeneral club={miClub} turnos={turnos} canchas={canchas} hoy={hoy}
+            <VistaGeneral club={miClub} turnos={turnos} canchas={canchas} hoy={hoy} turnosFijos={turnosFijos}
               onNuevoTurno={() => setModal({ tipo: 'turno' })} onBloqueo={() => setModal({ tipo: 'bloqueo' })}
-              onDetalles={(turno) => setModal({ tipo: 'detalles', turno })} onCancelar={pedirCancelarTurno} />
+              onDetalles={(turno) => setModal({ tipo: 'detalles', turno })} onCancelar={pedirCancelarTurno} onTerminarFijo={pedirTerminarFijo} />
           )}
           {vista === 'metricas' && <Reportes turnos={turnos} canchas={canchas} hoy={hoy} onExportarPDF={exportarPDF} onExportarExcel={exportarExcel} exportando={exportando} errorExportar={errorExportar} />}
           {vista === 'clientes' && <Clientes turnos={turnos} />}
@@ -315,11 +379,18 @@ const DashboardAdmin = () => {
         </div>
       </main>
 
-      {modal?.tipo === 'turno' && <ModalTurno canchas={canchas} hoy={hoy} onGuardar={guardarTurno} onCerrar={cerrarModal} />}
-      {modal?.tipo === 'bloqueo' && <ModalBloqueo canchas={canchas} hoy={hoy} onGuardar={guardarBloqueo} onCerrar={cerrarModal} />}
+      {modal?.tipo === 'turno' && <ModalTurno canchas={canchas} hoy={hoy} permiteFijo={turnosFijos !== null} onGuardar={guardarTurno} onCerrar={cerrarModal} />}
+      {modal?.tipo === 'bloqueo' && <ModalBloqueo canchas={canchas} hoy={hoy} permiteFijo={turnosFijos !== null} onGuardar={guardarBloqueo} onCerrar={cerrarModal} />}
+      {modal?.tipo === 'cancelarFijo' && (
+        <ModalCancelarFijo turno={modal.turno} onSoloEste={() => borrarTurno(modal.turno)}
+          onTerminar={() => terminarTurnoFijo(modal.turno.turno_fijo_id)} onCerrar={cerrarModal} />
+      )}
       {modal?.tipo === 'detalles' && <ModalDetalles turno={modal.turno} club={miClub} onCancelar={pedirCancelarTurno} onCerrar={cerrarModal} />}
       {modal?.tipo === 'cancha' && <ModalCancha modo={modal.modo} inicial={modal.inicial} onGuardar={(form, archivos) => guardarCancha(form, archivos, modal.modo)} onCerrar={cerrarModal} />}
-      {modal?.tipo === 'confirmar' && <ModalConfirmar titulo={modal.titulo} texto={modal.texto} textoBoton={modal.textoBoton} onConfirmar={modal.onConfirmar} onCerrar={cerrarModal} />}
+      {modal?.tipo === 'confirmar' && (
+        <ModalConfirmar titulo={modal.titulo} texto={modal.texto} textoBoton={modal.textoBoton} textoVolver={modal.textoVolver}
+          estilo={modal.estilo} onConfirmar={modal.onConfirmar} onCerrar={cerrarModal} />
+      )}
     </div>
   );
 };

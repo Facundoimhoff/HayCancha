@@ -24,6 +24,7 @@ export function enriquecerTurnos(turnos, canchas) {
     return {
       ...t,
       esBloqueo: bloqueo,
+      esFijo: t.turno_fijo_id != null,
       nombre_cancha: cancha?.nombre || '—',
       deporte: cancha?.deporte,
       precio,

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert, X, MessageCircle } from 'lucide-react';
+import { CalendarPlus, Ban, Users, Trash2, PlusCircle, Pencil, TriangleAlert, X, MessageCircle, Repeat } from 'lucide-react';
 import { Modal, ModalCuerpo, ModalPie, Campo } from '../components/ui.jsx';
 import { moneda, fechaCorta } from '../lib/formato.js';
 import { OPCIONES_DEPORTE, DEPORTES, canchaVacia } from '../lib/deportes.js';
 import { TIPOS_IMAGEN_ACEPTADOS } from '../../../services/storage.js';
 import { validarTelefono } from '../../../utils/validaciones.js';
 import { enlaceWhatsApp, mensajeRecordatorio, yaEmpezo } from '../../../utils/reservas.js';
+import { textoRepeticion } from '../lib/turnosFijos.js';
 
 /** Ejecuta `accion` mostrando "guardando" y el error (si hay) dentro de la ventana. */
 const useEnvio = () => {
@@ -30,61 +31,120 @@ const SelectorCancha = ({ canchas, valor, onCambio, etiqueta = 'Cancha' }) => (
   </Campo>
 );
 
-export const ModalTurno = ({ canchas, hoy, onGuardar, onCerrar }) => {
-  const [form, setForm] = useState({ cancha_id: '', fecha: hoy, hora_inicio: '', nombre_cliente: '', telefono_cliente: '' });
+/** Casilla "Repetir todas las semanas" con fecha de fin opcional (turnos fijos). */
+const OpcionRepetir = ({ form, set, hoy }) => (
+  <div className="dash-repetir">
+    <label className="dash-check">
+      <input type="checkbox" checked={form.repetir} onChange={(e) => set('repetir')(e.target.checked)} />
+      <span>
+        <strong>Repetir todas las semanas</strong>
+        <small>{form.repetir && form.fecha ? `${textoRepeticion(form.fecha, form.hora_inicio)}, hasta que lo termines.` : 'Para quien juega siempre el mismo día y a la misma hora.'}</small>
+      </span>
+    </label>
+    {form.repetir && (
+      <Campo etiqueta="Hasta (opcional)">
+        <input type="date" className="dash-input" min={form.fecha || hoy} value={form.hasta} onChange={(e) => set('hasta')(e.target.value)} />
+      </Campo>
+    )}
+  </div>
+);
+
+/** Después de crear un turno fijo: cuántas semanas se cargaron y cuáles se saltearon. */
+const ResultadoFijo = ({ titulo, icono, tono, texto, onCerrar }) => (
+  <Modal titulo={titulo} icono={icono} tono={tono} onCerrar={onCerrar}>
+    <ModalCuerpo>
+      <p className="dash-confirmar-texto" role="status">{texto}</p>
+    </ModalCuerpo>
+    <ModalPie>
+      <button type="button" className="dash-btn dash-btn--primario" onClick={onCerrar}>Listo</button>
+    </ModalPie>
+  </Modal>
+);
+
+export const ModalTurno = ({ canchas, hoy, permiteFijo = false, onGuardar, onCerrar }) => {
+  const [form, setForm] = useState({ cancha_id: '', fecha: hoy, hora_inicio: '', nombre_cliente: '', telefono_cliente: '', repetir: false, hasta: '' });
+  const [resultado, setResultado] = useState('');
   const { guardando, error, enviar, setError } = useEnvio();
   const set = (campo) => (valor) => setForm((f) => ({ ...f, [campo]: valor }));
 
   const enviarForm = (e) => {
     e.preventDefault();
     if (!validarTelefono(form.telefono_cliente)) { setError('Ingresá un teléfono válido (solo números, entre 6 y 20 dígitos).'); return; }
-    enviar(() => onGuardar(form));
+    enviar(async () => { const texto = await onGuardar(form); if (texto) setResultado(texto); });
   };
+
+  if (resultado) return <ResultadoFijo titulo="Turno fijo cargado" icono={Repeat} texto={resultado} onCerrar={onCerrar} />;
 
   return (
     <Modal titulo="Nuevo turno" descripcion="Cargá una reserva manual (por ejemplo, una llamada o WhatsApp)" icono={CalendarPlus} onCerrar={onCerrar}>
       <form onSubmit={enviarForm}>
         <ModalCuerpo>
           <div className="dash-fila-2">
-            <Campo etiqueta="Fecha"><input type="date" required className="dash-input" value={form.fecha} onChange={(e) => set('fecha')(e.target.value)} /></Campo>
+            <Campo etiqueta={form.repetir ? 'Primer turno' : 'Fecha'}><input type="date" required min={form.repetir ? hoy : undefined} className="dash-input" value={form.fecha} onChange={(e) => set('fecha')(e.target.value)} /></Campo>
             <Campo etiqueta="Hora"><input type="time" required className="dash-input" value={form.hora_inicio} onChange={(e) => set('hora_inicio')(e.target.value)} /></Campo>
           </div>
           <SelectorCancha canchas={canchas} valor={form.cancha_id} onCambio={set('cancha_id')} />
           <Campo etiqueta="Nombre del cliente"><input type="text" required maxLength={80} placeholder="Ej: Juan Pérez" className="dash-input" value={form.nombre_cliente} onChange={(e) => set('nombre_cliente')(e.target.value)} /></Campo>
           <Campo etiqueta="Teléfono"><input type="tel" required placeholder="Ej: 3564123456" className="dash-input" value={form.telefono_cliente} onChange={(e) => set('telefono_cliente')(e.target.value)} /></Campo>
+          {permiteFijo && <OpcionRepetir form={form} set={set} hoy={hoy} />}
           <MensajeError texto={error} />
         </ModalCuerpo>
         <ModalPie>
           <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>Cancelar</button>
-          <button type="submit" className="dash-btn dash-btn--primario" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar turno'}</button>
+          <button type="submit" className="dash-btn dash-btn--primario" disabled={guardando}>{guardando ? 'Guardando…' : form.repetir ? 'Guardar turno fijo' : 'Guardar turno'}</button>
         </ModalPie>
       </form>
     </Modal>
   );
 };
 
-export const ModalBloqueo = ({ canchas, hoy, onGuardar, onCerrar }) => {
-  const [form, setForm] = useState({ cancha_id: '', fecha: hoy, hora_inicio: '', motivo: '' });
+export const ModalBloqueo = ({ canchas, hoy, permiteFijo = false, onGuardar, onCerrar }) => {
+  const [form, setForm] = useState({ cancha_id: '', fecha: hoy, hora_inicio: '', motivo: '', repetir: false, hasta: '' });
+  const [resultado, setResultado] = useState('');
   const { guardando, error, enviar } = useEnvio();
   const set = (campo) => (valor) => setForm((f) => ({ ...f, [campo]: valor }));
 
+  if (resultado) return <ResultadoFijo titulo="Bloqueo fijo aplicado" icono={Repeat} tono="ambar" texto={resultado} onCerrar={onCerrar} />;
+
   return (
-    <Modal titulo="Bloquear horario" descripcion="Impedí reservas por limpieza o mantenimiento" icono={Ban} tono="ambar" onCerrar={onCerrar}>
-      <form onSubmit={(e) => { e.preventDefault(); enviar(() => onGuardar(form)); }}>
+    <Modal titulo="Bloquear horario" descripcion="Impedí reservas por limpieza, mantenimiento o una escuelita" icono={Ban} tono="ambar" onCerrar={onCerrar}>
+      <form onSubmit={(e) => { e.preventDefault(); enviar(async () => { const texto = await onGuardar(form); if (texto) setResultado(texto); }); }}>
         <ModalCuerpo>
           <div className="dash-fila-2">
-            <Campo etiqueta="Fecha"><input type="date" required className="dash-input" value={form.fecha} onChange={(e) => set('fecha')(e.target.value)} /></Campo>
+            <Campo etiqueta={form.repetir ? 'Primer día' : 'Fecha'}><input type="date" required min={form.repetir ? hoy : undefined} className="dash-input" value={form.fecha} onChange={(e) => set('fecha')(e.target.value)} /></Campo>
             <Campo etiqueta="Hora"><input type="time" required className="dash-input" value={form.hora_inicio} onChange={(e) => set('hora_inicio')(e.target.value)} /></Campo>
           </div>
           <SelectorCancha canchas={canchas} valor={form.cancha_id} onCambio={set('cancha_id')} etiqueta="Cancha a bloquear" />
           <Campo etiqueta="Motivo (opcional)"><input type="text" maxLength={80} placeholder="Ej: Mantenimiento de red" className="dash-input" value={form.motivo} onChange={(e) => set('motivo')(e.target.value)} /></Campo>
+          {permiteFijo && <OpcionRepetir form={form} set={set} hoy={hoy} />}
           <MensajeError texto={error} />
         </ModalCuerpo>
         <ModalPie>
           <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>Cancelar</button>
-          <button type="submit" className="dash-btn dash-btn--advertencia" disabled={guardando}>{guardando ? 'Aplicando…' : 'Aplicar bloqueo'}</button>
+          <button type="submit" className="dash-btn dash-btn--advertencia" disabled={guardando}>{guardando ? 'Aplicando…' : form.repetir ? 'Aplicar bloqueo fijo' : 'Aplicar bloqueo'}</button>
         </ModalPie>
       </form>
+    </Modal>
+  );
+};
+
+/** Cancelar un turno que es parte de un turno fijo: solo ese día o toda la serie. */
+export const ModalCancelarFijo = ({ turno, onSoloEste, onTerminar, onCerrar }) => {
+  const { guardando, error, enviar } = useEnvio();
+  const quien = turno.esBloqueo ? 'un bloqueo fijo' : `del turno fijo de ${turno.nombre_cliente}`;
+  return (
+    <Modal titulo={turno.esBloqueo ? 'Liberar horario' : 'Cancelar turno'} icono={Repeat} tono="ambar" onCerrar={onCerrar}>
+      <ModalCuerpo>
+        <p className="dash-confirmar-texto">
+          {`Este horario es parte ${turno.esBloqueo ? 'de ' : ''}${quien}. Podés cancelar solo el ${fechaCorta(turno.fecha)} a las ${turno.hora_inicio}, o terminarlo: se borran todos los que vienen y no se carga ninguno más.`}
+        </p>
+        <MensajeError texto={error} />
+      </ModalCuerpo>
+      <ModalPie>
+        <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>Volver</button>
+        <button type="button" className="dash-btn dash-btn--secundario" disabled={guardando} onClick={() => enviar(onSoloEste)}>Solo este día</button>
+        <button type="button" className="dash-btn dash-btn--peligro" disabled={guardando} onClick={() => enviar(onTerminar)}>{guardando ? 'Procesando…' : 'Terminar el turno fijo'}</button>
+      </ModalPie>
     </Modal>
   );
 };
@@ -100,7 +160,8 @@ export const ModalDetalles = ({ turno, club, onCancelar, onCerrar }) => {
     ['Fecha', fechaCorta(turno.fecha)],
     ['Hora', `${turno.hora_inicio} hs`],
     ['Cancha', turno.nombre_cancha],
-  ];
+    turno.esFijo && ['Se repite', `${textoRepeticion(turno.fecha, turno.hora_inicio)} (turno fijo)`],
+  ].filter(Boolean);
 
   return (
     <Modal titulo="Detalle del turno" icono={Users} tono="azul" onCerrar={onCerrar}>
@@ -231,7 +292,7 @@ export const ModalCancha = ({ modo, inicial, onGuardar, onCerrar }) => {
 
 
 /** Confirmación de acciones destructivas (reemplaza a window.confirm). */
-export const ModalConfirmar = ({ titulo, texto, textoBoton = 'Confirmar', onConfirmar, onCerrar }) => {
+export const ModalConfirmar = ({ titulo, texto, textoBoton = 'Confirmar', textoVolver = 'Volver', estilo = 'peligro', onConfirmar, onCerrar }) => {
   const { guardando, error, enviar } = useEnvio();
   return (
     <Modal titulo={titulo} icono={TriangleAlert} tono="ambar" onCerrar={onCerrar}>
@@ -240,8 +301,8 @@ export const ModalConfirmar = ({ titulo, texto, textoBoton = 'Confirmar', onConf
         <MensajeError texto={error} />
       </ModalCuerpo>
       <ModalPie>
-        <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>Volver</button>
-        <button type="button" className="dash-btn dash-btn--peligro" disabled={guardando} onClick={() => enviar(onConfirmar)}>{guardando ? 'Procesando…' : textoBoton}</button>
+        <button type="button" className="dash-btn dash-btn--secundario" onClick={onCerrar}>{textoVolver}</button>
+        <button type="button" className={`dash-btn dash-btn--${estilo}`} disabled={guardando} onClick={() => enviar(onConfirmar)}>{guardando ? 'Procesando…' : textoBoton}</button>
       </ModalPie>
     </Modal>
   );
