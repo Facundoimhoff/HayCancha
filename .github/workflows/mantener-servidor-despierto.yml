@@ -3,6 +3,8 @@
 # Este ping lo mantiene despierto. GitHub puede atrasar las tareas programadas unos minutos, así que
 # no es una garantía total, pero evita casi todos los arranques en frío.
 # OJO: GitHub apaga las tareas programadas si el repositorio pasa 60 días sin commits (avisa por mail).
+# Mientras Render despierta el servidor, a veces responde un error (503) durante casi un minuto:
+# por eso el ping reintenta hasta 2 minutos antes de dar el aviso de falla.
 name: Mantener despierto el servidor
 
 on:
@@ -15,7 +17,7 @@ permissions: {}
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
       - name: Ping a /health
-        run: curl -fsS --max-time 90 --retry 2 --retry-delay 5 https://haycancha.onrender.com/health
+        run: curl -fsS --max-time 60 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 150 https://haycancha.onrender.com/health
