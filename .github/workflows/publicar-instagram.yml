@@ -1,0 +1,54 @@
+# Publica en Instagram lo que marca marketing/instagram/calendario.json.
+# Corre a las 12:00 y a las 19:00 de Argentina (15:00 y 22:00 UTC).
+# Sin los secretos IG_USER_ID e IG_ACCESS_TOKEN no publica nada (termina bien, sin error).
+name: Publicar en Instagram
+
+on:
+  schedule:
+    - cron: '0 15 * * *'
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+    inputs:
+      franja:
+        description: 'Franja del calendario'
+        type: choice
+        options: [noche, mediodia]
+        default: noche
+      fecha:
+        description: 'Fecha AAAA-MM-DD (vacío = hoy)'
+        required: false
+      solo:
+        description: 'Id de una sola publicación (opcional, ignora fecha y franja)'
+        required: false
+      prueba:
+        description: 'Solo mostrar lo que publicaría'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar-instagram
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Revisar el calendario
+        run: node marketing/instagram/publicar.mjs --verificar
+      - name: Publicar
+        run: node marketing/instagram/publicar.mjs
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          FRANJA: ${{ inputs.franja || (github.event.schedule == '0 15 * * *' && 'mediodia' || 'noche') }}
+          FECHA: ${{ inputs.fecha }}
+          SOLO: ${{ inputs.solo }}
+          PRUEBA: ${{ inputs.prueba || 'false' }}

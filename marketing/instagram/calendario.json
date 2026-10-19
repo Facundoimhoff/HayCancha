@@ -1,0 +1,330 @@
+{
+  "zonaHoraria": "America/Argentina/Buenos_Aires",
+  "franjas": {
+    "mediodia": "12:00",
+    "noche": "19:00"
+  },
+  "nota": "modo 'auto' lo publica el workflow de GitHub; 'manual' lo publicás vos desde la app de Instagram (reels con música e historias con stickers de encuesta o preguntas, que la API no permite).",
+  "publicaciones": [
+    {
+      "id": "d01-historias-presentacion",
+      "fecha": "2026-10-19",
+      "franja": "mediodia",
+      "tipo": "historias",
+      "modo": "auto",
+      "titulo": "Historias de presentación (5)",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/01.png",
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/02.png",
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/03.png",
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/04.png",
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/05.png"
+      ],
+      "pasoManual": "Después de que se publiquen, sumá el sticker de enlace a la historia 5 (no se puede por API) y guardalas en un destacado \"GridPlay\"."
+    },
+    {
+      "id": "d01-carrusel-conoce",
+      "fecha": "2026-10-19",
+      "franja": "noche",
+      "tipo": "carrusel",
+      "modo": "auto",
+      "titulo": "Carrusel: Conocé GridPlay",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/01.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/02.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/03.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/04.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/05.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-1-conoce-gridplay/06.png"
+      ],
+      "descripcion": "¿Seguís llamando al club para reservar cancha? Llegó GridPlay 👋\n\nGridPlay es la app para reservar canchas de fútbol 5, pádel, tenis, básquet y vóley sin llamar a nadie: mirás los horarios libres de los clubes de tu zona y reservás en segundos.\n\n¿Tenés un club o complejo deportivo? También es para vos: manejás todos tus turnos, tus clientes y tus ingresos desde el celular.\n\n👉 Deslizá para ver cómo funciona\n🔗 Link en la bio\n\n#GridPlay #futbol5 #padel #canchas #Argentina",
+      "textoAlternativo": "Presentación de GridPlay, la app para reservar canchas de fútbol 5 y pádel y para que los clubes gestionen sus turnos."
+    },
+    {
+      "id": "d02-encuesta-como-reservas",
+      "fecha": "2026-10-20",
+      "franja": "mediodia",
+      "tipo": "historia",
+      "modo": "manual",
+      "titulo": "Historia con encuesta: ¿Cómo reservás?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-interaccion/01-encuesta-como-reservas.png"
+      ],
+      "pasoManual": "Subila y agregá el sticker de ENCUESTA en el espacio del medio con las opciones: \"Llamando\" / \"Por WhatsApp\" / \"Voy al club\"."
+    },
+    {
+      "id": "d03-reel-jugadores",
+      "fecha": "2026-10-21",
+      "franja": "noche",
+      "tipo": "reel",
+      "modo": "manual",
+      "titulo": "Reel: Reservá tu cancha en segundos",
+      "archivos": [
+        "Frontend-HayCancha/marca/videos/gridplay-jugadores.mp4"
+      ],
+      "descripcion": "Así reservás tu cancha en segundos ⚽🎾\n\nElegís el club, ves los horarios libres y confirmás. Si querés, sumás la bebida o la pelota.\n\nEtiquetá a quien siempre se encarga de reservar 👇\n\n#GridPlay #futbol5 #padel #padelargentina #canchasdefutbol",
+      "pasoManual": "Publicalo desde la app de Instagram y sumale un tema de música popular. Después compartilo en tus historias."
+    },
+    {
+      "id": "d05-carrusel-3-pasos",
+      "fecha": "2026-10-23",
+      "franja": "noche",
+      "tipo": "carrusel",
+      "modo": "auto",
+      "titulo": "Carrusel: Reservá en 3 pasos",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/carrusel-2-reserva-en-3-pasos/01.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-2-reserva-en-3-pasos/02.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-2-reserva-en-3-pasos/03.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-2-reserva-en-3-pasos/04.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-2-reserva-en-3-pasos/05.png"
+      ],
+      "descripcion": "Reservar cancha nunca fue tan fácil ⚽ 3 pasos y listo.\n\n1️⃣ Buscá tu club por ciudad o cerca tuyo\n2️⃣ Elegí un horario libre\n3️⃣ Confirmá y tu turno queda guardado\n\nSin llamadas, sin esperar que te contesten. Gratis para jugadores.\n\n📲 Mandáselo al grupo del fútbol o del pádel\n🔗 Reservá desde el link en la bio\n\n#GridPlay #futbol5 #padel #padelargentina #canchasdefutbol",
+      "textoAlternativo": "Cómo reservar una cancha en GridPlay en tres pasos: buscar el club, elegir el horario libre y confirmar."
+    },
+    {
+      "id": "d06-encuesta-deporte",
+      "fecha": "2026-10-24",
+      "franja": "mediodia",
+      "tipo": "historia",
+      "modo": "manual",
+      "titulo": "Historia con encuesta: ¿Qué deporte jugás?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-interaccion/02-encuesta-deporte.png"
+      ],
+      "pasoManual": "Agregá el sticker de ENCUESTA con: \"Fútbol 5\" / \"Pádel\" / \"Tenis\" / \"Otro\"."
+    },
+    {
+      "id": "d07-futbol5-o-padel",
+      "fecha": "2026-10-25",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: ¿Fútbol 5 o pádel?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-futbol5-o-padel/01.png"
+      ],
+      "descripcion": "La pregunta que divide grupos de amigos 👀 ¿Fútbol 5 o pádel?\n\nContestá en los comentarios y etiquetá a tu compañero de equipo. Juegues lo que juegues, en GridPlay reservás tu cancha en segundos.\n\n#GridPlay #futbol5 #padel #padelargentina #canchas",
+      "textoAlternativo": "Encuesta de GridPlay: ¿fútbol 5 o pádel?"
+    },
+    {
+      "id": "d08-carrusel-clubes",
+      "fecha": "2026-10-26",
+      "franja": "noche",
+      "tipo": "carrusel",
+      "modo": "auto",
+      "titulo": "Carrusel: Para clubes",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/01.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/02.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/03.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/04.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/05.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-3-para-clubes/06.png"
+      ],
+      "descripcion": "¿Tu club todavía anota los turnos en un cuaderno? 📒\n\nCon GridPlay tenés un sistema de reservas online para tu complejo deportivo:\n✅ Todos tus turnos en un solo lugar, sin superposiciones\n✅ Tus jugadores reservan solos, las 24 horas\n✅ Les recordás el turno por WhatsApp en un toque\n✅ Ingresos, ocupación y clientes siempre al día\n\nProbalo 30 días gratis. Sin tarjeta, sin comisiones, sin costo de alta.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #gestiondeportiva #padelargentina",
+      "textoAlternativo": "GridPlay para clubes: panel de turnos, reservas online y reportes de ingresos para complejos deportivos."
+    },
+    {
+      "id": "d09-encuesta-club",
+      "fecha": "2026-10-27",
+      "franja": "mediodia",
+      "tipo": "historia",
+      "modo": "manual",
+      "titulo": "Historia con encuesta: ¿Tu club tiene reservas online?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-interaccion/03-encuesta-club.png"
+      ],
+      "pasoManual": "Agregá el sticker de ENCUESTA con: \"Sí\" / \"No\" / \"¿Qué es eso?\". A quien vote \"No\", escribile por mensaje (solo a quien votó)."
+    },
+    {
+      "id": "d10-reel-clubes",
+      "fecha": "2026-10-28",
+      "franja": "noche",
+      "tipo": "reel",
+      "modo": "manual",
+      "titulo": "Reel: Solucioná la gestión de tu club",
+      "archivos": [
+        "Frontend-HayCancha/marca/videos/gridplay-gestion-club.mp4"
+      ],
+      "descripcion": "De cuaderno y WhatsApp a todo ordenado en una app 📲\n\nAsí se ve el panel de GridPlay para clubes de fútbol 5 y pádel: turnos, reservas online y reportes de ingresos.\n\n30 días gratis, sin tarjeta. Escribinos por mensaje directo 💬\n\n#GridPlay #complejodeportivo #futbol5 #padel #gestiondeportiva",
+      "pasoManual": "Publicalo desde la app de Instagram con música. Después compartilo en tus historias."
+    },
+    {
+      "id": "d12-carrusel-suma-tu-club",
+      "fecha": "2026-10-30",
+      "franja": "noche",
+      "tipo": "carrusel",
+      "modo": "auto",
+      "titulo": "Carrusel: Tu club online en 4 pasos",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/01.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/02.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/03.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/04.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/05.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-5-suma-tu-club/06.png"
+      ],
+      "descripcion": "¿Cuánto tarda tu club en estar online? Menos de lo que pensás ⏱️\n\n1️⃣ Creás tu cuenta y tu club\n2️⃣ Cargás canchas, precios y horarios\n3️⃣ Marcás tu ubicación en el mapa\n4️⃣ Compartís tu link por WhatsApp, Instagram o con un cartel con QR\n\nY empezás a recibir reservas online. Los primeros 30 días son gratis, sin tarjeta.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #reservasonline #gestiondeportiva",
+      "textoAlternativo": "Cuatro pasos para sumar un club a GridPlay: crear la cuenta, cargar canchas, marcar la ubicación y compartir el link."
+    },
+    {
+      "id": "d14-tu-club-no-esta",
+      "fecha": "2026-11-01",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: ¿Tu club todavía no está?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-tu-club-no-esta/01.png"
+      ],
+      "descripcion": "¿Tu club todavía no está en GridPlay? 🤔\n\nMandale este post al dueño o al encargado. Puede probarlo 30 días gratis, sin tarjeta, y vos dejás de llamar para reservar.\n\n📲 Compartilo por mensaje\n\n#GridPlay #futbol5 #padel #canchas #reservasonline",
+      "textoAlternativo": "GridPlay invita a los jugadores a recomendar la app a su club."
+    },
+    {
+      "id": "d15-carrusel-preguntas",
+      "fecha": "2026-11-02",
+      "franja": "noche",
+      "tipo": "carrusel",
+      "modo": "auto",
+      "titulo": "Carrusel: Preguntas frecuentes",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/carrusel-4-preguntas-frecuentes/01.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-4-preguntas-frecuentes/02.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-4-preguntas-frecuentes/03.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-4-preguntas-frecuentes/04.png",
+        "Frontend-HayCancha/marca/instagram/carrusel-4-preguntas-frecuentes/05.png"
+      ],
+      "descripcion": "Las preguntas que más nos hacen, respondidas 👇\n\n¿Cuánto cuesta? ¿Cómo pago? ¿Y si no puedo ir? ¿Hay que descargar algo? Deslizá y enterate de todo antes de reservar tu cancha.\n\n¿Te quedó otra duda? Dejala en los comentarios 💬\n\n#GridPlay #futbol5 #padel #canchas #reservasonline",
+      "textoAlternativo": "Preguntas frecuentes sobre GridPlay: costo, forma de pago, cancelaciones y deportes disponibles."
+    },
+    {
+      "id": "d16-historia-preguntas",
+      "fecha": "2026-11-03",
+      "franja": "mediodia",
+      "tipo": "historia",
+      "modo": "manual",
+      "titulo": "Historia: Preguntanos lo que quieras",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-interaccion/04-preguntas.png"
+      ],
+      "pasoManual": "Agregá el sticker de PREGUNTAS. Las respuestas, contestalas en historias los días siguientes."
+    },
+    {
+      "id": "d17-reel-jugadores-corto",
+      "fecha": "2026-11-04",
+      "franja": "noche",
+      "tipo": "reel",
+      "modo": "manual",
+      "titulo": "Reel corto: Reservá en 15 segundos",
+      "archivos": [
+        "Frontend-HayCancha/marca/videos/gridplay-jugadores-15s.mp4"
+      ],
+      "descripcion": "15 segundos. Eso tarda reservar tu cancha con GridPlay ⏱️⚽\n\nSin llamar, sin esperar respuesta. Link en la bio.\n\n#GridPlay #futbol5 #padel #padelargentina #canchasdefutbol",
+      "pasoManual": "Publicalo desde la app de Instagram con música."
+    },
+    {
+      "id": "d19-hay-cancha",
+      "fecha": "2026-11-06",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: ¿Hay cancha a las 21?",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-hay-cancha/01.png"
+      ],
+      "descripcion": "Si tenés un club, este chat te suena 😅\n\n\"¿Hay cancha mañana a las 21?\" \"¿Y a las 22?\" \"¿Cuánto sale?\"... todos los días, a toda hora.\n\nCon GridPlay tus jugadores ven los horarios libres y reservan solos, y vos recuperás tu tiempo. Probalo 30 días gratis.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #futbol5 #padel",
+      "textoAlternativo": "Chat de WhatsApp de un club lleno de consultas por horarios; con GridPlay los jugadores ven los horarios solos."
+    },
+    {
+      "id": "d21-etiqueta",
+      "fecha": "2026-11-08",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: Etiquetá a quien organiza",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-etiqueta/01.png"
+      ],
+      "descripcion": "Todos los grupos tienen uno: el que organiza el partido, consigue la cancha y persigue a los que no confirman 🙌\n\nEtiquetalo. Se merece que reservar le lleve 30 segundos con GridPlay.\n\n#GridPlay #futbol5 #padel #amigos #canchas",
+      "textoAlternativo": "Etiquetá a quien siempre organiza el partido."
+    },
+    {
+      "id": "d22-cartel-qr",
+      "fecha": "2026-11-09",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: Un cartel, cero mensajes",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-cartel-qr/01.png"
+      ],
+      "descripcion": "Un cartel en la entrada y tus jugadores reservan solos 📲\n\nGridPlay te arma un cartel con código QR para tu club: lo descargás, lo imprimís y lo pegás en la entrada, la cantina o al lado de cada cancha. Quien lo escanea entra directo a reservar.\n\nProbalo 30 días gratis.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #reservasonline #padelargentina",
+      "textoAlternativo": "Cartel con código QR de GridPlay para que los jugadores reserven escaneándolo en el club."
+    },
+    {
+      "id": "d24-reel-clubes-corto",
+      "fecha": "2026-11-11",
+      "franja": "noche",
+      "tipo": "reel",
+      "modo": "manual",
+      "titulo": "Reel corto: Tu club ordenado",
+      "archivos": [
+        "Frontend-HayCancha/marca/videos/gridplay-clubes-15s.mp4"
+      ],
+      "descripcion": "Tu club, ordenado en una app 📲 Turnos, reservas online y reportes.\n\n30 días gratis, sin tarjeta. Escribinos 💬\n\n#GridPlay #complejodeportivo #futbol5 #padel #gestiondeportiva",
+      "pasoManual": "Publicalo desde la app de Instagram con música."
+    },
+    {
+      "id": "d26-kiosco",
+      "fecha": "2026-11-13",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: Vendé la bebida antes del partido",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-kiosco-extras/01.png"
+      ],
+      "descripcion": "¿Y si tus jugadores te compran la bebida antes de llegar? 🥤\n\nEn GridPlay cargás bebidas y alquileres (pelota, pecheras) y el jugador los suma cuando reserva. Cuando llega, ya los tenés listos.\n\nMás ventas en el kiosco, sin esfuerzo. Probalo 30 días gratis.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #futbol5 #padel",
+      "textoAlternativo": "Pantalla de GridPlay donde el jugador suma una bebida y la pelota a su reserva."
+    },
+    {
+      "id": "d28-mis-reservas",
+      "fecha": "2026-11-15",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: Tus partidos, siempre a mano",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-mis-reservas/01.png"
+      ],
+      "descripcion": "Nunca más \"¿a qué hora era el partido?\" 🙃\n\nEn \"Mis reservas\" tenés el día, la hora y la cancha de cada turno, cómo llegar al club y la opción de cambiar los extras o cancelar.\n\n🔗 Reservá desde el link en la bio\n\n#GridPlay #futbol5 #padel #padelargentina #canchas",
+      "textoAlternativo": "Pantalla Mis reservas de GridPlay con los próximos partidos del jugador."
+    },
+    {
+      "id": "d29-historias-repaso",
+      "fecha": "2026-11-16",
+      "franja": "mediodia",
+      "tipo": "historias",
+      "modo": "auto",
+      "titulo": "Historias: repaso para jugadores y clubes",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/02.png",
+        "Frontend-HayCancha/marca/instagram/historias-presentacion/03.png"
+      ]
+    },
+    {
+      "id": "d30-cierre-clubes",
+      "fecha": "2026-11-17",
+      "franja": "noche",
+      "tipo": "imagen",
+      "modo": "auto",
+      "titulo": "Post: Tu club online hoy mismo",
+      "archivos": [
+        "Frontend-HayCancha/marca/instagram/post-cierre-clubes/01.png"
+      ],
+      "descripcion": "¿Tenés un club de fútbol 5, pádel o tenis? Ponelo online hoy mismo 🚀\n\n✅ 30 días gratis, sin tarjeta\n✅ Sin comisiones por reserva\n✅ Te ayudamos a cargarlo\n\nTus jugadores reservan solos y vos manejás todo desde el celular.\n\n💬 Comentá CLUB y te mando cómo probarlo gratis\n\n#GridPlay #complejodeportivo #clubesdeportivos #gestiondeportiva #reservasonline",
+      "textoAlternativo": "GridPlay para clubes: 30 días gratis, sin tarjeta y sin comisiones."
+    }
+  ]
+}
