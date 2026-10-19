@@ -7,7 +7,7 @@ import { leerTodas } from '../../services/paginado';
 import { Vacio } from './components/ui.jsx';
 import { fechaISO, fechaCorta, moneda, pluralizar } from './lib/formato.js';
 import { describirTurnoFijo, fijosConPrecio, mensajeTurnoFijo, resumenCreacion } from './lib/turnosFijos.js';
-import { enriquecerTurnos } from './lib/metricas.js';
+import { enriquecerTurnos, momentoActual, yaEmpezo } from './lib/metricas.js';
 import { canchaVacia, canchaParaEditar } from './lib/deportes.js';
 import VistaGeneral from './views/VistaGeneral.jsx';
 import Reportes from './views/Reportes.jsx';
@@ -261,7 +261,11 @@ const DashboardAdmin = () => {
   };
 
   const nombreArchivo = () => `${(miClub?.nombre || 'Mi_Complejo').replace(/\s+/g, '_')}_${fechaISO()}`;
-  const filasReporte = () => turnos.filter((t) => !t.esBloqueo);
+  // Solo lo ya jugado: los turnos futuros (y los fijos, cargados varias semanas adelante) todavía no se cobraron.
+  const filasReporte = () => {
+    const ahora = momentoActual();
+    return turnos.filter((t) => !t.esBloqueo && yaEmpezo(t, ahora));
+  };
 
   const exportarExcel = () => exportar('excel', async () => {
     const XLSX = await import('xlsx');
@@ -290,7 +294,7 @@ const DashboardAdmin = () => {
     doc.text(`Reporte de ingresos - ${miClub?.nombre || 'Mi complejo'}`, 14, 20);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generado el: ${fechaCorta(fechaISO())}`, 14, 28);
+    doc.text(`Turnos jugados hasta el ${fechaCorta(fechaISO())}`, 14, 28);
     autoTable(doc, {
       head: [['Fecha', 'Hora', 'Cliente', 'Cancha', 'Total']],
       body: filas.map((t) => [fechaCorta(t.fecha), t.hora_inicio, t.nombre_cliente || 'Sin nombre', t.nombre_cancha, moneda(t.total)]),

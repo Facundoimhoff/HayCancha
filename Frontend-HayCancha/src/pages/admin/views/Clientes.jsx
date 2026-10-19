@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import { Search, MessageCircle, Users, UserRound } from 'lucide-react';
 import { Panel, Chip, Vacio } from '../components/ui.jsx';
 import { moneda, fechaCorta, iniciales, pluralizar } from '../lib/formato.js';
-import { clientesDe } from '../lib/metricas.js';
+import { clientesDe, momentoActual } from '../lib/metricas.js';
 import { enlaceWhatsApp } from '../../../utils/reservas.js';
 
 const Clientes = ({ turnos }) => {
   const [busqueda, setBusqueda] = useState('');
-  const clientes = useMemo(() => clientesDe(turnos.filter((t) => t.fecha)), [turnos]);
+  // "Turnos" y "Gastado" cuentan solo lo ya jugado; lo que viene (por ejemplo, un turno fijo) va en "Próximos".
+  const clientes = useMemo(() => clientesDe(turnos.filter((t) => t.fecha), momentoActual()), [turnos]);
 
   const visibles = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -16,7 +17,8 @@ const Clientes = ({ turnos }) => {
   }, [clientes, busqueda]);
 
   const recurrentes = clientes.filter((c) => c.turnos >= 3).length;
-  const gastoPromedio = clientes.length ? Math.round(clientes.reduce((a, c) => a + c.gastado, 0) / clientes.length) : 0;
+  const jugaron = clientes.filter((c) => c.turnos > 0);
+  const gastoPromedio = jugaron.length ? Math.round(jugaron.reduce((a, c) => a + c.gastado, 0) / jugaron.length) : 0;
 
   return (
     <>
@@ -54,8 +56,9 @@ const Clientes = ({ turnos }) => {
                 <tr>
                   <th>Cliente</th>
                   <th className="ocultar-sm">Teléfono</th>
-                  <th className="num">Turnos</th>
+                  <th className="num">Turnos jugados</th>
                   <th className="num">Gastado</th>
+                  <th className="num ocultar-sm">Próximos</th>
                   <th className="ocultar-sm">Última visita</th>
                   <th><span className="dash-solo-lector">Contactar</span></th>
                 </tr>
@@ -72,6 +75,7 @@ const Clientes = ({ turnos }) => {
                     <td className="ocultar-sm">{c.telefono}</td>
                     <td className="num"><Chip tono={c.turnos >= 3 ? 'verde' : 'neutro'}>{c.turnos}</Chip></td>
                     <td className="num"><strong>{moneda(c.gastado)}</strong></td>
+                    <td className="num ocultar-sm">{c.proximos ? <Chip tono="azul">{c.proximos}</Chip> : '—'}</td>
                     <td className="ocultar-sm">{c.ultima ? fechaCorta(c.ultima) : '—'}</td>
                     <td className="acciones">
                       <a className="dash-icon-btn" href={enlaceWhatsApp(c.telefono) || undefined} target="_blank" rel="noopener noreferrer" aria-label={`Escribirle a ${c.nombre} por WhatsApp`} title="WhatsApp">

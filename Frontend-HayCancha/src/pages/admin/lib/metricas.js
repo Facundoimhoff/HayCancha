@@ -151,28 +151,51 @@ export function mapaCalor(turnos) {
   return { matriz, max, horaMin: max ? horaMin : 16, horaMax: max ? horaMax : 23 };
 }
 
-/** Clientes agrupados por teléfono, del que más gastó al que menos. */
-export function clientesDe(turnos) {
+/** Momento actual como 'AAAA-MM-DDTHH:MM' (hora local), comparable con la fecha y hora de un turno. */
+export const momentoActual = (d = new Date()) =>
+  `${fechaISO(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+/**
+ * Si el turno ya empezó. `ahora` es un momento ('AAAA-MM-DDTHH:MM') o solo una fecha:
+ * con una fecha, cuentan como empezados los turnos de los días anteriores.
+ */
+export const yaEmpezo = (t, ahora) => `${t.fecha}T${t.hora_inicio}` <= ahora;
+
+/**
+ * Clientes agrupados por teléfono, del que más gastó al que menos. Con `ahora`, "turnos" y "gastado"
+ * cuentan solo lo ya jugado y "proximos" lo que viene (los turnos fijos cargan varias semanas por adelantado).
+ */
+export function clientesDe(turnos, ahora = null) {
   const mapa = new Map();
+  const fechaDelNombre = new Map(); // el nombre que se muestra es el del turno más reciente
   for (const t of turnos) {
     if (t.esBloqueo) continue;
-    const actual = mapa.get(t.telefono_cliente) || { nombre: t.nombre_cliente, telefono: t.telefono_cliente, turnos: 0, gastado: 0, ultima: '' };
-    actual.turnos += 1;
-    actual.gastado += t.total;
-    if (t.fecha >= actual.ultima) { actual.ultima = t.fecha; actual.nombre = t.nombre_cliente; }
+    const actual = mapa.get(t.telefono_cliente) || { nombre: t.nombre_cliente, telefono: t.telefono_cliente, turnos: 0, gastado: 0, proximos: 0, ultima: '' };
+    if (!ahora || yaEmpezo(t, ahora)) {
+      actual.turnos += 1;
+      actual.gastado += t.total;
+      if (t.fecha >= actual.ultima) actual.ultima = t.fecha;
+    } else {
+      actual.proximos += 1;
+    }
+    if (t.fecha >= (fechaDelNombre.get(t.telefono_cliente) || '')) {
+      fechaDelNombre.set(t.telefono_cliente, t.fecha);
+      actual.nombre = t.nombre_cliente;
+    }
     mapa.set(t.telefono_cliente, actual);
   }
-  return [...mapa.values()].sort((a, b) => b.gastado - a.gastado || b.turnos - a.turnos);
+  return [...mapa.values()].sort((a, b) => b.gastado - a.gastado || b.turnos - a.turnos || b.proximos - a.proximos);
 }
 
 const porFechaHora = (a, b) => (a.fecha + a.hora_inicio).localeCompare(b.fecha + b.hora_inicio);
 
-export const proximosTurnos = (turnos, hoy = fechaISO()) =>
-  turnos.filter((t) => t.fecha >= hoy).sort(porFechaHora);
+/** Turnos que todavía no empezaron (con una fecha en vez de un momento: desde ese día). */
+export const proximosTurnos = (turnos, ahora = momentoActual()) =>
+  turnos.filter((t) => !yaEmpezo(t, ahora)).sort(porFechaHora);
 
-export const historialTurnos = (turnos, hoy = fechaISO()) =>
-  turnos.filter((t) => t.fecha < hoy).sort((a, b) => porFechaHora(b, a));
+export const historialTurnos = (turnos, ahora = momentoActual()) =>
+  turnos.filter((t) => yaEmpezo(t, ahora)).sort((a, b) => porFechaHora(b, a));
 
-/** Ingresos ya reservados para días posteriores a hoy. */
-export const reservadoFuturo = (turnos, hoy = fechaISO()) =>
-  resumen(turnos.filter((t) => t.fecha > hoy)).ingresos;
+/** Ingresos ya reservados en turnos que todavía no empezaron (mismo conjunto que proximosTurnos). */
+export const reservadoFuturo = (turnos, ahora = momentoActual()) =>
+  resumen(proximosTurnos(turnos, ahora)).ingresos;

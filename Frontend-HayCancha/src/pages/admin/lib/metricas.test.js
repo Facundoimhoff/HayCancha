@@ -115,10 +115,29 @@ test('clientesDe: agrupa por teléfono, ordena por gasto y toma el nombre más r
   assert.ok(!c.some((x) => x.telefono === 'BLOQUEO'));
 });
 
+test('clientesDe con "ahora": lo jugado aparte de lo que viene (turnos fijos cargados por adelantado)', () => {
+  const c = clientesDe(turnos, '2026-09-10T09:30');
+  const ana = c.find((x) => x.telefono === '111');
+  assert.equal(ana.turnos, 1);          // jugó el 10/09 a las 09:00
+  assert.equal(ana.gastado, 1700);      // el del 15/09 todavía no cuenta como gastado
+  assert.equal(ana.proximos, 1);
+  assert.equal(ana.ultima, '2026-09-10');
+  assert.equal(ana.nombre, 'Ana Pérez'); // el nombre sigue siendo el más reciente
+  const beto = c.find((x) => x.telefono === '222');
+  assert.deepEqual([beto.turnos, beto.gastado, beto.proximos], [0, 0, 1]); // su turno de las 10:00 todavía no empezó
+});
+
 test('próximos / historial / reservado a futuro', () => {
   assert.deepEqual(proximosTurnos(turnos, '2026-09-11').map((t) => t.id), [3, 4]);
   assert.deepEqual(historialTurnos(turnos, '2026-09-11').map((t) => t.id), [2, 1, 5]);
   assert.equal(reservadoFuturo(turnos, '2026-09-11'), 600);
+});
+
+test('próximos / historial / reservado con la hora: un turno de hoy que ya empezó pasa al historial', () => {
+  assert.deepEqual(proximosTurnos(turnos, '2026-09-10T09:30').map((t) => t.id), [2, 3, 4]);
+  assert.deepEqual(historialTurnos(turnos, '2026-09-10T09:30').map((t) => t.id), [1, 5]);
+  // El conteo de turnos próximos y la plata reservada usan el mismo conjunto
+  assert.equal(reservadoFuturo(turnos, '2026-09-10T09:30'), 1000 + 600);
 });
 
 test('formato', () => {

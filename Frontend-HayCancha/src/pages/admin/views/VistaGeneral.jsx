@@ -5,7 +5,7 @@ import { moneda, etiquetaDia, pluralizar, desdeISO, fechaCorta } from '../lib/fo
 import { describirTurnoFijo } from '../lib/turnosFijos.js';
 import {
   rangoPeriodo, enRango, resumen, variacion, serieDiaria, ocupacionPorCancha, ocupacionGlobal,
-  proximosTurnos, historialTurnos, reservadoFuturo,
+  proximosTurnos, historialTurnos, reservadoFuturo, momentoActual,
 } from '../lib/metricas.js';
 import { enlaceWhatsApp, mensajeRecordatorio } from '../../../utils/reservas.js';
 
@@ -110,7 +110,9 @@ const VistaGeneral = ({ club, turnos, canchas, hoy, turnosFijos, onNuevoTurno, o
     const previo = resumen(enRango(turnos, periodo.desdePrev, periodo.hastaPrev));
     const diaria = serieDiaria(enMes, periodo.desde, periodo.hasta);
     const ocupacion = ocupacionPorCancha(enMes, canchas, periodo.desde, periodo.hasta);
-    const futuros = proximosTurnos(turnos, hoy);
+    // Próximos = los que todavía no empezaron; el conteo y la plata "reservada a futuro" usan el mismo conjunto.
+    const ahora = momentoActual();
+    const futuros = proximosTurnos(turnos, ahora);
     return {
       periodo,
       actual,
@@ -122,8 +124,8 @@ const VistaGeneral = ({ club, turnos, canchas, hoy, turnosFijos, onNuevoTurno, o
       ocupacionTotal: ocupacionGlobal(ocupacion),
       futuros,
       futurosValidos: futuros.filter((t) => !t.esBloqueo).length,
-      reservado: reservadoFuturo(turnos, hoy),
-      historial: historialTurnos(turnos, hoy),
+      reservado: reservadoFuturo(turnos, ahora),
+      historial: historialTurnos(turnos, ahora),
     };
   }, [turnos, canchas, hoy]);
 
