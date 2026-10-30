@@ -112,6 +112,12 @@ export default function SeccionResenas({ club, onResumen }) {
                   <Estrellas valor={r.estrellas} tam={15} />
                 </div>
                 {r.comentario && <p>{r.comentario}</p>}
+                {r.respuesta && (
+                  <div className="gp-rs-respuesta">
+                    <strong>Respuesta del club</strong>
+                    <p>{r.respuesta}</p>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

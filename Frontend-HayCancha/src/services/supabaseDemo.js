@@ -174,8 +174,10 @@ const resenasBase = [
 let idResena = 1;
 const resenas = resenasBase.map(([club_id, autor, estrellas, comentario, delta]) => ({
   id: idResena++, club_id, usuario_id: `demo-${autor}`, autor, estrellas, comentario: comentario || null,
-  created_at: new Date(Date.now() + delta * 86400000).toISOString(), oculta: false,
+  created_at: new Date(Date.now() + delta * 86400000).toISOString(), oculta: false, respuesta: null, respondida_en: null,
 }));
+// Una reseña del club demo ya respondida, para ver cómo queda
+Object.assign(resenas.find((r) => r.autor === 'Joaquín R.'), { respuesta: '¡Gracias Joaquín! Te esperamos el próximo partido.', respondida_en: new Date().toISOString() });
 
 // Escenarios de suscripción del demo: localStorage.setItem('demoRol', 'cliente' | 'admin-prueba' | 'admin-prueba-corta' | 'admin-vencida' | 'admin-baja' | 'admin-cancelada')
 const enDias = (n) => new Date(Date.now() + n * 86400000).toISOString();
@@ -338,17 +340,25 @@ const rpcs = {
   resenas_club: ({ p_club_id, p_limite = 20, p_desde = 0 }) => ok(
     resenas.filter((r) => r.club_id === p_club_id)
       .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(p_desde, p_desde + p_limite)
-      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.oculta ? null : r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO })),
+      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.oculta ? null : r.comentario, created_at: r.created_at, autor: r.autor, es_mia: r.usuario_id === ID_USUARIO, respuesta: r.respuesta, respondida_en: r.respondida_en })),
   ),
   resenas_de_mi_club: () => ok(
     resenas.filter((r) => r.club_id === ID_CLUB).sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, oculta: r.oculta, created_at: r.created_at, autor: r.autor })),
+      .map((r) => ({ id: r.id, estrellas: r.estrellas, comentario: r.comentario, oculta: r.oculta, created_at: r.created_at, autor: r.autor, respuesta: r.respuesta, respondida_en: r.respondida_en })),
   ),
   moderar_resena: ({ p_resena_id, p_oculta }) => {
     const resena = resenas.find((r) => r.id === p_resena_id && r.club_id === ID_CLUB);
     if (!resena) return falla('RESENA_NO_ENCONTRADA');
     resena.oculta = Boolean(p_oculta);
     return ok();
+  },
+  responder_resena: ({ p_resena_id, p_respuesta }) => {
+    const resena = resenas.find((r) => r.id === p_resena_id && r.club_id === ID_CLUB);
+    if (!resena) return falla('RESENA_NO_ENCONTRADA');
+    const texto = (p_respuesta || '').trim();
+    if (texto.length > 500) return falla('RESPUESTA_LARGA');
+    Object.assign(resena, { respuesta: texto || null, respondida_en: texto ? new Date().toISOString() : null });
+    return ok(resena.respondida_en);
   },
   iniciar_prueba: () => {
     if (tablas.suscripciones.some((s) => s.plan === 'prueba')) return falla('PRUEBA_YA_USADA');

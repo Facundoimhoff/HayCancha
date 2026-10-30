@@ -4,8 +4,13 @@ import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
 import { enviarCorreo, correoConfigurado, mailValido } from './lib/correo.js';
-import { bienvenidaClub, pruebaPorVencer, pruebaVencida, reservaNuevaClub, reservaConfirmadaJugador } from './lib/plantillas.js';
-import { avisoDePrueba, tienePlanPago, totalDeReserva, esReciente } from './lib/avisos.js';
+import {
+  bienvenidaClub, pruebaPorVencer, pruebaVencida, reservaNuevaClub, reservaConfirmadaJugador,
+  recordatorioJugador, cancelacionClub, cancelacionJugador, respuestaResena,
+} from './lib/plantillas.js';
+import {
+  avisoDePrueba, tienePlanPago, totalDeReserva, esReciente, correspondeRecordatorio, fechaArgentina, horaArgentina, HORA_RECORDATORIOS,
+} from './lib/avisos.js';
 import { verificarFirmaMP, estadoDesdeMP, planDesdeMotivo, buscarPlanCompatible, catalogoPublico, vigenciaTrasBaja, origenValido, PREFIJO_MOTIVO } from './lib/mercadopago.js';
 
 const app = express();
@@ -462,6 +467,146 @@ async function extenderTurnosFijos() {
 }
 const extenderTurnosFijosSinRomper = () => extenderTurnosFijos().catch((error) => console.error('Error al extender los turnos fijos:', error));
 
+// ---------- Recordatorios y avisos de cancelación (cada 5 minutos) ----------
+const mailDelClub = async (club) => (mailValido(club.correo_contacto) ? club.correo_contacto : mailDeUsuario(club.admin_id));
+
+/** Claves de avisos_enviados que ya existen (de a 100, para no armar URLs enormes). */
+async function yaEnviados(claves) {
+  const enviados = new Set();
+  for (let i = 0; i < claves.length; i += 100) {
+    const { data } = await supabaseAdmin.from('avisos_enviados').select('clave').in('clave', claves.slice(i, i + 100));
+    for (const fila of data || []) enviados.add(fila.clave);
+  }
+  return enviados;
+}
+
+/** Cancha y club de un turno, con caché por corrida (muchos turnos comparten cancha). */
+function lectorDeCanchas() {
+  const cache = new Map();
+  return async (canchaId) => {
+    if (!cache.has(canchaId)) {
+      cache.set(canchaId, (async () => {
+        const { data: cancha } = await supabaseAdmin.from('canchas').select('nombre, club_id').eq('id', canchaId).maybeSingle();
+        if (!cancha) return null;
+        const { data: club } = await supabaseAdmin.from('clubes')
+          .select('id, nombre, direccion, ciudad, correo_contacto, telefono_contacto, admin_id').eq('id', cancha.club_id).maybeSingle();
+        return club ? { cancha, club } : null;
+      })());
+    }
+    return cache.get(canchaId);
+  };
+}
+
+/** Jugador canceló → mail al club. Club canceló la reserva de un jugador → mail al jugador. */
+async function avisarCancelaciones(datosDe) {
+  const desde = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data: filas, error } = await supabaseAdmin.from('turnos_cancelados').select('*').gte('created_at', desde).order('id').limit(300);
+  if (error) {
+    if (!['PGRST205', '42P01'].includes(error.code)) console.error('No se pudieron leer las cancelaciones:', error.message);
+    return; // sin la migración cancelaciones_y_respuestas la tabla no existe todavía
+  }
+  const enviados = await yaEnviados(filas.map((f) => `cancelacion:${f.id}`));
+  for (const f of filas) {
+    const clave = `cancelacion:${f.id}`;
+    if (enviados.has(clave)) continue;
+    const datos = await datosDe(f.cancha_id);
+    if (!datos) continue;
+    const { cancha, club } = datos;
+    const base = { club: club.nombre, cancha: cancha.nombre, fecha: f.fecha, hora: String(f.hora_inicio).slice(0, 5) };
+
+    if (f.cancelado_por === 'jugador') {
+      const para = await mailDelClub(club);
+      if (para) {
+        await enviarUnaVez(clave, 'cancelacion-club', {
+          para, ...cancelacionClub({ ...base, jugador: f.nombre_cliente, telefono: f.telefono_cliente, panelUrl: PANEL_URL }),
+        });
+      }
+    } else if (f.usuario_id) {
+      const para = await mailDeUsuario(f.usuario_id);
+      if (para) {
+        await enviarUnaVez(clave, 'cancelacion-jugador', {
+          para,
+          responderA: await mailDelClub(club),
+          ...cancelacionJugador({ ...base, telefonoClub: club.telefono_contacto, clubUrl: `${FRONTEND_URL}/club/${club.id}` }),
+        });
+      }
+    }
+  }
+}
+
+/** "Mañana tenés turno": desde las 10:00 del día anterior, una vez por reserva. */
+async function mandarRecordatorios(datosDe) {
+  const ahora = new Date();
+  if (horaArgentina(ahora) < HORA_RECORDATORIOS) return;
+  const { data: turnos, error } = await supabaseAdmin
+    .from('turnos')
+    .select('id, cancha_id, fecha, hora_inicio, precio_final, extras, usuario_id, telefono_cliente, created_at')
+    .eq('fecha', fechaArgentina(ahora, 1))
+    .not('usuario_id', 'is', null)
+    .limit(1000);
+  if (error) { console.error('No se pudieron leer los turnos de mañana:', error.message); return; }
+
+  const candidatos = (turnos || []).filter((t) => correspondeRecordatorio(t, ahora));
+  const enviados = await yaEnviados(candidatos.map((t) => `recordatorio:${t.id}`));
+  for (const t of candidatos) {
+    const clave = `recordatorio:${t.id}`;
+    if (enviados.has(clave)) continue;
+    const datos = await datosDe(t.cancha_id);
+    const para = datos && await mailDeUsuario(t.usuario_id);
+    if (!para) continue;
+    const { cancha, club } = datos;
+    await enviarUnaVez(clave, 'recordatorio', {
+      para,
+      responderA: await mailDelClub(club),
+      ...recordatorioJugador({
+        club: club.nombre, cancha: cancha.nombre, fecha: t.fecha, hora: String(t.hora_inicio).slice(0, 5),
+        direccion: [club.direccion, club.ciudad].filter(Boolean).join(', '),
+        extras: t.extras, total: totalDeReserva(t), reservaUrl: `${FRONTEND_URL}/mis-reservas?turno=${t.id}`,
+      }),
+    });
+  }
+}
+
+async function avisosDeTurnos() {
+  if (!supabaseAdmin || !correoConfigurado()) return;
+  const datosDe = lectorDeCanchas();
+  await avisarCancelaciones(datosDe);
+  await mandarRecordatorios(datosDe);
+}
+const avisosDeTurnosSinRomper = () => avisosDeTurnos().catch((error) => console.error('Error en los avisos de turnos:', error));
+
+// El dueño respondió una reseña: aviso al jugador (solo la primera respuesta, no cada edición).
+app.post('/api/avisos/respuesta-resena', limiteAvisos, async (req, res) => {
+  if (!supabaseAdmin) return res.sendStatus(503);
+  const user = await usuarioDeLaSolicitud(req);
+  if (!user) return res.status(401).json({ error: 'Iniciá sesión' });
+
+  const idResena = Number(req.body?.resena_id);
+  if (!Number.isSafeInteger(idResena) || idResena <= 0) return res.status(400).json({ error: 'Reseña inválida' });
+
+  try {
+    const { data: resena } = await supabaseAdmin.from('resenas').select('id, club_id, usuario_id, respuesta').eq('id', idResena).maybeSingle();
+    const { data: club } = resena
+      ? await supabaseAdmin.from('clubes').select('id, nombre, admin_id, correo_contacto').eq('id', resena.club_id).maybeSingle()
+      : { data: null };
+    if (!resena || !club || club.admin_id !== user.id || !resena.respuesta) {
+      return res.status(404).json({ error: 'No encontramos esa reseña' });
+    }
+    const para = resena.usuario_id ? await mailDeUsuario(resena.usuario_id) : null;
+    if (para) {
+      await enviarUnaVez(`respuesta-resena:${resena.id}`, 'respuesta-resena', {
+        para,
+        responderA: await mailDelClub(club),
+        ...respuestaResena({ club: club.nombre, respuesta: resena.respuesta, clubUrl: `${FRONTEND_URL}/club/${club.id}` }),
+      });
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error en el aviso de respuesta:', error);
+    res.status(500).json({ error: 'No se pudo enviar el aviso' });
+  }
+});
+
 // Las rutas /api/buscar y /api/clubes/:id devolvían datos de prueba fijos y no las usa el frontend
 // (consulta Supabase directamente, protegido por RLS): se eliminaron para no exponer respuestas falsas.
 
@@ -475,6 +620,8 @@ app.listen(PORT, () => {
   console.log(correoConfigurado() ? 'Avisos por mail: encendidos' : 'Avisos por mail: apagados (faltan RESEND_API_KEY / CORREO_REMITENTE)');
   setTimeout(revisarPruebasSinRomper, 60_000).unref();
   setInterval(revisarPruebasSinRomper, 60 * 60_000).unref();
+  setTimeout(avisosDeTurnosSinRomper, 120_000).unref();
+  setInterval(avisosDeTurnosSinRomper, 5 * 60_000).unref();
   setTimeout(extenderTurnosFijosSinRomper, 90_000).unref();
   setInterval(extenderTurnosFijosSinRomper, 60 * 60_000).unref();
 });

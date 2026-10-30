@@ -113,3 +113,39 @@ test('correo: sin configurar no manda nada, y valida el destinatario', async () 
   if (antes.clave === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = antes.clave;
   if (antes.remitente === undefined) delete process.env.CORREO_REMITENTE; else process.env.CORREO_REMITENTE = antes.remitente;
 });
+
+test('fechaArgentina / horaArgentina: UTC-3 sin horario de verano', async () => {
+  const { fechaArgentina, horaArgentina } = await import('../lib/avisos.js');
+  const tarde = new Date('2026-10-31T02:30:00Z'); // 23:30 del 30/10 en Argentina
+  assert.equal(fechaArgentina(tarde), '2026-10-30');
+  assert.equal(fechaArgentina(tarde, 1), '2026-10-31');
+  assert.equal(horaArgentina(tarde), 23);
+});
+
+test('correspondeRecordatorio: desde las 10 del día anterior, solo reservas de jugadores y no recién hechas', async () => {
+  const { correspondeRecordatorio } = await import('../lib/avisos.js');
+  const turno = { fecha: '2026-10-31', usuario_id: 'u1', telefono_cliente: '3564', created_at: '2026-10-20T12:00:00Z' };
+  const a10 = new Date('2026-10-30T13:00:00Z'); // 10:00 en Argentina
+  const a9 = new Date('2026-10-30T12:00:00Z');  // 09:00
+  assert.equal(correspondeRecordatorio(turno, a10), true);
+  assert.equal(correspondeRecordatorio(turno, a9), false);
+  assert.equal(correspondeRecordatorio({ ...turno, fecha: '2026-11-01' }, a10), false);
+  assert.equal(correspondeRecordatorio({ ...turno, usuario_id: null }, a10), false); // cargado a mano por el club
+  assert.equal(correspondeRecordatorio({ ...turno, telefono_cliente: 'BLOQUEO' }, a10), false);
+  assert.equal(correspondeRecordatorio({ ...turno, created_at: '2026-10-30T11:00:00Z' }, a10), false); // reservó hace 2 horas
+  assert.equal(correspondeRecordatorio({ ...turno, created_at: '2026-10-30T06:00:00Z' }, a10), true);  // hace 7 horas
+});
+
+test('plantillas nuevas: recordatorio, cancelaciones y respuesta escapan lo que escribe el usuario', async () => {
+  const { recordatorioJugador, cancelacionClub, cancelacionJugador, respuestaResena } = await import('../lib/plantillas.js');
+  const r = recordatorioJugador({ club: 'Club <b>', cancha: 'Cancha 1', fecha: '2026-10-31', hora: '21:00', total: 42000, reservaUrl: 'https://x/mis-reservas?turno=5' });
+  assert.match(r.asunto, /^Mañana tenés turno a las 21:00 hs/);
+  assert.match(r.html, /Ver o cancelar mi turno/);
+  assert.match(r.html, /mis-reservas\?turno=5/);
+  assert.ok(!r.html.includes('<b>') && r.html.includes('&lt;b&gt;'));
+  const c = cancelacionClub({ club: 'Club', cancha: 'Cancha 1', fecha: '2026-10-31', hora: '21:00', jugador: '<script>', telefono: '1', panelUrl: 'https://x/panel' });
+  assert.ok(!c.html.includes('<script>'));
+  assert.match(cancelacionJugador({ club: 'Club', cancha: 'C', fecha: '2026-10-31', hora: '21:00', clubUrl: 'https://x/club/1' }).asunto, /Club canceló tu turno/);
+  const resp = respuestaResena({ club: 'Club', respuesta: 'Gracias <3', clubUrl: 'https://x/club/1' });
+  assert.ok(resp.html.includes('Gracias &lt;3') && resp.texto.includes('Gracias <3'));
+});

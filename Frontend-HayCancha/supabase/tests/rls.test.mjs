@@ -613,6 +613,78 @@ await intenta('select public.extender_mis_turnos_fijos()');
 const quedanLuego = (await intenta(`select count(*)::int n from public.turnos where turno_fijo_id = ${fijo?.id}`)).r?.rows[0].n;
 ok('Turnos fijos: terminarlo borra los turnos que vienen y no genera más', a.r?.rows[0].n > 0 && quedan === 0 && quedanLuego === 0, a.e || `borró ${a.r?.rows[0].n}, quedan ${quedan}/${quedanLuego}`);
 
+// ---------- 16. Registro de cancelaciones (para los avisos por mail) ----------
+const cancelacionDe = async (idTurno) => {
+  await raiz();
+  return (await db.query(`select cancelado_por, usuario_id from public.turnos_cancelados where turno_id = ${Number(idTurno) || 0}`)).rows;
+};
+await como('authenticated', U_JUG);
+a = await intenta(`select public.crear_reserva('${C67}', '${sumar(5)}', '15:00', 'Jugador Quince', '3564222333') id`);
+const idCancelaJugador = a.r?.rows[0].id;
+await intenta(`delete from public.turnos where id = ${idCancelaJugador}`);
+let reg = await cancelacionDe(idCancelaJugador);
+ok('Cancelaciones: si el jugador cancela, queda registrado como "jugador"', reg.length === 1 && reg[0].cancelado_por === 'jugador' && reg[0].usuario_id === U_JUG, JSON.stringify(reg));
+
+await como('authenticated', U_JUG);
+a = await intenta(`select public.crear_reserva('${C67}', '${sumar(6)}', '15:00', 'Jugador Quince', '3564222333') id`);
+const idCancelaClub = a.r?.rows[0].id;
+await como('authenticated', U.sani);
+await intenta(`delete from public.turnos where id = ${idCancelaClub}`);
+reg = await cancelacionDe(idCancelaClub);
+ok('Cancelaciones: si el club cancela la reserva de un jugador, queda registrado como "club"', reg.length === 1 && reg[0].cancelado_por === 'club' && reg[0].usuario_id === U_JUG, JSON.stringify(reg));
+
+await como('authenticated', U.sani);
+a = await intenta(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente) values ('${C67}', '${sumar(7)}', '15:00', 'Manual', '3564999999') returning id`);
+const idManual = a.r?.rows[0].id;
+await intenta(`delete from public.turnos where id = ${idManual}`);
+a = await intenta(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente) values ('${C67}', '${sumar(7)}', '16:00', 'Bloqueo por: x', 'BLOQUEO') returning id`);
+const idBloqueo = a.r?.rows[0].id;
+await intenta(`delete from public.turnos where id = ${idBloqueo}`);
+await raiz();
+const idPasado = (await db.query(`insert into public.turnos (cancha_id, fecha, hora_inicio, nombre_cliente, telefono_cliente, usuario_id) values ('${C67}', '${sumar(-2)}', '15:00', 'Pasado', '3564222333', '${U_JUG}') returning id`)).rows[0].id;
+await como('authenticated', U.sani);
+await intenta(`delete from public.turnos where id = ${idPasado}`);
+const sinRegistro = [...await cancelacionDe(idManual), ...await cancelacionDe(idBloqueo), ...await cancelacionDe(idPasado)];
+ok('Cancelaciones: no se registran turnos manuales del club, bloqueos ni turnos ya jugados', sinRegistro.length === 0, JSON.stringify(sinRegistro));
+
+await como('authenticated', U_JUG);
+a = await intenta('select * from public.turnos_cancelados');
+const leeJugador = !!a.e;
+await como('authenticated', U.sani);
+a = await intenta('select * from public.turnos_cancelados');
+const leeDuenoCancel = !!a.e;
+await como('anon');
+a = await intenta('select * from public.turnos_cancelados');
+ok('Cancelaciones: el registro no lo lee nadie desde la app (solo el backend)', leeJugador && leeDuenoCancel && !!a.e, a.e);
+
+// ---------- 17. Respuestas del dueño a las reseñas ----------
+await raiz();
+const idResenaResp = (await db.query(`insert into public.resenas (club_id, usuario_id, estrellas, comentario) values ('${CLUB_SANI}', '${U_JUG}', 4, 'Muy buena cancha') returning id`)).rows[0].id;
+await como('authenticated', U.sport);
+a = await intenta(`select public.responder_resena(${idResenaResp}, 'Intruso')`);
+ok('Respuestas: otro dueño no puede responder una reseña ajena', a.e?.includes('RESENA_NO_ENCONTRADA'), a.e);
+await como('authenticated', U_JUG);
+a = await intenta(`select public.responder_resena(${idResenaResp}, 'Me respondo')`);
+ok('Respuestas: el jugador no puede responder', a.e?.includes('RESENA_NO_ENCONTRADA'), a.e);
+await como('anon');
+a = await intenta(`select public.responder_resena(${idResenaResp}, 'Anon')`);
+ok('Respuestas: el anónimo no puede responder', !!a.e, a.e);
+await como('authenticated', U.sani);
+a = await intenta(`select public.responder_resena(${idResenaResp}, '¡Gracias por venir!') f`);
+ok('Respuestas: el dueño responde una reseña de su club', !a.e && !!a.r?.rows[0].f, a.e);
+a = await intenta(`select public.responder_resena(${idResenaResp}, '${'x'.repeat(501)}')`);
+ok('Respuestas: no se aceptan respuestas de más de 500 caracteres', a.e?.includes('RESPUESTA_LARGA'), a.e);
+a = await intenta(`select respuesta from public.resenas_de_mi_club() where id = ${idResenaResp}`);
+ok('Respuestas: el dueño la ve en su panel', a.r?.rows[0]?.respuesta === '¡Gracias por venir!', a.e || JSON.stringify(a.r?.rows[0]));
+await como('anon');
+a = await intenta(`select respuesta, respondida_en from public.resenas_club('${CLUB_SANI}') where id = ${idResenaResp}`);
+ok('Respuestas: se publica debajo de la reseña', a.r?.rows[0]?.respuesta === '¡Gracias por venir!' && !!a.r.rows[0].respondida_en, a.e || JSON.stringify(a.r?.rows[0]));
+await como('authenticated', U.sani);
+await intenta(`select public.responder_resena(${idResenaResp}, '   ')`);
+await como('anon');
+a = await intenta(`select respuesta, respondida_en from public.resenas_club('${CLUB_SANI}') where id = ${idResenaResp}`);
+ok('Respuestas: con texto vacío se borra la respuesta', a.r?.rows[0] && a.r.rows[0].respuesta === null && a.r.rows[0].respondida_en === null, a.e || JSON.stringify(a.r?.rows[0]));
+
 // ---------- Resumen ----------
 const fallos = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'OK   ' : 'FALLA') + ' ' + r.nombre + (r.ok || !r.detalle ? '' : '  -> ' + r.detalle));

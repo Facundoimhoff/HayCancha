@@ -124,6 +124,80 @@ ${boton(panelUrl, 'Ver en mi panel')}`,
   };
 }
 
+const tabla = (filas, ancho = '30%') => `<table style="width:100%;border-collapse:collapse;font-size:15px">${filas.map(([k, v]) => `<tr><td style="padding:7px 0;color:#64748b;width:${ancho};vertical-align:top">${esc(k)}</td><td style="padding:7px 0;font-weight:700">${esc(v)}</td></tr>`).join('')}</table>`;
+
+/** Al jugador, el día anterior: "mañana tenés turno". */
+export function recordatorioJugador({ club, cancha, fecha, hora, direccion, extras, total, reservaUrl }) {
+  const cuando = `mañana, ${fechaLarga(fecha)}, a las ${hora} hs`;
+  const lista = lineaExtras(extras);
+  const filas = [
+    ['Dónde', [cancha, club].filter(Boolean).join(' · ')],
+    ...(direccion ? [['Dirección', direccion]] : []),
+    ['Cuándo', cuando],
+    ...(lista.length ? [['Extras', lista.join(', ')]] : []),
+    ['Total', `${moneda(total)} (se paga en el club)`],
+  ];
+  return {
+    asunto: paraAsunto(`Mañana tenés turno a las ${hora} hs en ${club || 'el club'}`),
+    html: marco({
+      titulo: 'Mañana tenés turno',
+      cuerpo: `${tabla(filas)}
+${boton(reservaUrl, 'Ver o cancelar mi turno')}
+<p style="margin:0">Si no podés ir, cancelalo así el club libera el horario para otros jugadores.</p>`,
+      pie: PIE_JUGADOR,
+    }),
+    texto: `Mañana tenés turno.\n\n${filas.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nSi no podés ir, cancelalo así el club libera el horario: ${reservaUrl}\n\n${PIE_JUGADOR}`,
+  };
+}
+
+/** Al club: un jugador canceló su reserva. */
+export function cancelacionClub({ club, cancha, fecha, hora, jugador, telefono, panelUrl }) {
+  const cuando = `${fechaLarga(fecha)} a las ${hora} hs`;
+  const filas = [['Cancha', cancha], ['Cuándo', cuando], ['Jugador', jugador], ['Teléfono', telefono]];
+  return {
+    asunto: paraAsunto(`Turno cancelado: ${cancha}, ${cuando}`),
+    html: marco({
+      titulo: 'Un jugador canceló su turno',
+      cuerpo: `<p style="margin:0 0 14px">Se canceló una reserva en <strong>${esc(club)}</strong>. El horario quedó libre para otra reserva.</p>
+${tabla(filas, '38%')}
+${boton(panelUrl, 'Ver mi panel')}`,
+      pie: PIE_CLUB,
+    }),
+    texto: `Un jugador canceló su turno en ${club}. El horario quedó libre.\n\n${filas.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nTu panel: ${panelUrl}\n\n${PIE_CLUB}`,
+  };
+}
+
+/** Al jugador: el club canceló su reserva. */
+export function cancelacionJugador({ club, cancha, fecha, hora, telefonoClub, clubUrl }) {
+  const cuando = `${fechaLarga(fecha)} a las ${hora} hs`;
+  const filas = [['Club', club], ['Cancha', cancha], ['Cuándo', cuando], ...(telefonoClub ? [['Teléfono del club', telefonoClub]] : [])];
+  return {
+    asunto: paraAsunto(`${club || 'El club'} canceló tu turno del ${cuando}`),
+    html: marco({
+      titulo: 'El club canceló tu turno',
+      cuerpo: `${tabla(filas)}
+<p style="margin:14px 0 0">Si tenés dudas, comunicate con el club. Podés elegir otro horario cuando quieras.</p>
+${boton(clubUrl, 'Reservar otro horario')}`,
+      pie: PIE_JUGADOR,
+    }),
+    texto: `${club || 'El club'} canceló tu turno.\n\n${filas.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nSi tenés dudas, comunicate con el club. Reservá otro horario: ${clubUrl}\n\n${PIE_JUGADOR}`,
+  };
+}
+
+/** Al jugador: el club respondió su reseña. */
+export function respuestaResena({ club, respuesta, clubUrl }) {
+  return {
+    asunto: paraAsunto(`${club || 'El club'} respondió tu reseña`),
+    html: marco({
+      titulo: `${esc(club || 'El club')} respondió tu reseña`,
+      cuerpo: `<blockquote style="margin:0 0 4px;padding:12px 16px;border-left:4px solid #22c55e;background:#f8fafc;border-radius:6px;white-space:pre-line">${esc(respuesta)}</blockquote>
+${boton(clubUrl, 'Ver en GridPlay')}`,
+      pie: 'Recibís este mail porque dejaste una reseña con tu cuenta de GridPlay.',
+    }),
+    texto: `${club || 'El club'} respondió tu reseña:\n\n"${respuesta}"\n\nVer en GridPlay: ${clubUrl}`,
+  };
+}
+
 /** Al jugador: su reserva quedó confirmada. */
 export function reservaConfirmadaJugador({ club, cancha, fecha, hora, direccion, extras, total, reservasUrl }) {
   const cuando = `${fechaLarga(fecha)} a las ${hora} hs`;

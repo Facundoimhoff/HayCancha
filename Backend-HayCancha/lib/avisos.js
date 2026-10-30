@@ -40,6 +40,30 @@ export function totalDeReserva(turno) {
   return (Number(turno?.precio_final) || 0) + extras.reduce((a, e) => a + (Number(e?.subtotal) || 0), 0);
 }
 
+// Argentina no tiene horario de verano: siempre UTC-3.
+const DESFASE_ARGENTINA_MS = -3 * 3600000;
+export const HORA_RECORDATORIOS = 10;
+const HORAS_MINIMAS_DESDE_RESERVA = 6;
+
+/** Fecha (AAAA-MM-DD) en Argentina, corrida `dias` días. */
+export function fechaArgentina(ahora = new Date(), dias = 0) {
+  return new Date(ahora.getTime() + DESFASE_ARGENTINA_MS + dias * MS_DIA).toISOString().slice(0, 10);
+}
+
+/** Hora (0-23) en Argentina. */
+export const horaArgentina = (ahora = new Date()) => new Date(ahora.getTime() + DESFASE_ARGENTINA_MS).getUTCHours();
+
+/**
+ * ¿Le corresponde HOY el recordatorio "mañana tenés turno"? Sale desde las 10:00 del día anterior.
+ * No se manda si la reserva se hizo hace menos de 6 horas: acaba de recibir la confirmación.
+ */
+export function correspondeRecordatorio(turno, ahora = new Date()) {
+  if (!turno?.usuario_id || turno.telefono_cliente === 'BLOQUEO') return false;
+  if (turno.fecha !== fechaArgentina(ahora, 1) || horaArgentina(ahora) < HORA_RECORDATORIOS) return false;
+  const creado = new Date(turno.created_at);
+  return Number.isNaN(creado.getTime()) || ahora - creado >= HORAS_MINIMAS_DESDE_RESERVA * 3600000;
+}
+
 /** Solo se avisa de reservas recién hechas: evita que alguien dispare mails de turnos viejos. */
 export function esReciente(creado, ahora = new Date(), minutos = 30) {
   const fecha = new Date(creado);

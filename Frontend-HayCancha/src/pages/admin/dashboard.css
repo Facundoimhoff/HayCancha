@@ -542,9 +542,24 @@
 .dash-resena-cuerpo p { margin: 6px 0 0; color: var(--color-slate-700); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 .dash-resena.oculta .dash-resena-cuerpo p { color: var(--color-slate-500); text-decoration: line-through; }
 .dash-resena-cuerpo p.dash-resena-sin-texto { color: var(--color-slate-500); text-decoration: none; }
+.dash-resena-botones { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+
+/* Respuesta del club a una reseña */
+.dash-resena-respuesta { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--color-brand-500); border-radius: 0 10px 10px 0; background: var(--color-slate-50); }
+.dash-resena-respuesta strong { font-size: 12.5px; color: var(--text-strong); }
+.dash-resena .dash-resena-cuerpo .dash-resena-respuesta p { margin: 4px 0 0; text-decoration: none; color: var(--color-slate-700); white-space: pre-line; }
+.dash-resena-respuesta-acciones { display: flex; gap: 14px; margin-top: 6px; }
+.dash-btn-link { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: var(--color-brand-700); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.dash-btn-link:hover { text-decoration: underline; }
+.dash-btn-link:disabled { opacity: 0.5; cursor: default; }
+.dash-btn-link--peligro { color: #b91c1c; }
+.dash-resena-responder { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.dash-resena-responder label { font-size: 12.5px; font-weight: 600; color: var(--color-slate-600); }
+.dash-resena-responder-pie { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.dash-resena-responder-pie small { margin-right: auto; color: var(--color-slate-500); font-size: 12px; }
 @media (max-width: 640px) {
   .dash-resena { flex-wrap: wrap; }
-  .dash-resena > .dash-btn { width: 100%; justify-content: center; }
+  .dash-resena > .dash-btn, .dash-resena-botones { width: 100%; justify-content: center; }
   .dash-plan-acciones .dash-btn { width: 100%; justify-content: center; }
 }
 

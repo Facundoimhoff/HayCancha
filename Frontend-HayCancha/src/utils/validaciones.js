@@ -67,6 +67,7 @@ const MENSAJES_SERVIDOR = {
   CLUB_SIN_SUSCRIPCION: 'Este club no está recibiendo reservas por ahora.',
   CUENTA_REQUERIDA: 'Creá tu cuenta para continuar.',
   RESENA_NO_ENCONTRADA: 'No encontramos esa reseña.',
+  RESPUESTA_LARGA: 'La respuesta puede tener hasta 500 caracteres.',
 };
 
 /** Traduce los códigos que lanzan las funciones SQL (`raise exception 'CODIGO'`) a texto para el usuario. */

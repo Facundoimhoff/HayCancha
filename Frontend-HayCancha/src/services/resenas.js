@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { postApi } from './api';
 
 // Reseñas de clubes. Las lecturas nunca rompen la pantalla: si la base todavía no tiene las funciones
 // (migración pendiente) o falla la red, devuelven "sin datos" y la interfaz muestra "Sin reseñas todavía".
@@ -66,6 +67,17 @@ export const resenasDeMiClub = async () => {
 export const moderarResena = async (id, oculta) => {
   const { error } = await supabase.rpc('moderar_resena', { p_resena_id: id, p_oculta: oculta });
   if (error) throw error;
+};
+
+/**
+ * Panel del dueño: responde una reseña (con texto vacío, borra la respuesta). Devuelve la fecha de la
+ * respuesta o null si se borró. La primera vez que responde, el backend le avisa al jugador por mail.
+ */
+export const responderResena = async (id, texto) => {
+  const { data, error } = await supabase.rpc('responder_resena', { p_resena_id: id, p_respuesta: texto });
+  if (error) throw error;
+  if (data) postApi('/api/avisos/respuesta-resena', { resena_id: id }); // si el aviso falla, la respuesta igual quedó guardada
+  return data || null;
 };
 
 /** Últimas reseñas buenas de cualquier club, para la portada. Devuelve [] si falla o si no hay. */

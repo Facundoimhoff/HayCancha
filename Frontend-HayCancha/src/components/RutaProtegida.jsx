@@ -17,7 +17,8 @@ export default function RutaProtegida({ rol, children }) {
 
   if (!user) {
     const login = rol === 'admin' ? '/login-admin' : '/login-cliente';
-    return <Navigate to={login} replace state={{ from: location.pathname }} />;
+    // Con el ?turno=… de los mails incluido: después de iniciar sesión vuelve al mismo turno
+    return <Navigate to={login} replace state={{ from: location.pathname + location.search }} />;
   }
 
   if (rol === 'admin' && !ROLES_ADMIN.includes(rolActual)) {

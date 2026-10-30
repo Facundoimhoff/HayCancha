@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   CalendarX2, ArrowLeft, Plus, MapPin, Navigation, MessageCircle, ShoppingBag, Star, RotateCcw, Trash2, History, UserRound,
 } from 'lucide-react';
@@ -43,6 +43,9 @@ const MisReservas = () => {
   const [conExtras, setConExtras] = useState(null);
   const [aCalificar, setACalificar] = useState(null);
   const [mensaje, setMensaje] = useState('');
+  // Los mails de recordatorio traen ?turno=<id>: se marca y se muestra esa reserva
+  const [parametros] = useSearchParams();
+  const turnoMarcado = Number(parametros.get('turno')) || null;
 
   useEffect(() => {
     let cancelado = false;
@@ -85,6 +88,12 @@ const MisReservas = () => {
   }, [turnos]);
 
   const visibles = pestana === 'proximas' ? proximas : historial;
+
+  // Al llegar desde el mail, lleva la vista hasta el turno marcado
+  useEffect(() => {
+    if (!turnoMarcado || cargando) return;
+    document.getElementById(`reserva-${turnoMarcado}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [turnoMarcado, cargando]);
 
   const avisar = (texto) => {
     setMensaje(texto);
@@ -178,7 +187,7 @@ const MisReservas = () => {
               const whatsapp = enlaceWhatsApp(club?.telefono_contacto, `Hola! Consulto por mi reserva del ${fechaLarga(turno.fecha)} a las ${turno.hora_inicio} hs en ${turno.cancha?.nombre || 'la cancha'}.`);
 
               return (
-                <li key={turno.id} className={`mr-tarjeta ${futura ? '' : 'pasada'}`}>
+                <li key={turno.id} id={`reserva-${turno.id}`} className={`mr-tarjeta ${futura ? '' : 'pasada'} ${turno.id === turnoMarcado ? 'marcada' : ''}`}>
                   <div className="mr-fecha" aria-hidden="true">
                     <span>{parte.semana}</span>
                     <strong>{parte.dia}</strong>

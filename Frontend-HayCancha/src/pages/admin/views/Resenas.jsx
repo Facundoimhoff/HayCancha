@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, MessageSquareText, Star } from 'lucide-react';
+import { Eye, EyeOff, MessageSquareText, Star, Reply, Pencil, Trash2 } from 'lucide-react';
 import { Panel, Chip, Vacio } from '../components/ui.jsx';
 import { Estrellas } from '../../../components/user/Estrellas';
-import { resenasDeMiClub, moderarResena } from '../../../services/resenas';
+import { resenasDeMiClub, moderarResena, responderResena } from '../../../services/resenas';
 import { mensajeDeServidor } from '../../../utils/validaciones';
 import { formatoPromedio } from '../../../utils/reservas';
 import { pluralizar } from '../lib/formato.js';
@@ -41,6 +41,25 @@ const Resenas = () => {
     }
   };
 
+  // Respuesta del club: { id, texto } de la reseña que se está respondiendo o editando
+  const [respondiendo, setRespondiendo] = useState(null);
+
+  const guardarRespuesta = async (resena, texto) => {
+    setError('');
+    setEnCurso(resena.id);
+    try {
+      const fecha = await responderResena(resena.id, texto);
+      const respuesta = fecha ? texto.trim() : null;
+      setLista((actual) => actual.map((r) => (r.id === resena.id ? { ...r, respuesta, respondida_en: fecha } : r)));
+      setRespondiendo(null);
+    } catch (err) {
+      console.error('No se pudo guardar la respuesta:', err);
+      setError(mensajeDeServidor(err, 'No pudimos guardar la respuesta. Intentá de nuevo.'));
+    } finally {
+      setEnCurso(null);
+    }
+  };
+
   const total = lista?.length || 0;
   const promedio = total ? lista.reduce((a, r) => a + r.estrellas, 0) / total : 0;
   const ocultas = lista?.filter((r) => r.oculta).length || 0;
@@ -64,7 +83,7 @@ const Resenas = () => {
 
       <Panel
         titulo="Todas las reseñas"
-        descripcion="Podés ocultar un comentario fuera de lugar. Las estrellas siguen contando en tu promedio."
+        descripcion="Respondé a tus jugadores u ocultá un comentario fuera de lugar. Las estrellas siguen contando en tu promedio."
         flush
       >
         {error && <p className="dash-error dash-error--panel" role="alert">{error}</p>}
@@ -90,12 +109,44 @@ const Resenas = () => {
                   {r.comentario
                     ? <p>{r.comentario}</p>
                     : <p className="dash-resena-sin-texto">Sin comentario.</p>}
+
+                  {respondiendo?.id === r.id ? (
+                    <form className="dash-resena-responder" onSubmit={(e) => { e.preventDefault(); guardarRespuesta(r, respondiendo.texto); }}>
+                      <label htmlFor={`respuesta-${r.id}`}>Tu respuesta (se publica debajo de la reseña)</label>
+                      <textarea id={`respuesta-${r.id}`} className="dash-input dash-textarea" rows={3} maxLength={500} autoFocus
+                        value={respondiendo.texto} onChange={(e) => setRespondiendo({ id: r.id, texto: e.target.value })}
+                        placeholder="Ej: ¡Gracias por venir! Te esperamos de nuevo." />
+                      <div className="dash-resena-responder-pie">
+                        <small>{respondiendo.texto.length}/500</small>
+                        <button type="button" className="dash-btn dash-btn--secundario dash-btn--chico" onClick={() => setRespondiendo(null)} disabled={enCurso === r.id}>Cancelar</button>
+                        <button type="submit" className="dash-btn dash-btn--primario dash-btn--chico" disabled={enCurso === r.id || !respondiendo.texto.trim()}>
+                          {enCurso === r.id ? 'Guardando…' : 'Publicar respuesta'}
+                        </button>
+                      </div>
+                    </form>
+                  ) : r.respuesta ? (
+                    <div className="dash-resena-respuesta">
+                      <strong>Tu respuesta</strong>
+                      <p>{r.respuesta}</p>
+                      <div className="dash-resena-respuesta-acciones">
+                        <button type="button" className="dash-btn-link" onClick={() => setRespondiendo({ id: r.id, texto: r.respuesta })}><Pencil size={13} /> Editar</button>
+                        <button type="button" className="dash-btn-link dash-btn-link--peligro" onClick={() => guardarRespuesta(r, '')} disabled={enCurso === r.id}><Trash2 size={13} /> Borrar</button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-                {r.comentario && (
-                  <button type="button" className="dash-btn dash-btn--secundario dash-btn--chico" onClick={() => alternar(r)} disabled={enCurso === r.id}>
-                    {r.oculta ? <><Eye size={14} /> Volver a mostrar</> : <><EyeOff size={14} /> Ocultar comentario</>}
-                  </button>
-                )}
+                <div className="dash-resena-botones">
+                  {!r.respuesta && respondiendo?.id !== r.id && (
+                    <button type="button" className="dash-btn dash-btn--secundario dash-btn--chico" onClick={() => setRespondiendo({ id: r.id, texto: '' })}>
+                      <Reply size={14} /> Responder
+                    </button>
+                  )}
+                  {r.comentario && (
+                    <button type="button" className="dash-btn dash-btn--secundario dash-btn--chico" onClick={() => alternar(r)} disabled={enCurso === r.id}>
+                      {r.oculta ? <><Eye size={14} /> Volver a mostrar</> : <><EyeOff size={14} /> Ocultar comentario</>}
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
